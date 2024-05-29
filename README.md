@@ -10,4 +10,15 @@ See the [wiki tab](https://github.com/Macaulay2/Workshop-2024-Utah/wiki) for pro
 
 ## Projects
 
-TBA
+Here are the 8 project branches along with their status:
+
+Branch name | Status
+-- | --
+[CYTools](https://github.com/Macaulay2/Workshop-2024-Utah/tree/CYTools) | ![status](https://github.com/Macaulay2/Workshop-2024-Utah/actions/workflows/tests.yml/badge.svg?branch=CYTools)
+[DbCY](https://github.com/Macaulay2/Workshop-2024-Utah/tree/DbCY) | ![status](https://github.com/Macaulay2/Workshop-2024-Utah/actions/workflows/tests.yml/badge.svg?branch=DbCY)
+[GLInvariants](https://github.com/Macaulay2/Workshop-2024-Utah/tree/GLInvariants) | ![status](https://github.com/Macaulay2/Workshop-2024-Utah/actions/workflows/tests.yml/badge.svg?branch=GLInvariants)
+[NumberFields](https://github.com/Macaulay2/Workshop-2024-Utah/tree/NumberFields) | ![status](https://github.com/Macaulay2/Workshop-2024-Utah/actions/workflows/tests.yml/badge.svg?branch=NumberFields)
+[Radical](https://github.com/Macaulay2/Workshop-2024-Utah/tree/Radical) | ![status](https://github.com/Macaulay2/Workshop-2024-Utah/actions/workflows/tests.yml/badge.svg?branch=Radical)
+[RuledSurfaces](https://github.com/Macaulay2/Workshop-2024-Utah/tree/RuledSurfaces) | ![status](https://github.com/Macaulay2/Workshop-2024-Utah/actions/workflows/tests.yml/badge.svg?branch=RuledSurfaces)
+[ToricVarieties](https://github.com/Macaulay2/Workshop-2024-Utah/tree/ToricVarieties) | ![status](https://github.com/Macaulay2/Workshop-2024-Utah/actions/workflows/tests.yml/badge.svg?branch=ToricVarieties)
+[Varieties](https://github.com/Macaulay2/Workshop-2024-Utah/tree/Varieties) | ![status](https://github.com/Macaulay2/Workshop-2024-Utah/actions/workflows/tests.yml/badge.svg?branch=Varieties)
