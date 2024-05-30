@@ -11,16 +11,21 @@ on:
 jobs:
   test-bot:
     name: Testing ${{ github.head_ref || github.ref_name }}
-    runs-on: ubuntu-latest
-    container:
-      image: 'ghcr.io/macaulay2/testbot:latest'
-      volumes:
-        - '${{ github.workspace }}:/home/macaulay'
+    runs-on: macos-13
 
     steps:
       - name: Checkout the project repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Run testbot on project branch
+      - name: Installing M2 via Homebrew
         run: |
-          M2 --script tests/testbot.m2
+          brew install macaulay2/tap/M2
+
+      - name: Building ComputeGV
+        run: |
+          make -C ComputeGV
+
+      - name: Testing computeGV
+        run: |
+          cd ComputeGV
+          ./computeGV < example_input_3fold_hyper.txt
