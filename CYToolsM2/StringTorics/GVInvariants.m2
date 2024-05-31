@@ -41,7 +41,7 @@ gvInvariants = method(Options => {
     DegreeLimit => infinity,
     Precision => 150,
     FilePrefix => "foo",
-    Executable => "~/src/M2-workshops/Workshop-2024-Utah/ComputeGV/computeGV",
+    Executable => (options StringTorics).Configuration#"computeGV",
     KeepFiles => true
     })
 

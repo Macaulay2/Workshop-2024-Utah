@@ -10,6 +10,7 @@ newPackage(
         Headline => "toric variety functions for string theory",
         DebuggingMode => true,
         AuxiliaryFiles => true,
+        Configuration => { "computeGV" => "~/src/M2-workshops/Workshop-2024-Utah/ComputeGV/computeGV" },
         PackageExports => {
             "FourTiTwo", -- where is this used?
             "SimplicialComplexes",

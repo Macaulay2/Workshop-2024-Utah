@@ -22,6 +22,11 @@ path = join( { currentDirectory() | "CYToolsM2" }, path )
 --load "tests/example.m2"
 --capture get "tests/example.m2"
 
+loadPackage("IntegerEquivalences", FileName => currentDirectory() | "CYToolsM2/IntegerEquivalences.m2")
+installPackage IntegerEquivalences
+
+loadPackage("StringTorics", FileName => currentDirectory() | "CYToolsM2/StringTorics.m2",
+    Configuration => {"computeGV" => currentDirectory() | "ComputeGV/computeGV"} )
 installPackage("StringTorics", FileName => currentDirectory() | "CYToolsM2/StringTorics.m2")
 check StringTorics
 
