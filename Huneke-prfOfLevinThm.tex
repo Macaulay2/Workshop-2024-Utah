@@ -1,0 +1,138 @@
+
+
+
+\documentclass[11pt, oneside]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}                		% See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   		% ... or a4paper or a5paper or ... 
+%\geometry{landscape}                		% Activate for rotated page geometry
+%\usepackage[parfill]{parskip}    		% Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+	\usepackage{amsmath}
+	\usepackage{amsthm}							% TeX will automatically convert eps --> pdf in pdflatex		
+\usepackage{amssymb}
+\newtheorem{Theorem}{Theorem}
+
+%SetFonts
+
+%SetFonts
+
+
+\title{A Proof of Levin's Theorem}
+\author{Craig Huneke}
+%\date{}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+%\section{}
+%\subsection{}
+
+These are informal notes by Craig Huneke, written while he was teaching a course from
+the Queens Lecture notes by Gulliksen and Levin. The theorem is stated by
+Vasconcelos in his book ``Arithmetic of Blowup Algebras'' and attributed to 
+Levin-personal communication. Vasconcelos gives a proof of the easy half,
+but it seems that no proof of the harder half was published.
+
+	--DE
+
+\begin{Theorem}
+ Let $R$ be a local ring, $I$ an ideal in $R$ of finite projective
+dimension. Let
+$J$ be the ``content" of $I$ ,i.e. the ideal of all coefficients of relations
+on a minimal set of generators of I. If r= $\mu(I) > pd_RR/I $ then
+$(I:J)^r \subset I$.
+\end{Theorem}
+
+The proof depends on a lemma of Gulliksen's(Lemma 1.3.2 of Gulliksen-Levin)
+on the extension of derivations.
+If $A$ is a differential graded $R$-algebra,  a derivation $j$ of $A$ is an $R$-
+linear mapping  $A \to A$ of degree $w$ such that for $x \in A_p$ , $y \in
+A_q$
+$$ j(xy)=(-1)^{wq}j(x)y + xj(y) $$
+
+    Suppose $z$ is a cycle in $A_p$ and $B = \{ A\langle S \rangle ; dS =
+z\}$, the algebra obtained by adjoining to $A$ a variable to kill $z$.
+Gulliksen's lemma says that a derivation $j$ of $A$ of negative degree $-w$ may
+be
+extended   to $B$ if
+and only if $j(d(A_{p+1})) \subset d(A_{p-w+1}) $
+
+  In particular, if $A$ is an acyclic closure of the homomorphism $R \to R/I$,
+(begin with the Koszul complex over $R$ on a set of generators of $I$ and
+adjoin a sequence of variables $S_1,S_2,\ldots $ to kill all homology in
+degrees $>$ 0), then an $R$-linear map $j:A_p \to R$ may be extended to derivation
+of $A$ of degree $-p$ if and only if $j$ takes the $p$-boundaries to 0-
+boundaries, i.e. elements of $I$, but this is precisely the condition that the
+composite $A_p \to R \to R/I $ be a $p$-cocycle in $Hom_R(A,R/I)$. 
+
+ 
+This leads to the following theorem
+about the action of $Ext_R(R/I,R/I)$
+on $Tor^R(R/I,R/I)$.
+
+\begin{Theorem}
+ Let $x_1,\ldots,x_s$ be elements in $Ext^1_R(R/I,R/I)$
+ and let $y_1,\ldots,y_s$ be
+elements of $Tor^R_1(R/I,R/I) $. Then
+$$(x_1\ldots x_s)(y_1\ldots y_s) =  \det(M)$$
+where $M$ is the $s \times s $ matrix
+whose $i,j$-th entry is $x_iy_j$
+\end{Theorem}
+Here the product of the $x_i $ is the
+Yoneda product while the product of the
+$y_i$ is the usual
+algebra product in $Tor^R(R/I,R/I)$).
+
+\begin{proof}
+The usual way to compute the action of    $Ext^1_R(R/I,R/I)$
+ on $Tor^R(R/I,R/I) $ is to take a representative cocyle in
+$Hom_R(A_1,R/I)$ , lift it to a map $\xi$ of degree -1 from $A \to A$
+commuting with the differential and then apply $\xi \otimes 1$ to a cycle
+in $A \otimes_R (R/I)$ representing a class in $Tor^R(R/I,R/I) $.
+However, in this situation, we can take $\xi $ to be a derivation so
+multiplication by any $x_i$ satisfies the derivation rule. The result follows. 
+\end{proof}
+
+\begin{Theorem}
+ Let $I=(t_1,\ldots,t_r)$ and
+let $f_1,\ldots,f_r$ be any $r$ 1-cocycles in $Hom_R(A,R/I) $, and
+$T_1,\ldots,T_r$ a basis for $A_1$ with $dT_i = t_i$. (This
+means that for any relation $\sum_{i=1}^ra_it_i =0 \in R$,  it is also true that
+$\sum_{i=1}^ra_if_j(T_i) = 0 \in R/I $) Let $b_{ij} \in R $ represent the
+elements $f_i(T_j) \in R/I$ and let $M$ be the $r \times r$ matrix with these
+entries. Then all subdeterminants of M of order $> pd_RR/I$ are elements of
+$I$.
+\end{Theorem}
+
+\begin{proof}
+ Since each $dT_i \in I$, each $T_i \otimes 1 $ is a 1-cycle in
+$A \otimes (R/I) $. Apply the theorem above.
+\end{proof}
+ 
+\begin{proof}[Proof of main result.]
+If $b_1,\ldots,b_r  \in (I:J) $ the maps
+%\begin{cases}
+%  n/2  & n \text{ is even} \\
+%  3n+1 & n \text{ is odd}
+%\end{cases}
+
+$$ 
+f_i(T_j) = 
+\begin{cases}
+  b_i & j=i \\ 
+  0 & j\neq i
+\end{cases}
+$$
+when composed with the canonical map $R \to R/I$
+ become  1-cocycles in $Hom_R(A,R/I) $.
+The matrix $M$
+is then diagonal and the determinant is $ b_1\ldots b_r \in I$
+since
+$Tor^R_r (R/I,R/I) = 0$. 
+\end{proof}
+
+
+\end{document}  
+
+
+\bye
+
