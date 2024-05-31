@@ -492,9 +492,7 @@ TEST ///
   X = Xs#0
 
   toricMoriConeCap X
-
-  -- TODO: add this in once GV invariants are back online:
-  -- classifyExtremalCurves X
+  classifyExtremalCurves X
 
   #Xs
   X = first Xs

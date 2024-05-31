@@ -41,7 +41,7 @@ gvInvariants = method(Options => {
     DegreeLimit => infinity,
     Precision => 150,
     FilePrefix => "foo",
-    Executable => "~/src/git-from-others/cytools-private/external/gv/computeGV-good/computeGV",
+    Executable => "~/src/M2-workshops/Workshop-2024-Utah/ComputeGV/computeGV",
     KeepFiles => true
     })
 
@@ -105,7 +105,6 @@ gvInvariants(NormalToricVariety, List) := HashTable => opts -> (V, basisIndices)
         opts.DegreeLimit, opts.Precision) << close;
     inputLine := opts.Executable | " <" | infile | " >" | outfile;
     print inputLine;
-    error "GV invariant computation: not yet re-installed";
     run inputLine;
     -- Get the output, package as a hash table
     (lines get outfile)/value//hashTable
@@ -132,7 +131,6 @@ gvInvariants CalabiYauInToric := HashTable => opts -> X -> (
         opts.DegreeLimit, opts.Precision) << close;
     inputLine := opts.Executable | " <" | infile | " >" | outfile;
     print inputLine;
-    error "GV invariant computation: not yet re-installed";    
     run inputLine; -- TODO: run this as a program and if it crashes, return something reasonable.
     -- Get the output, package as a hash table
     contents := get outfile;
@@ -433,7 +431,7 @@ extremalCurveInvariant CalabiYauInToric := X -> (
   partition(c -> classifyExtremalCurve(gvX, c, deglimit, degvec), mori)
 ///
 
-///
+TEST ///
 -- Good test, TODO: place this back in once GVinvariants are working again.
 -*
   restart

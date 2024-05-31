@@ -1540,11 +1540,10 @@ TEST ///
   hh^(1,1) T
   hh^(1,2) T
 
-  -- TODO: add these 4 lines back in (but they should be made in to a test)
-  -- partitionGVConeByGV(X, DegreeLimit => 10)
-  -- partitionGVConeByGV(X, DegreeLimit => 20)
-  -- hilbertBasis gvCone(X, DegreeLimit => 20)
-  -- gv = gvInvariants(X, DegreeLimit => 20);
+  partitionGVConeByGV(X, DegreeLimit => 10)
+  partitionGVConeByGV(X, DegreeLimit => 20)
+  hilbertBasis gvCone(X, DegreeLimit => 20)
+  gv = gvInvariants(X, DegreeLimit => 20);
 ///  
 
 
@@ -1597,9 +1596,7 @@ TEST ///
   rays toricMoriCone X
   hilbertBasis toricMoriCone X
 
-  -- TODO: gvInvariants still goes through intersection ring
-  -- TODO: add this line in
-  -- gvInvariants(X, DegreeLimit => 10)
+  gvInvariants(X, DegreeLimit => 10)
 
   -- TODO: add tests for line bundles on X, and their cohomology.
 ///
