@@ -29,3 +29,7 @@ jobs:
         run: |
           cd ComputeGV
           ./computeGV < example_input_3fold_hyper.txt
+
+      - name: Run testbot on project branch
+        run: |
+          M2 --script tests/testbot.m2
