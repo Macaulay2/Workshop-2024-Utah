@@ -26,7 +26,20 @@ newPackage(
             HomePage => "http://www.mast.queensu.ca/~ggsmith"},
         {
             Name => "Zhengning Hu",
-            Email => "zhengninghu@arizona.edu"}},
+            Email => "zhengninghu@arizona.edu"},
+        {
+            Name => "Prajwal Samal",
+            Email => "psamal@impan.pl"},
+        {
+            Name => "Griffin Edwards",
+            Email => "griffinedwards@gatech.edu"},
+        {
+            Name => "Noah Solomon",
+            Email => "nsolomon33@gatech.edu"}
+        {
+            Name => "Jay Yang",
+            Email => "jayy@wustl.edu"}},
+
     Headline => "new routines for working with normal toric varieties",
     Keywords => {"Toric Geometry"},
     PackageExports => {"NormalToricVarieties"},
