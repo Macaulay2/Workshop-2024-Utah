@@ -13,3 +13,16 @@ restart
 check "IntegerEquivalences"
 check "StringTorics"
 check "DanilovKhovanskii"
+
+-- PALP interface
+-- for now, need to install PALP on your computer to use this.
+restart
+uninstallPackage "PALPInterface"
+restart
+needsPackage "PALPInterface"
+restart
+installPackage "PALPInterface" -- no documentation or tests at all
+check "PALPInterface"
+
+-- We can make a similar interface to GV invariants?
+-- maybe called GromovWitten or GVInvariants.
