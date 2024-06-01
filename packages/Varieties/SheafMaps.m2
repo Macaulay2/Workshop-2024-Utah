@@ -60,6 +60,7 @@ map(CoherentSheaf, CoherentSheaf, Matrix, ZZ)             := SheafMap => opts ->
 map(CoherentSheaf, CoherentSheaf, Matrix, InfiniteNumber) := SheafMap => opts -> (G, F, phi, d) -> (
     if d === -infinity then map(G, F, phi) else error "unexpected degree for map of sheaves")
 -- TODO: support map(F, F, 1) and map(F, G, 0) for identity and zero maps
+map(CoherentSheaf, CoherentSheaf, ZZ)                     := SheafMap => opts -> (G,F,n)        -> sheaf map(module G, module F, 0)
 
 sheaf Matrix               := SheafMap =>  phi        -> sheaf(variety ring phi, phi)
 sheaf(Matrix, ZZ)          := SheafMap => (phi, d)    -> sheaf(variety ring phi, phi, d)
