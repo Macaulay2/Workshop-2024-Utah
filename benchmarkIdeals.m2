@@ -17,7 +17,7 @@ ROW=3;
 COLUMN=3;
 POWER = 4;
 I=minors(2,genericMatrix(R,a,ROW, COLUMN));
-I=I^3;
+I=I^POWER;
 time radical I
 
 
