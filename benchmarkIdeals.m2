@@ -35,7 +35,7 @@ I=pminors(2,genericMatrix(R,a,ROW, COLUMN));
 I=I^POWER;
 time radical I
 
-
+---Decompose is faster than Unmixed
 
 
 ------------------------------------------------------------------------------------------
