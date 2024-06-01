@@ -35,7 +35,7 @@ newPackage(
             Email => "griffinedwards@gatech.edu"},
         {
             Name => "Noah Solomon",
-            Email => "nsolomon33@gatech.edu"}
+            Email => "nsolomon33@gatech.edu"},
         {
             Name => "Jay Yang",
             Email => "jayy@wustl.edu"}},
