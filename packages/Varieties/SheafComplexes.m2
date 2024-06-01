@@ -50,10 +50,78 @@ complex' List := Complex => opts -> L -> (
     error "expected a list of matrices or a list of modules";
     )
 
+
+complex CoherentSheaf := Complex => opts -> (M) -> (
+    if not instance(opts.Base, ZZ) then
+      error "complex: expected base to be an integer";
+    if M.cache.?Complex and opts.Base === 0 then return M.cache.Complex;
+    C := new Complex from {
+           symbol ring => ring M,
+           symbol concentration => (opts.Base,opts.Base),
+           symbol module => hashTable {opts.Base => M},
+           symbol cache => new CacheTable
+           };
+    if opts.Base === 0 then M.cache.Complex = C;
+    C.dd = map(C,C,0,Degree=>-1);
+    C
+    )
+
 sheaf Complex := Complex => C -> (
     (lo,hi) := concentration C;
-    complex' for i from lo+1 to hi list sheaf C.dd_i
+    complex(for i from lo+1 to hi list sheaf C.dd_i , Base => lo)
     )
+
+
+
+sheafHom(Complex, Complex) := Complex => opts -> (C,D) -> (
+    -- signs here are based from Christensen and Foxby
+    -- which agrees with Conrad (Grothendieck duality book)
+    Y := youngest(C,D);
+    if Y.cache#?(sheafHom,C,D) then return Y.cache#(sheafHom,C,D);
+    R := ring C;
+    if ring D =!= R then error "expected complexes over the same ring";
+    (loC,hiC) := C.concentration;
+    (loD,hiD) := D.concentration;
+    modules := hashTable for i from loD-hiC to hiD-loC list i => (
+        directSum for j from loC to hiC list {j,j+i} => sheafHom(C_j, D_(j+i), opts)
+        );
+    if loC === hiC and loD === hiD then (
+        result := complex(modules#(loD-hiC), Base => loD-loC);
+        result.cache.homomorphism = (C,D); -- source first, then target        
+        Y.cache#(sheafHom,C,D) = result;
+        return result;
+        );
+    maps := hashTable for i from loD-hiC+1 to hiD-loC list i => (
+        map(modules#(i-1),
+            modules#i,
+            matrix table(
+                indices modules#(i-1),
+                indices modules#i,
+                (j,k) -> (
+                    tar := component(modules#(i-1), j);
+                    src := component(modules#i, k);
+                    m := map(tar, src, 
+                        if k-j === {0,1} then (-1)^(k#1-k#0+1) * sheafHom(C_(k#0), dd^D_(k#1), opts)
+                        else if k-j === { -1,0 } then sheafHom(dd^C_(j#0), D_(k#1), opts)
+                        else 0);
+		    if instance(m, Matrix) then m else matrix m
+                    ))));
+    result = complex maps;
+    result.cache.homomorphism = (C,D); -- source first, then target
+    Y.cache#(sheafHom,C,D) = result;
+    result
+    )
+
+
+
+sheafHom(CoherentSheaf, Complex) := Complex => opts -> (M,C) -> sheafHom(complex M, C, opts)
+sheafHom(Complex, CoherentSheaf) := Complex => opts -> (C,M) -> sheafHom(C, complex M, opts)
+sheafHom(Complex, SheafOfRings) := Complex => opts -> (C,R) -> sheafHom(C, complex R, opts)
+sheafHom(SheafOfRings, Complex) := Complex => opts -> (R,C) -> sheafHom(complex R, C, opts)
+
+sheafDual = method();
+sheafDual Complex := Complex => (C) -> sheafHom(C, sheaf (ring C)^1)
+
     
 
 -*
