@@ -10,6 +10,9 @@ newPackage(
             HomePage => "http://sites.google.com/view/ayah-almousa"},
 	{Name => "Trung Chau", 
             Email => "chauchitrung1996@gmail.com"},
+	{Name => "Mike Cummings",
+	    Email => "cummim5@mcmaster.ca",
+	    HomePage => "https://math.mcmaster.ca/~cummim5/"},
 	{Name => "David Eisenbud",
 	    Email => "de@berkeley.edu"}
     },
