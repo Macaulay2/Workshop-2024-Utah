@@ -449,6 +449,10 @@ homology(SheafMap, SheafMap) := CoherentSheaf => opts -> (g, f) -> (
 moveToField = f -> (
     kk := coefficientRing ring f;
     map(kk^(numrows f), kk^(numcols f), sub(cover f, kk)))
+cxToField = C -> (
+    (lo,hi) := concentration C;
+    complex(for i from lo+1 to hi list moveToField(C.dd_i),Base => lo)
+    )
 
 cohomology(ZZ,                    SheafMap) := Matrix => opts -> (p,    f) -> cohomology(p, variety f, f, opts)
 cohomology(ZZ, ProjectiveVariety, SheafMap) := Matrix => opts -> (p, X, f) -> (
