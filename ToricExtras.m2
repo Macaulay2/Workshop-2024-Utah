@@ -59,6 +59,11 @@ doc ///
 -- TESTS
 ------------------------------------------------------------------------------
 
+-- test 0
+TEST ///
+    X = toricProjectiveSpace 1;
+    assert isWellDefined X
+///
 
 end---------------------------------------------------------------------------     
 
@@ -70,6 +75,6 @@ end---------------------------------------------------------------------------
 uninstallPackage "ToricExtras";
 restart
 installPackage "ToricExtras"
-check NormalToricVarieties
+check ToricExtras
 
 needsPackage "ToricExtras";
