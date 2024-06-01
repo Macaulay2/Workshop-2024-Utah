@@ -14,7 +14,9 @@ newPackage(
 	    Email => "cummim5@mcmaster.ca",
 	    HomePage => "https://math.mcmaster.ca/~cummim5/"},
 	{Name => "David Eisenbud",
-	    Email => "de@berkeley.edu"}
+	    Email => "de@berkeley.edu"},
+	 {Name => "Manohar Kumar",
+	     Email => "manhar349@gmail.com"}
     },
     Headline => "Implementing and benchmarking radical algorithms by Craig Huneke",
     PackageExports => {
