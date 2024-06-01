@@ -26,7 +26,14 @@ time radical I
 -- permanental ideals
 ------------------------------------------------------------------------------------------
 
-
+R=QQ[a..z]
+loadPackage "Permanents";
+ROW=3;
+COLUMN=3;
+POWER=4;
+I=pminors(2,genericMatrix(R,a,ROW, COLUMN));
+I=I^POWER;
+time radical I
 
 
 
