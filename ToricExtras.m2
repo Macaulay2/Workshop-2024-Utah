@@ -48,7 +48,8 @@ newPackage(
     )
 
 export {
-    "ToricLinearSeries"
+    "ToricLinearSeries",
+    "toricLinearSeries"
     }
 
 
@@ -97,6 +98,17 @@ TEST ///
 TEST ///
     series = new ToricLinearSeries from hashTable {};
     assert (series === series)
+///
+
+-- test 2: test the monomial constructor for ToricLinearSeries 
+TEST ///
+    P2 = toricProjectiveSpace 2;
+    S = ring P2;
+    
+    m = {x_0^2, x_0*x_1, x_1^2};
+    s = toricLinearSeries m;
+
+    assert(monomials(s) == m)
 ///
 
 end---------------------------------------------------------------------------     
