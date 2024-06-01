@@ -8,6 +8,8 @@ newPackage(
         {Name => "Ayah Almousa", 
             Email => "aalmousa@mailbox.sc.edu", 
             HomePage => "http://sites.google.com/view/ayah-almousa"},
+	{Name => "Trung Chau", 
+            Email => "chauchitrung1996@gmail.com"},
 	{Name => "David Eisenbud",
 	    Email => "de@berkeley.edu"}
     },
