@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------------
 newPackage(
     "ToricExtras",
-    AuxiliaryFiles => false,
+    AuxiliaryFiles => true,
     Version => "0.1",
     Date => "1 June 2024",
     Authors => {{
@@ -34,7 +34,8 @@ newPackage(
     DebuggingMode => true
     )
 
-export {   
+export {
+    "ToricLinearSeries"
     }
 
 
@@ -42,6 +43,7 @@ export {
 -- CODE
 ------------------------------------------------------------------------------
 
+load "ToricExtras/ToricLinearSeries.m2"
 
 ------------------------------------------------------------------------------
 -- DOCUMENTATION
@@ -58,6 +60,16 @@ doc ///
 	    be incorporated into the existing NormalToricVarieties package.
 ///	
 
+doc ///
+    Key
+        ToricLinearSeries
+    Headline
+        Linear series on a toric variety 
+    Description
+    	Text
+	        Work in progress implementation of linear series on a toric variety
+///	
+
 ------------------------------------------------------------------------------
 -- TESTS
 ------------------------------------------------------------------------------
@@ -66,6 +78,12 @@ doc ///
 TEST ///
     X = toricProjectiveSpace 1;
     assert isWellDefined X
+///
+
+-- test 1: test linear series type
+TEST ///
+    series = new ToricLinearSeries from hashTable {};
+    assert (series === series)
 ///
 
 end---------------------------------------------------------------------------     
@@ -81,3 +99,4 @@ installPackage "ToricExtras"
 check ToricExtras
 
 needsPackage "ToricExtras";
+
