@@ -21,9 +21,12 @@ newPackage(
     Version => "0.1",
     Date => "1 June 2024",
     Authors => {{
-        Name => "Gregory G. Smith", 
-        Email => "ggsmith@mast.queensu.ca", 
-        HomePage => "http://www.mast.queensu.ca/~ggsmith"}},
+            Name => "Gregory G. Smith", 
+            Email => "ggsmith@mast.queensu.ca", 
+            HomePage => "http://www.mast.queensu.ca/~ggsmith"},
+        {
+            Name => "Zhengning Hu",
+            Email => "zhengninghu@arizona.edu"}},
     Headline => "new routines for working with normal toric varieties",
     Keywords => {"Toric Geometry"},
     PackageExports => {"NormalToricVarieties"},
