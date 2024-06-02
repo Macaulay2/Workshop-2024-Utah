@@ -14,41 +14,6 @@ newPackage(
     
 export{"generateIlambda"}
 
-
-generateIlambda = method()---Old function do not use
-generateIlambda(ZZ,ZZ,List,PolynomialRing) := (n,m,lam,S) -> (
-     r := local r;
-     s := local s;
-     x := local x;
-     R := schurRing(r,n);
-     T := schurRing(s,m);
-     conjlam := toList conjugate( new Partition from lam);
-     d := dim r_lam;
-     e := dim s_lam;
-     M := genericMatrix(S,m,n);
-     lis := for i from 0 to d*e-1 list
-     (
-    A := random(kk^m,kk^m);
-    B := random(kk^n,kk^n);
-    N := A * M * B;
-    product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
-    J := ideal lis;
-    ideal mingens J
-    )
-
-
-detLam = method() 
-detLam = (X,lam) -> (
-    (m,n) := (numColumns(X), numRows(X));
-    base := ring X;
-    C := 1;
-    for i in lam do(
-	C = C*determinant(submatrix(X,{0..i},{0..i}));
-    );
-    return C 
-    )
-
-
 numgensILambda = method() -- TODO: Make it accept Partitions as well
 numgensILambda(Matrix, List) := (X, lam) -> (
 	myHookLength := P -> (
@@ -100,11 +65,18 @@ idealILambda(Matrix,List) := (X,lam) -> (
     product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
     J := ideal lis;
     minJ:=mingens J;
-    if rank source minJ != d then(
-	error "Did not compute full ideal";
+    
+	while rank source minJ != d do(
+		A := random(kk^m,kk^m);
+		B := random(kk^n,kk^n);
+		N := A * X * B;
+		lis = append(lis, product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
+		J = ideal lis;
+		minJ = mingens J;
 	);
-    ideal mingens J
-    )
+	return ideal mingens J;
+);
+
 
 
 partitionsLeq = method();
