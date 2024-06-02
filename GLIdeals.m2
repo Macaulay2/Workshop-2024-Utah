@@ -36,8 +36,8 @@ generateIlambda(ZZ,ZZ,List,PolynomialRing) := (n,m,lam,S) -> (
     ideal mingens J
     )
 
-mingensILambda = method() -- TODO: Make it accept Partitions as well
-mingensILambda(Matrix, List) := (X, lam) -> (
+numgensILambda = method() -- TODO: Make it accept Partitions as well
+numgensILambda(Matrix, List) := (X, lam) -> (
 	myHookLength := P -> (
 		-- compute prod (P_i - P_j + j - i) / (j - i) for all i < j
 		num := 1;
@@ -62,9 +62,9 @@ mingensILambda(Matrix, List) := (X, lam) -> (
 		error "Partition is too large for the matrix";
 	);
 
-	P := lam | apply(minSize - size, i -> 0); -- make it size min_size
+	P := lam | apply(minSize - size, i -> 0); -- make it size minSize
 	dimension := myHookLength(P);
-	P = P | apply(maxSize - minSize, i -> 0); -- make it size max_size
+	P = P | apply(maxSize - minSize, i -> 0); -- make it size maxSize
 	return dimension * myHookLength(P);
 ); 
 -----
