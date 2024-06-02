@@ -17,15 +17,15 @@ path = join( { currentDirectory() | "packages/" }, path )
 
 -- Uncomment and edit the following lines to preload and check your package or
 -- to run a series of examples with every push on GitHub.
---needsPackage "LocalRings"
---check LocalRings
 --load "tests/example.m2"
 --capture get "tests/example.m2"
 
 loadPackage("Truncations",  FileName => currentDirectory() | "packages/Truncations.m2", Reload => true)
 loadPackage("Complexes",    FileName => currentDirectory() | "packages/Complexes.m2",   Reload => true)
-installPackage("Varieties", FileName => currentDirectory() | "packages/Varieties.m2")
-check Varieties
+loadPackage("Varieties", FileName => currentDirectory() | "packages/Varieties.m2", Reload => true)
+--check Varieties
+needsPackage "RuledSurfaces"
+check RuledSurfaces
 
 -- The following lines automatically run every file in the "tests" directory.
 -- If you wish, you can change testDir to any other directory.
