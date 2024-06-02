@@ -5,9 +5,14 @@ newPackage(
     Keywords => { "TBD" },
     Headline => "TBD",
     Authors  => {
-	{   Name => "Devlin Mallory, Fei Xiang",
-	    Email => "malloryd@math.utah.edu, fxiang2@uci.edu",
+	{   Name => "Devlin Mallory,",
+	    Email => "malloryd@math.utah.edu",
 	    HomePage => "https://www.math.utah.edu/~malloryd/" }
+        },
+    Authors  => {
+	{   Name => "Fei Xiang,",
+	    Email => "fxiang2@uci.edu",
+	    HomePage => "" }
         },
     AuxiliaryFiles => false
 )
