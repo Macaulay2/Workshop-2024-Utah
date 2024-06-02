@@ -16,7 +16,7 @@ orlovTruncateGeq(Complex, ZZ) := (F, i) -> (
     )
 
 -- Input: a complex F which is already minimal resolution, a number i
--- Output: a number
+-- Output: a number, which is the upper bound
 supTruncate = method();
 supTruncate(Complex, ZZ) := (F, i) -> (
     R := ring F;
