@@ -12,10 +12,10 @@ newPackage(
 	Reload=>true
     	)
     
-export{"generateIlambda"}
+export{"generateIlambda,idealILambda"}
 
 
-generateIlambda = method()
+generateIlambda = method()----This is old function do not use.
 generateIlambda(ZZ,ZZ,List,PolynomialRing) := (n,m,lam,S) -> (
      r := local r;
      s := local s;
@@ -68,6 +68,35 @@ mingensILambda(Matrix, List) := (X, lam) - (
 	lam = lam | apply(max_size - min_size, i -> 0); -- make it size max_size
 	return dimension * myHookLength(lam);
 ) 
+
+
+----
+
+idealILambda = method()
+idealILambda(Matrix,List) := (X,lam) -> (
+     n:=rank target X;
+     m:=rank source X;
+     kk:=baseRing ring X; 
+     if char kk !=0 then(
+		error "Base ring is not characteristic 0";
+	);
+     conjlam := toList conjugate( new Partition from lam);
+     d:=numgensILambda(X,lam);
+     lis := for i from 0 to d-1 list
+     (
+    A := random(kk^m,kk^m);
+    B := random(kk^n,kk^n);
+    N := A * X * B;
+    product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
+    J := ideal lis;
+    minJ:=mingens J;
+    if rank source minJ != d then(
+	error "Did not compute full ideal";
+	);
+    ideal mingens J
+    )
+
+
 -----
 
 beginDocumentation()
