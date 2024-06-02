@@ -46,6 +46,13 @@ numgensILambda(Matrix, List) := (X, lam) -> (
 	return sub(dimension * myHookLength(P),ZZ);
 );
 
+-- numgensIChi = method();
+-- numgensIChi(Matrix, List) := (X, chi) -> (
+--  	-- chi is a list of partitions
+--  	-- return sum numgensILambda(chi_i) for all i
+-- 	chi = minimizeChi(chi);
+-- 	return sum for i in 0..#chi-1 list numgensILambda(X, chi#i);
+-- );
 
 detLam = method()
 detLam = (X,lam) -> (
