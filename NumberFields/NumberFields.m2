@@ -1,12 +1,12 @@
 newPackage(
        "NumberFields",
-	Version => "0.0.0", 
+    Version => "0.0.0", 
         Date => "June 1, 2024",
-    	Authors => {{}},
-    	Headline => "number fields",
-	PackageImports => {}, 
-	PackageExports => {"PushForward"}
-	)
+        Authors => {{}},
+        Headline => "number fields",
+    PackageImports => {}, 
+    PackageExports => {"PushForward"}
+    )
 
 export{
    "NumberField", 
@@ -21,19 +21,19 @@ NumberField = new Type of Ring
 
 numberField = method(Options => {})
 numberField(RingElement) := opts -> f1 -> (
-	print("1");
-	R1 := ring f1;
-	print("2");
-	if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
-	if #(gens R1) != 1 then error("Expected a polynomial in one variable.");
-	if char R1 != 0 then error("Expected characteristic 0.");
+    print("1");
+    R1 := ring f1;
+    print("2");
+    if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
+    if #(gens R1) != 1 then error("Expected a polynomial in one variable.");
+    if char R1 != 0 then error("Expected characteristic 0.");
 
-	-- Verifies that the resulting quotient is a field.
-	if f1 == 0 then error("Expected nonzero polynomial.");
-	print(f1);
-	if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
+    -- Verifies that the resulting quotient is a field.
+    if f1 == 0 then error("Expected nonzero polynomial.");
+    print(f1);
+    if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-	new NumberField from toField (R1/ideal(f1))
+    new NumberField from toField (R1/ideal(f1))
 )
 
 numberField(Ring) := opts -> R1 -> (
@@ -42,13 +42,13 @@ numberField(Ring) := opts -> R1 -> (
     if not isPrime (ideal 0_R1) then error("Expected a field.");
     if not dim R1 == 0 then error("Expected a field.");
     
-	if char R1 != 0 then error("Expected characteristic 0.");
+    if char R1 != 0 then error("Expected characteristic 0.");
 
     flattenedR1 := (flattenRing(R1))#0;
     iota := map(flattenedR1,QQ);
     try pushFwd(iota) else error("Not finite dimensional over QQ");
 
-	new NumberField from toField (flattenedR1)
+    new NumberField from toField (flattenedR1)
 )
 
 
@@ -64,11 +64,11 @@ NumberFieldExtension = new Type of HashTable
 
 numberFieldExtension = method(Options => {})
 numberFieldExtension(RingMap) := opts -> phi1 -> (
-	new NumberFieldExtension from {
-		source=>numberField source phi1, 
-		target=>numberField target phi1, 
-		map=>phi1
-	}
+    new NumberFieldExtension from {
+        source=>numberField source phi1, 
+        target=>numberField target phi1, 
+        map=>phi1
+    }
 );
 
 
