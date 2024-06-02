@@ -16,7 +16,7 @@ newPackage(
 	{Name => "David Eisenbud",
 	    Email => "de@berkeley.edu"},
 	 {Name => "Manohar Kumar",
-	     Email => "manhar349@gmail.com"}
+	     Email => "manhar349@gmail.com"},
 	 {Name => "Adam LaClair", 
             Email => "alaclair@purdue.edu", 
             HomePage => "https://sites.google.com/view/adamlaclair/home"}
