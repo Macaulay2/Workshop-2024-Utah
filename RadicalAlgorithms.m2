@@ -45,6 +45,31 @@ export{
 -- ** Part 2: Huneke's Algorithm **
 -----------------------------------
 
+
+
+-----------------------------------
+-- ** Part 3: Experimenting **
+----------------------------------
+
+restart
+--for this class, unmixed is faster
+R = ZZ/101[x_(1,1)..x_(2,3)]
+M = genericMatrix(R,2,3)
+time radical (minors(2,M))^4
+time radical((minors(2,M))^4, Strategy => Unmixed)
+I = (minors(2,M))^4 -- 15 gens
+I' = ideal (random(I_*))_0;
+time I : ideal(jacobian(I'))
+radical I'
+--for this class, taking the colon with the jacobian
+--of a single generator gives the correct radical
+
+R = ZZ/101[a,b,c]
+J = ideal(a^124-b^124,a^123*b-c^124);
+time radical I
+time radical(J, Strategy => Unmixed)
+time J: ideal(jacobian(ideal J_1))
+
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- **DOCUMENTATION** --
