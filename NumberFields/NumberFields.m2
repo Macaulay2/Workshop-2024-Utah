@@ -4,7 +4,8 @@ newPackage(
         Date => "June 1, 2024",
     	Authors => {{}},
     	Headline => "number fields",
-	PackageImports => {}
+	PackageImports => {}, 
+	PackageExports => {"PushForward"}
 	)
 
 export{
@@ -48,3 +49,4 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
 end
 
 loadPackage ("NumberFields", Reload=>true)
+
