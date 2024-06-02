@@ -36,6 +36,19 @@ generateIlambda(ZZ,ZZ,List,PolynomialRing) := (n,m,lam,S) -> (
     ideal mingens J
     )
 
+
+detLam = method() 
+detLam = (X,lam) -> (
+    (m,n) := (numColumns(X), numRows(X));
+    base := ring X;
+    C := 1;
+    for i in lam do(
+	C = C*determinant(submatrix(X,{0..i},{0..i}));
+    );
+    return C 
+    )
+
+
 numgensILambda = method() -- TODO: Make it accept Partitions as well
 numgensILambda(Matrix, List) := (X, lam) -> (
 	myHookLength := P -> (
