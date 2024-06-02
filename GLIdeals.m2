@@ -35,7 +35,39 @@ generateIlambda(ZZ,ZZ,List,PolynomialRing) := (n,m,lam,S) -> (
     J := ideal lis;
     ideal mingens J
     )
-  
+
+mingensILambda = method()
+mingensILambda(Matrix, List) := (X, lam) - (
+	myHookLength := P -> (
+		-- compute prod (P_i - P_j + j - i) / (j - i) for all i < j
+		num := 1;
+		den := 1;
+		for i in 0..#P-1 do(
+			for j in i+1..#P-1 do(
+				num = num * (P#i - P#j + j - i);
+				den = den * (j - i);
+			);
+		);
+		return num / den;
+	);
+
+	lam := local lam;
+	size := #lam;
+
+	r := numRows X;
+	c := numColumns X;
+	min_size := min(r, c);
+	max_size := max(r, c);
+
+	if min_size < size then(
+		error "Partition is too large for the matrix";
+	);
+
+	lam = lam | apply(min_size - size, i -> 0); -- make it size min_size
+	dimension := myHookLength(lam);
+	lam = lam | apply(max_size - min_size, i -> 0); -- make it size max_size
+	return dimension * myHookLength(lam);
+) 
 -----
 
 beginDocumentation()
