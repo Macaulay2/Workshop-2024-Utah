@@ -21,8 +21,8 @@ newPackage(
     Version => "0.1",
     Date => "1 June 2024",
     Authors => {{
-            Name => "Gregory G. Smith", 
-            Email => "ggsmith@mast.queensu.ca", 
+            Name => "Gregory G. Smith",
+            Email => "ggsmith@mast.queensu.ca",
             HomePage => "http://www.mast.queensu.ca/~ggsmith"},
         {
             Name => "Zhengning Hu",
@@ -38,7 +38,13 @@ newPackage(
             Email => "nsolomon33@gatech.edu"},
         {
             Name => "Jay Yang",
-            Email => "jayy@wustl.edu"}},
+            Email => "jayy@wustl.edu"},
+        {
+            Name => "Anna Chlopecki",
+            Email => "achlopec@purdue.edu"},
+        {
+            Name => "Eduardo Torres Dávila",
+            Email => "torre680@umn.edu"}},
 
     Headline => "new routines for working with normal toric varieties",
     Keywords => {"Toric Geometry"},
@@ -57,34 +63,34 @@ export {
 -- CODE
 ------------------------------------------------------------------------------
 
-load "ToricExtras/ToricLinearSeries.m2"
+load "./ToricExtras/ToricLinearSeries.m2"
 
 load "ToricExtras/BatyrevConstructions.m2"
 
 ------------------------------------------------------------------------------
 -- DOCUMENTATION
 ------------------------------------------------------------------------------
-beginDocumentation ()    
+beginDocumentation ()
 doc ///
     Key
         ToricExtras
     Headline
-        new features for normal toric varieties 
+        new features for normal toric varieties
     Description
     	Text
 	    This temporary package implements several new features that will
 	    be incorporated into the existing NormalToricVarieties package.
-///	
+///
 
 doc ///
     Key
         ToricLinearSeries
     Headline
-        Linear series on a toric variety 
+        Linear series on a toric variety
     Description
     	Text
 	        Work in progress implementation of linear series on a toric variety
-///	
+///
 
 ------------------------------------------------------------------------------
 -- TESTS
@@ -102,18 +108,18 @@ TEST ///
     assert (series === series)
 ///
 
--- test 2: test the monomial constructor for ToricLinearSeries 
+-- test 2: test the monomial constructor for ToricLinearSeries
 TEST ///
     P2 = toricProjectiveSpace 2;
     S = ring P2;
-    
+
     m = {x_0^2, x_0*x_1, x_1^2};
     s = toricLinearSeries m;
 
     assert(monomials(s) == m)
 ///
 
-end---------------------------------------------------------------------------     
+end---------------------------------------------------------------------------
 
 ------------------------------------------------------------------------------
 -- SCRATCH SPACE
@@ -126,4 +132,3 @@ installPackage "ToricExtras"
 check ToricExtras
 
 needsPackage "ToricExtras";
-
