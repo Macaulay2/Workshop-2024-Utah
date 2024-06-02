@@ -1,5 +1,11 @@
 -- file with ideals to benchmark radical code
 
+-----------------------------------------------------------------------------------------
+Ideals associated to determinantal varieties
+-----------------------------------------------------------------------------------------
+I=ideal(x_2*y_1-x_1*y_2,x_2*y_2-x_1*y_3,y_2^2-y_1*y_3)
+J=I^4
+------computational time of radical of J is pretty fast.
 
 ------------------------------------------------------------------------------------------
 -- random principal ideal
