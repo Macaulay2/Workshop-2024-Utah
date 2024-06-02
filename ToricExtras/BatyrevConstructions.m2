@@ -1,7 +1,7 @@
 
 
-makeMatrix = method();
-makeMatrix(List, List, List) := (P, B, C) -> (
+makeBatyrevMatrix = method();
+makeBatyrevMatrix(List, List, List) := (P, B, C) -> (
     
     listRows := {};
     r10 := toList flatten(P#0 : {1});
@@ -46,3 +46,44 @@ makeMatrix(List, List, List) := (P, B, C) -> (
 
     return matrix{R1, R2, R3, R4, R5}
 )
+
+batyrevRays = method();
+batyrevRays(Matrix, List) := (A, P) -> (
+
+    K := ker A;
+    bRays := entries gens K;
+    
+    primitiveCollection1 := for i from 0 to P#0 + P#1 - 1 list i;
+    primitiveCollection2 := for i from P#0 to P#0 + P#1 + P#2 -1 list i;
+    primitiveCollection3 := for i from P#0 + P#1 to P#0 + P#1 + P#2 + P#3 - 1 list i;
+    primitiveCollection4 := for i from P#0 + P#1 + P#2 to P#0 + P#1 + P#2 + P#3 + P#4 - 1 list i;
+    primitiveCollection5a := for i from 0 to P#0 - 1 list i;
+    primitiveCollection5b := for i from P#0 + P#1 + P#2 + P#3 to P#0 + P#1 + P#2 + P#3 + P#4 - 1 list i;
+    primitiveCollection5 := primitiveCollection5a | primitiveCollection5b;
+
+    return (bRays, {primitiveCollection1, primitiveCollection2, primitiveCollection3, primitiveCollection4, primitiveCollection5});
+)
+
+batyrevMaxCones = method();
+batyrevMaxCones(List, List) := (bRays, primitiveCollections) -> (
+    n := #bRays;
+    x := symbol x;
+    R := ZZ/2[x_0..x_(n-1)];
+    Xs := first entries vars R;
+    Ps := apply(primitiveCollections, i -> ideal apply(i, j -> x_j));
+    I := intersect Ps;
+    complementsOfCones := apply(first entries gens I, i -> support i);
+    variableCones := apply(complementsOfCones, i -> toList(set Xs - set i));
+    return apply(variableCones, i -> apply(i, j -> index j));
+
+) 
+
+batyrevConstructor = method();
+batyrevConstructor(List, List, List) := (P, B, C) -> (
+    A := makeBatyrevMatrix(P, B, C);
+    (bRays, primitiveCollections) := batyrevRays(A, P);
+    maxCones := batyrevMaxCones(bRays, primitiveCollections);
+    return normalToricVariety(bRays, maxCones);
+)
+
+
