@@ -12,10 +12,10 @@ newPackage(
 	Reload=>true
     	)
     
-export{"generateIlambda,idealILambda"}
+export{"generateIlambda"}
 
 
-generateIlambda = method()----This is old function do not use.
+generateIlambda = method()
 generateIlambda(ZZ,ZZ,List,PolynomialRing) := (n,m,lam,S) -> (
      r := local r;
      s := local s;
@@ -36,8 +36,8 @@ generateIlambda(ZZ,ZZ,List,PolynomialRing) := (n,m,lam,S) -> (
     ideal mingens J
     )
 
-mingensILambda = method()
-mingensILambda(Matrix, List) := (X, lam) - (
+numgensILambda = method() -- TODO: Make it accept Partitions as well
+numgensILambda(Matrix, List) := (X, lam) -> (
 	myHookLength := P -> (
 		-- compute prod (P_i - P_j + j - i) / (j - i) for all i < j
 		num := 1;
@@ -51,52 +51,22 @@ mingensILambda(Matrix, List) := (X, lam) - (
 		return num / den;
 	);
 
-	lam := local lam;
 	size := #lam;
 
 	r := numRows X;
 	c := numColumns X;
-	min_size := min(r, c);
-	max_size := max(r, c);
+	minSize := min(r, c);
+	maxSize := max(r, c);
 
-	if min_size < size then(
+	if minSize < size then(
 		error "Partition is too large for the matrix";
 	);
 
-	lam = lam | apply(min_size - size, i -> 0); -- make it size min_size
-	dimension := myHookLength(lam);
-	lam = lam | apply(max_size - min_size, i -> 0); -- make it size max_size
-	return dimension * myHookLength(lam);
-) 
-
-
-----
-
-idealILambda = method()
-idealILambda(Matrix,List) := (X,lam) -> (
-     n:=rank target X;
-     m:=rank source X;
-     kk:=baseRing ring X; 
-     if char kk !=0 then(
-		error "Base ring is not characteristic 0";
-	);
-     conjlam := toList conjugate( new Partition from lam);
-     d:=numgensILambda(X,lam);
-     lis := for i from 0 to d-1 list
-     (
-    A := random(kk^m,kk^m);
-    B := random(kk^n,kk^n);
-    N := A * X * B;
-    product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
-    J := ideal lis;
-    minJ:=mingens J;
-    if rank source minJ != d then(
-	error "Did not compute full ideal";
-	);
-    ideal mingens J
-    )
-
-
+	P := lam | apply(minSize - size, i -> 0); -- make it size minSize
+	dimension := myHookLength(P);
+	P = P | apply(maxSize - minSize, i -> 0); -- make it size maxSize
+	return dimension * myHookLength(P);
+);
 -----
 
 beginDocumentation()
