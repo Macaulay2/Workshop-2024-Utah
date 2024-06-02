@@ -4,14 +4,16 @@ newPackage(
         Date => "June 1, 2024",
     	Authors => {{}},
     	Headline => "number fields",
-	PackageImports => {}
+	PackageImports => {}, 
+	PackageExports => {"PushForward"}
 	)
 
 export{
    "NumberField", 
    "numberField",
    "NumberFieldExtension",
-   "numberFieldExtension"
+   "numberFieldExtension",
+   "isGalois",
 };
 
 NumberField = new Type of Ring
@@ -28,17 +30,23 @@ numberField(RingElement) := opts -> f1 -> (
 	if f1 == 0 then error("Expected nonzero polynomial.");
 	if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-	new NumberField from (R1/ideal(f1))
+	new NumberField from toField (R1/ideal(f1))
 )
 
-NumberFieldExtension = new Type of RingMap
+NumberFieldExtension = new Type of HashTable
 
 numberFieldExtension = method(Options => {})
 numberFieldExtension(RingMap) := opts -> phi1 -> (
-	new NumberFieldExtension from ph1
+	new NumberFieldExtension from {
+		source=>numberField source phi1, 
+		target=>numberField target phi1, 
+		map=>phi1
+	}
 );
+
 
 
 end
 
 loadPackage ("NumberFields", Reload=>true)
+
