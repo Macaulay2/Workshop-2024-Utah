@@ -30,3 +30,18 @@ TEST ///
     assert not isComplete M4;
     assert isComplete M5;
 ///
+
+TEST ///
+    P2 = toricProjectiveSpace 2;
+    S = ring P2;
+    M1 = toricLinearSeries flatten entries basis(1,S);
+    M2 = toricLinearSeries {x_0};
+    M3 = toricLinearSeries {x_0, x_0, x_0};
+    M4 = toricLinearSeries {x_0, x_1, x_2, x_2};
+    M5 = toricLinearSeries {x_2, x_1, x_0};
+    assert (baseLocusIdeal M1 == ideal(x_0, x_1, x_2));
+    assert (baseLocusIdeal M2 == ideal(x_0));
+    assert (baseLocusIdeal M3 == ideal(x_0));
+    assert (baseLocusIdeal M4 == ideal(x_0, x_1, x_2));
+    assert (baseLocusIdeal M5 == ideal(x_0, x_1, x_2));
+///

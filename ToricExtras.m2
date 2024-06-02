@@ -55,7 +55,8 @@ newPackage(
 
 export {
     "ToricLinearSeries",
-    "toricLinearSeries"
+    "toricLinearSeries",
+    "baseLocusIdeal"
     }
 
 

@@ -34,6 +34,11 @@ isComplete ToricLinearSeries := linSeries -> (
     setM == set degDMonomials
 )
 
+baseLocusIdeal = method(TypicalValue => Ideal)
+
+baseLocusIdeal ToricLinearSeries := linSeries -> (
+    ideal monomials linSeries
+)
 
 -- -- helper for listing monomials of given degree in the ring
 -- -- TODO: move to Core
