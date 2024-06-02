@@ -45,6 +45,36 @@ export{
 -- ** Part 2: Huneke's Algorithm **
 -----------------------------------
 
+ hunekeAlgorithm := (I) -> (
+    J := ideal(0_R);
+    previous := ideal(0_R);
+    while (J != ideal(1_R)) do (
+	M := presentation module I;
+	c := codim I;
+	n := rank target M;
+	k := n-1;
+	while codim minors(n-k,M) != c do (
+	    k = k-1;
+	    );
+	if (k == c) then (
+	    print("generically CI");
+	    return null;
+	    )
+	else if (k < c) then (
+	    print("k<c, what now?");
+	    return null;
+	    )
+	else (
+	    J = I : minors(n-k,M);
+	    previous = I;
+	    I = J;
+	    );
+    );
+    return previousI
+ )
+
+
+
 
 
 -----------------------------------
@@ -93,6 +123,25 @@ doc ///
 	    {"[Vas94] Vasconcelos, Wolmer V (1994). Arithmetic of blowup algebras. Vol. 195. Cambridge University Press."}
 	    }@ 
 ///
+
+doc ///
+    Key
+        hunekeAlgorithm
+	hunekeAlgorithm(Ideal)
+    Headline
+        Implement the algorithm of Huneke using minors of the presentation matrix
+    Usage
+	hunekeAlgorithm(I)
+    Inputs
+	I: Ideal
+	    an unmixed ideal
+    Outputs
+	:
+    Description
+        Text
+            Given an ideal, it gives the outputs of Huneke's algorithm.
+///
+
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
