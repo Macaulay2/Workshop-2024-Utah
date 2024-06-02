@@ -118,9 +118,9 @@ partitionsLeq(Partition, Partition) := (A, B) -> (
     -- assuming weakly decreasing
     -- return if A <= B
     n := #B;
-    for i in 0..#A-1 do(
+    for i in 0..(#A-1) do(
         if A#i == 0 then break;
-        if i > n then return false;
+        if i >= n then return false;
         if A#i > B#i then return false;
     );
     return true;
