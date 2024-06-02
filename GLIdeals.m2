@@ -12,7 +12,7 @@ newPackage(
 	Reload=>true
     	)
     
-export{"generateIlambda"}
+export{"idealILambda"}
 
 numgensILambda = method() -- TODO: Make it accept Partitions as well
 numgensILambda(Matrix, List) := (X, lam) -> (
@@ -47,6 +47,19 @@ numgensILambda(Matrix, List) := (X, lam) -> (
 );
 
 
+detLam = method()
+detLam = (X,lam) -> (
+    (m,n) := (numColumns(X), numRows(X));
+    base := ring X;
+    C := 1;
+    for i in lam do(
+	C = C*determinant(submatrix(X,{0..i},{0..i}));
+    );
+    return C 
+    )
+
+
+
 idealILambda = method()
 idealILambda(Matrix,List) := (X,lam) -> (
      n:=rank target X;
@@ -74,7 +87,7 @@ idealILambda(Matrix,List) := (X,lam) -> (
 		J = ideal lis;
 		minJ = mingens J;
 	);
-	return ideal mingens J;
+	return ideal minJ;
 );
 
 
@@ -116,7 +129,6 @@ doc ///
 
 
 end
-
 
 
 
