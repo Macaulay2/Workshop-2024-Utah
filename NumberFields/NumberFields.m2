@@ -9,7 +9,9 @@ newPackage(
 
 export{
    "NumberField", 
-   "numberField"
+   "numberField",
+   "NumberFieldExtension",
+   "numberFieldExtension"
 };
 
 NumberField = new Type of Ring
@@ -28,6 +30,14 @@ numberField(RingElement) := opts -> f1 -> (
 
 	new NumberField from (R1/ideal(f1))
 )
+
+NumberFieldExtension = new Type of RingMap
+
+numberFieldExtension = method(Options => {})
+numberFieldExtension(RingMap) := opts -> phi1 -> (
+	new NumberFieldExtension from ph1
+);
+
 
 end
 
