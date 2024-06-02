@@ -1,7 +1,7 @@
 -- file with ideals to benchmark radical code
 
 -----------------------------------------------------------------------------------------
-Ideals associated to determinantal varieties
+-- Ideals associated to determinantal varieties
 -----------------------------------------------------------------------------------------
 R=QQ[x_1,x_2,y_1..y_3]
 I=ideal(x_2*y_1-x_1*y_2,x_2*y_2-x_1*y_3,y_2^2-y_1*y_3)
