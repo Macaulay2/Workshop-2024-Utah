@@ -1,3 +1,25 @@
+newPackage(
+    "RuledSurfaces",
+    Date     => "2 Jun 2024",
+    Version  => "0.1",
+    Keywords => { "TBD" },
+    Headline => "TBD",
+    Authors  => {
+	{   Name => "Devlin Mallory",
+	    Email => "malloryd@math.utah.edu",
+	    HomePage => "https://www.math.utah.edu/~malloryd/" }
+        },
+    AuxiliaryFiles => false
+)
+export {
+    -- Types
+    "ProjectiveBundle",
+    -- methods
+    "projectiveBundle",
+}
+needsPackage "Varieties"
+
+
 ProjectiveBundle = new Type of HashTable
 
 projectiveBundle = method()
