@@ -15,6 +15,16 @@ orlovTruncateGeq(Complex, ZZ) := (F, i) -> (
     complex(mapList)
     )
 
+-- Input: a complex F which is already minimal resolution, a number i
+-- Output: a number
+supTruncate = method();
+supTruncate(Complex, ZZ) := (F, i) -> (
+    R := ring F;
+    d := dim R;
+    t := (min degrees R)_0;
+    -- get the min degree of all gens of the module
+)
+
 end;
 
 restart
