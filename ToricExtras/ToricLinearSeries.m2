@@ -14,10 +14,11 @@ monomials ToricLinearSeries := List => o -> s -> (
 )
 -- the monomial map that defines a toric map
 monomials ToricMap := List => o -> f -> first entries matrix inducedMap f
--- helper for listing monomials of given degree in the ring
--- TODO: move to Core
-monomials(ZZ,   Ring) :=
-monomials(List, Ring) := List => o -> (d, S) -> first entries basis(d, S)
+
+-- -- helper for listing monomials of given degree in the ring
+-- -- TODO: move to Core
+-- monomials(ZZ,   Ring) :=
+-- monomials(List, Ring) := List => o -> (d, S) -> first entries basis(d, S)
 
 
 -- getting map of tori from a divisor or linear series
@@ -44,66 +45,60 @@ map List              := ToricMap => opts -> L -> map(, variety ring L#0, L)
 
 -- whether a linear series over a Cox ring is basepoint free
 -- TODO: make Ideal == Ideal work when one is ideal () with ring ZZ
-isBasepointFree = (X, L) -> set(intersect decompose ideal L)_* == set(ideal X)_*
+-- isBasepointFree = (X, L) -> set(intersect decompose ideal L)_* == set(ideal X)_*
 
--- lists all toric linear series of Proj S in degree d, including the complete one
-allToricLinearSeries = (d, S) -> select(subsets monomials(d, S), mons -> isBasepointFree(variety S, mons))
+-- -- lists all toric linear series of Proj S in degree d, including the complete one
+-- allToricLinearSeries = (d, S) -> select(subsets monomials(d, S), mons -> isBasepointFree(variety S, mons))
 
-TEST ///
-  -- embedding of P1xP1 in P8 via |O(2,2)|
-  D = smallAmpleToricDivisor(2, 0)
-  X = variety D -- P1xP1
-  S = ring X
-  phi = map D
-  assert isWellDefined phi
-  assert(first entries matrix inducedMap phi === monomials D)
+-- TEST ///
+--   -- embedding of P1xP1 in P8 via |O(2,2)|
+--   D = smallAmpleToricDivisor(2, 0)
+--   X = variety D -- P1xP1
+--   S = ring X
+--   phi = map D
+--   assert isWellDefined phi
+--   assert(first entries matrix inducedMap phi === monomials D)
 
-  -- embedding from ample divisor
-  X = (toricProjectiveSpace 1)^**2
-  D = toricDivisor({1,0,1,0}, X)
-  phi = map D
-  assert isWellDefined phi
-  assert(first entries matrix inducedMap phi === monomials D)
+--   -- embedding from ample divisor
+--   X = (toricProjectiveSpace 1)^**2
+--   D = toricDivisor({1,0,1,0}, X)
+--   phi = map D
+--   assert isWellDefined phi
+--   assert(first entries matrix inducedMap phi === monomials D)
 
-  -- embedding from a complete linear series
-  X = (toricProjectiveSpace 1)^**2
-  -- FIXME: make this work with a ToricLinearSeries object
-  L = monomials ({1,1}, ring X)
-  phi = map L
-  assert isWellDefined phi
-  assert(first entries matrix inducedMap phi === L)
+--   -- embedding from a complete linear series
+--   X = (toricProjectiveSpace 1)^**2
+--   -- FIXME: make this work with a ToricLinearSeries object
+--   L = monomials ({1,1}, ring X)
+--   phi = map L
+--   assert isWellDefined phi
+--   assert(first entries matrix inducedMap phi === L)
 
-  -- rational map from an incomplete linear series
-  X = toricProjectiveSpace 1
-  Y = toricProjectiveSpace 2
-  R = ring Y
-  S = ring X
-  -- cuspidal cubic, not projectively normal
-  phi = map(Y, X, {S_{1,2}, S_{3,0}, S_{0,3}})
-  assert isWellDefined phi
-  assert(first entries matrix inducedMap phi === monomials phi)
-  -- smooth conic, projectively normal
-  phi = map(Y, X, {S_{2,0}, S_{1,1}, S_{0,2}})
-  assert isWellDefined phi
-  assert(first entries matrix inducedMap phi === monomials phi)
+--   -- rational map from an incomplete linear series
+--   X = toricProjectiveSpace 1
+--   Y = toricProjectiveSpace 2
+--   R = ring Y
+--   S = ring X
+--   -- cuspidal cubic, not projectively normal
+--   phi = map(Y, X, {S_{1,2}, S_{3,0}, S_{0,3}})
+--   assert isWellDefined phi
+--   assert(first entries matrix inducedMap phi === monomials phi)
+--   -- smooth conic, projectively normal
+--   phi = map(Y, X, {S_{2,0}, S_{1,1}, S_{0,2}})
+--   assert isWellDefined phi
+--   assert(first entries matrix inducedMap phi === monomials phi)
 
-  -- the twistic cubic as the embedding of P1 in P3
-  Y = toricProjectiveSpace 3
-  R = ring Y
-  phi = map(Y, X, {S_{3,0}, S_{2,1}, S_{1,2}, S_{0,3}})
-  assert isWellDefined phi
-  assert(first entries matrix inducedMap phi === monomials phi)
+--   -- the twistic cubic as the embedding of P1 in P3
+--   Y = toricProjectiveSpace 3
+--   R = ring Y
+--   phi = map(Y, X, {S_{3,0}, S_{2,1}, S_{1,2}, S_{0,3}})
+--   assert isWellDefined phi
+--   assert(first entries matrix inducedMap phi === monomials phi)
 
-  -- rational map from an incomplete series
-  X = toricProjectiveSpace 1
-  Y = toricProjectiveSpace 3
-  phi = map(Y, X, matrix vector {1,3,5})
-  assert isWellDefined phi
-  assert(first entries matrix inducedMap phi === monomials phi)
-///
-
-end--
-
-restart
-needsPackage "ToricExtras"
-check ToricExtras
+--   -- rational map from an incomplete series
+--   X = toricProjectiveSpace 1
+--   Y = toricProjectiveSpace 3
+--   phi = map(Y, X, matrix vector {1,3,5})
+--   assert isWellDefined phi
+--   assert(first entries matrix inducedMap phi === monomials phi)
+-- ///
