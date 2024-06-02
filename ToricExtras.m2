@@ -65,7 +65,7 @@ export {
 
 load "./ToricExtras/ToricLinearSeries.m2"
 
-load "ToricExtras/BatyrevConstructions.m2"
+load "./ToricExtras/BatyrevConstructions.m2"
 
 ------------------------------------------------------------------------------
 -- DOCUMENTATION
