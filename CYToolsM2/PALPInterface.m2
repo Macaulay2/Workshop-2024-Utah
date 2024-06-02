@@ -156,3 +156,74 @@ runPoly(L1, "Tv")
 runPoly(L1, "Tp")
 runPoly(L1, "N")
 runPoly(L1, "t")
+
+-- Using nef.x
+3 1 1 1 0 0 0 0 0  2 0 0 0 1 1 0 0 0  3 0 0 0 0 0 1 1 1
+nef.x -h
+nef.x -p -c2 -V << FOO
+3 1 1 1 0 0 0 0 0  2 0 0 0 1 1 0 0 0  3 0 0 0 0 0 1 1 1
+FOO
+
+-- Using cws.x
+cws.x -h
+
+10 1 1 1 1 1 5 M:1128 6 N:8 6 H:1,0,976 [5910]
+
+# points are the columns
+poly.x -v << FOO
+5 1 1 1 1 1
+FOO
+
+# points are the rows
+poly.x -e << FOO
+5 1 1 1 1 1
+FOO
+
+# points are the rows
+poly.x -e << FOO
+45 5 6 7 8 9 10
+FOO
+
+run "poly.x -e << FOO
+3 1 1 1 0 0 0 3 0 0 0 1 1 1
+FOO
+"
+
+run "poly.x -e << FOO
+36 1 4 4 6 9 12
+FOO
+"
+
+str = get "!poly.x -e << FOO
+36 1 4 4 6 9 12
+FOO
+"
+L = lines str
+L = drop(drop(L, 3), -2)
+netList L
+L0 = separate(" +", L#0)
+for x in drop(L0, 1) list value x
+M = matrix for ell in L list (
+    L0 := separate(" +", ell);
+    for x in drop(L0, 1) list value x
+    )
+
+get "!poly.x -e << FOO
+42 2 3 5 5 6 21
+FOO
+"
+
+get "!poly.x -e << FOO
+143233 43 1651 3328 20226 47194 70791
+FOO
+"
+
+get "!poly.x -v << FOO
+143233 43 1651 3328 20226 47194 70791
+FOO
+"
+
+lines get///!curl "http://rgc.itp.tuwien.ac.at/fourfolds/db/5d_reflexive,h11=100.txt"///;
+#oo == 204046
+o31_100000
+
