@@ -3,8 +3,12 @@ ToricLinearSeries.synonym = "toric linear series"
 
 toricLinearSeries = method(TypicalValue => ToricLinearSeries)
 toricLinearSeries List := ToricLinearSeries => m -> (
+    if #m == 0 then error "toricLinearSeries expects a nonempty list";
+    d := degree m#0;
+    if not all(m, x -> d == degree x) then error "toricLinearSeries expects a list of monomials of the same degree";
     s := new ToricLinearSeries from {
-        "monomials" => m  
+        "monomials" => m,
+        "degree" => d
     };
     s
 )
@@ -12,8 +16,24 @@ toricLinearSeries List := ToricLinearSeries => m -> (
 monomials ToricLinearSeries := List => o -> s -> (
     s#"monomials"
 )
+
+degree ToricLinearSeries := s-> (
+    s#"degree"
+)
 -- the monomial map that defines a toric map
-monomials ToricMap := List => o -> f -> first entries matrix inducedMap f
+-- monomials ToricMap := List => o -> f -> first entries matrix inducedMap f
+
+--isComplete = method(TypicalValue => Boolean)
+
+isComplete ToricLinearSeries := linSeries -> (
+    m := monomials linSeries;
+    setM := set m;
+    d := degree linSeries;
+    if #m != #setM then return false;
+    degDMonomials := flatten entries basis(d, ring m#0);
+    setM == set degDMonomials
+)
+
 
 -- -- helper for listing monomials of given degree in the ring
 -- -- TODO: move to Core
