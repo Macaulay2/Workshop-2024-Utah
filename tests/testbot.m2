@@ -17,8 +17,8 @@
 
 -- Uncomment and edit the following lines to preload and check your package or
 -- to run a series of examples with every push on GitHub.
---needsPackage "LocalRings"
---check LocalRings
+needsPackage "ToricExtras"
+check ToricExtras
 --load "tests/example.m2"
 --capture get "tests/example.m2"
 
