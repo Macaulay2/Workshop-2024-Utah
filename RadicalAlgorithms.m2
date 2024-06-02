@@ -8,9 +8,6 @@ newPackage(
         {Name => "Ayah Almousa", 
             Email => "aalmousa@mailbox.sc.edu", 
             HomePage => "http://sites.google.com/view/ayah-almousa"},
-	{Name => "Adam LaClair", 
-            Email => "alaclair@purdue.edu", 
-            HomePage => "https://sites.google.com/view/adamlaclair/home"},
 	{Name => "Trung Chau", 
             Email => "chauchitrung1996@gmail.com"},
 	{Name => "Mike Cummings",
@@ -20,6 +17,9 @@ newPackage(
 	    Email => "de@berkeley.edu"},
 	 {Name => "Manohar Kumar",
 	     Email => "manhar349@gmail.com"}
+	 {Name => "Adam LaClair", 
+            Email => "alaclair@purdue.edu", 
+            HomePage => "https://sites.google.com/view/adamlaclair/home"}
     },
     Headline => "Implementing and benchmarking radical algorithms by Craig Huneke",
     PackageExports => {
