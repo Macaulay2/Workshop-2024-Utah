@@ -193,7 +193,7 @@ moriConeCap CYToolsCY3 := Cone => X -> (
     posHull transpose matrix mori
     )
 
-rays CYToolsCY3 := List => X -> (
+rays CYToolsCY3 :=  List => {} >> o -> X -> (
     filename := (getPolytopeFilePrefix X) | "/points.dat";
     if not fileExists filename then return "points.dat doesn't exist for this CY";
     rys := (lines get filename)/value/toList; -- format: one ray per line (with comma between values), first one is origin

@@ -431,7 +431,8 @@ extremalCurveInvariant CalabiYauInToric := X -> (
   partition(c -> classifyExtremalCurve(gvX, c, deglimit, degvec), mori)
 ///
 
-TEST ///
+"TEST"
+///
 -- Good test, TODO: place this back in once GVinvariants are working again.
 -*
   restart

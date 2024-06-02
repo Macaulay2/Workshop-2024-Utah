@@ -256,7 +256,10 @@ cySetH11H21 = cyData -> (
     (h11, h21)
     )
 
-rays CYPolytope := List => cyData -> cyData#"rays"
+rays CYPolytope := List => {} >> opts -> cyData -> (
+    cyData#"rays"
+    )
+
 dim CYPolytope := List => cyData -> dim polytope(cyData, "N")
 degrees CYPolytope := List => cyData -> (
     if not cyData.cache#?"glsm" then cySetGLSM cyData;

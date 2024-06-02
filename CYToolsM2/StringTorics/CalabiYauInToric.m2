@@ -161,7 +161,7 @@ normalToricVariety CalabiYauInToric := opts -> X -> (
     -- TODO: this fails if the class group is torsion! (Fails: later it gives an inscrutable error...)
     )
 
-rays CalabiYauInToric := X -> rays cyPolytope X
+rays CalabiYauInToric :=  List => {} >> o -> X -> rays cyPolytope X
 max CalabiYauInToric := X -> X#"triangulation"
 
 -- TODO: triangulation is used with 2 different pieces of data:

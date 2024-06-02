@@ -15,10 +15,10 @@ export {
 
 executableDir = "/Users/mike/src/git-from-others/PALPfromTGZ/palp-2.21/";
 
-programPaths#"PALP" = executableDir;
+--programPaths#"PALP" = executableDir;
 PALP = findProgram("PALP", "poly.x -h")
 
-programPaths#"poly.x" = executableDir;
+--programPaths#"poly.x" = executableDir;
 polyx = findProgram("poly.x", "poly.x -h")
 
 -* Code section *-

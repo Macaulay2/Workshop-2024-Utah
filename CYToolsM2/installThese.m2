@@ -1,21 +1,30 @@
+-- To install StringTorics:
+-- Do these lines in order.
 restart
 uninstallAllPackages()
 restart
 installPackage "IntegerEquivalences"
 restart
 installPackage "StringTorics"
-restart
-installPackage "DanilovKhovanskii"
-
--- Currently, GV invariants code not functional here, until we can get computeGV compiled and placed here...
--- I have commented out a few tests that use this.  All the following tests run.
-restart
 check "IntegerEquivalences"
 check "StringTorics"
+
+-- At this point, GV invariants functions won't work yet, but everything else should.
+-- To get GV invariants going, compile the code in ComputeGV
+-- and place computeGV on your PATH.
+
+-- to install DanilovKhovanskii
+restart
+uninstallPackage "DanilovKhovanskii"
+restart
+installPackage "DanilovKhovanskii"
+restart
 check "DanilovKhovanskii"
 
--- PALP interface
--- for now, need to install PALP on your computer to use this.
+-- to install the PALP interface
+-- for now, need to install PALP on your computer to use this
+-- (place the palp executables, e.g. poly.x, cws.x, on your PATH)
+-- then:
 restart
 uninstallPackage "PALPInterface"
 restart
@@ -24,5 +33,3 @@ restart
 installPackage "PALPInterface" -- no documentation or tests at all
 check "PALPInterface"
 
--- We can make a similar interface to GV invariants?
--- maybe called GromovWitten or GVInvariants.
