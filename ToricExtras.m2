@@ -60,7 +60,7 @@ export {
 -- CODE
 ------------------------------------------------------------------------------
 
-load "ToricExtras/ToricLinearSeries.m2"
+load "./ToricExtras/ToricLinearSeries.m2"
 
 ------------------------------------------------------------------------------
 -- DOCUMENTATION
