@@ -17,7 +17,7 @@ TEST ///
 
 -- test 2: test the isComplete function 
 TEST ///
-    P2 = projectiveToricVariety 2;
+    P2 = toricProjectiveSpace 2;
     S = ring P2;
     M1 = toricLinearSeries flatten entries basis(1,S);
     M2 = toricLinearSeries {x_0};
