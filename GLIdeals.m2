@@ -58,7 +58,7 @@ numgensILambda(Matrix, List) := (X, lam) -> (
 	minSize := min(r, c);
 	maxSize := max(r, c);
 
-	if min_size < size then(
+	if minSize < size then(
 		error "Partition is too large for the matrix";
 	);
 
