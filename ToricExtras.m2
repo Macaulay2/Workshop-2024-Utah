@@ -41,7 +41,10 @@ newPackage(
             Email => "jayy@wustl.edu"},
         {
             Name => "Anna Chlopecki",
-            Email => "achlopec@purdue.edu"}},
+            Email => "achlopec@purdue.edu"},
+        {
+            Name => "Eduardo Torres Dávila",
+            Email => "torre680@umn.edu"}},
 
     Headline => "new routines for working with normal toric varieties",
     Keywords => {"Toric Geometry"},
