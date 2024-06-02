@@ -20,14 +20,16 @@ NumberField = new Type of Ring
 
 numberField = method(Options => {})
 numberField(RingElement) := opts -> f1 -> (
+	print("1");
 	R1 := ring f1;
-
+	print("2");
 	if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
 	if #(gens R1) != 1 then error("Expected a polynomial in one variable.");
 	if char R1 != 0 then error("Expected characteristic 0.");
 
 	-- Verifies that the resulting quotient is a field.
 	if f1 == 0 then error("Expected nonzero polynomial.");
+	print(f1);
 	if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
 	new NumberField from toField (R1/ideal(f1))
