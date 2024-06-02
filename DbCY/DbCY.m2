@@ -21,8 +21,9 @@ supTruncate = method();
 supTruncate(Complex, ZZ) := (F, i) -> (
     R := ring F;
     d := dim R;
-    t := (min degrees R)_0;
+    t := (min degrees target F.dd_1)_0;
     -- get the min degree of all gens of the module
+    d+i-t
 )
 
 end;
