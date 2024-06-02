@@ -39,7 +39,7 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
 	new NumberFieldExtension from {
 		source=>numberField source phi1, 
 		target=>numberField target phi1, 
-		map=>ringMap 
+		map=>phi1
 	}
 );
 
