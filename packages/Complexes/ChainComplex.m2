@@ -84,7 +84,7 @@ complex List := Complex => opts -> L -> (
     -- L is a list of matrices or a list of modules
     if not instance(opts.Base, ZZ) then
       error "expected Base to be an integer";
-    if all(L, ell -> instance(ell,Matrix) or instance(ell,SheafMap)) then (
+    if all(L, ell -> instance(ell,Matrix)) then (
         mapHash := hashTable for i from 0 to #L-1 list opts.Base+i+1 => L#i;
         return complex(mapHash, opts)
         );
@@ -601,7 +601,7 @@ prune Complex := Complex => opts -> (cacheValue symbol minimalPresentation)(C ->
     nonzeros := select(lo..hi, i -> minimalPresentation C_i != 0);
     D := if #nonzeros === 0 
          then (
-             if instance(C_lo,Module) then complex (ring C)^0 else complex sheaf ((ring C)^0)
+             complex (ring C)^0
              )
          else (
              lo = min nonzeros;
@@ -770,11 +770,10 @@ Hom(Complex, Complex) := Complex => opts -> (C,D) -> (
                 (j,k) -> (
                     tar := component(modules#(i-1), j);
                     src := component(modules#i, k);
-                    m := map(tar, src, 
+                    map(tar, src, 
                         if k-j === {0,1} then (-1)^(k#1-k#0+1) * Hom(C_(k#0), dd^D_(k#1), opts)
                         else if k-j === { -1,0 } then Hom(dd^C_(j#0), D_(k#1), opts)
-                        else 0);
-		    if instance(m, Matrix) then m else matrix m
+                        else 0)
                     ))));
     result = complex maps;
     result.cache.homomorphism = (C,D); -- source first, then target
@@ -851,7 +850,7 @@ tensor(Complex, Complex) := Complex => {} >> opts -> (C, D) -> (
                         if k-j === {0,1} then (-1)^(k#0) * (C_(k#0) ** dd^D_(k#1))
                         else if k-j === {1,0} then (dd^C_(k#0) ** D_(k#1))
                         else 0);
-                    if instance(m, Matrix) then m else matrix m
+                    m
                     ))));
     result = complex maps;
     result.cache.tensor = (C,D);
