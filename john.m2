@@ -14,7 +14,7 @@ restart
 debug needsPackage "Varieties"
 check "Varieties"
 
-These are all the commands that are needed to register changes to the package.
+These are all the commands that should be run to register changes to the package. That is, open Macaulay2 FROM `Varieties.m2'. If you did it currently, running currentDirectory() will give you the directory where Varieties.m2 is located.
 
 -- The following puts in a debugger and makes the error codes actually useful. The default mode I guess is "not useful".
 -- Lower the error depth if it is still not useful -- lower the error depth, the more information you get.
