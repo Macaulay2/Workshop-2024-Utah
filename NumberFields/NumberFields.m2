@@ -4,7 +4,7 @@ newPackage(
         Date => "June 3, 2024",
         Authors => {
             {Name=>"Jack Garzella"},
-            {Name=>"Nicholas Gaubatz"},
+            {Name=>"Nicholas Gaubatz", Email=>"nmg0029@auburn.edu", HomePage=>"https://nicholasgaubatz.github.io/"},
             {Name=>"Ethan Toshihiro Mowery"},
             {Name => "Karl Schwede", Email=>"schwede@math.utah.edu", HomePage=>"http://www.math.utah.edu/~schwede"}
         },
@@ -23,6 +23,7 @@ export{
    "numberFieldExtension",
    "isGalois",
 --   "degreeNF",
+   "splittingField"
 };
 
 NumberField = new Type of HashTable
@@ -49,7 +50,7 @@ numberField(RingElement) := opts -> f1 -> (
 )
 
 numberField(Ring) := opts -> R1 -> (
-
+    if R1===QQ then return new NumberField from {ring => R1};
     
     if not isPrime (ideal 0_R1) then error("Expected a field.");
     if not dim R1 == 0 then error("Expected a field.");
@@ -93,7 +94,38 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
     }
 );
 
-
+-- splittingField method
+splittingField = method(Options => {})
+splittingField(RingElement) := opts -> f1 -> (
+    --R1 := QQ[x];
+    R1 := ring f1;
+    S1 := R1;
+    K1 := coefficientRing R1;
+    variableIndex := 1;
+    finished := false;
+    while not finished do (
+        L1 := decompose ideal f1;
+        finished = true;
+        executeForLoop := true;
+        for i from 0 to #L1-1 do (
+            if executeForLoop then (
+                currentEntry := (entries gens L1#i)#0;
+                if not (length(currentEntry)==1 and max(degree(currentEntry#0))==1) then (
+                    finished = false;
+                    K1 = R1/(L1#i);
+                    S1 = K1[local x_variableIndex];
+                    phi1 := map(S1, R1, {x_variableIndex});
+                    f1 = phi1(f1);
+                    R1 = S1;
+                    variableIndex += 1;
+                    executeForLoop = false;
+                );
+            );
+        );
+    );
+    K1
+    --R1
+)
 
 end
 
