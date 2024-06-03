@@ -345,7 +345,6 @@ Node
         I = idealSheaf X
   SeeAlso
     cotangentSheaf
-    (idealSheaf, ZZ, ProjectiveVariety)
     ProjectiveVariety
 
 Node
