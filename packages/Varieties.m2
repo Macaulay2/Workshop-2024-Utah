@@ -696,9 +696,23 @@ isLocallyFree CoherentSheaf := F -> (
 sheafHom = method(TypicalValue => CoherentSheaf, Options => options Hom)
 sheafHom(SheafOfRings, SheafOfRings)  :=
 sheafHom(SheafOfRings, CoherentSheaf) :=
-sheafHom(CoherentSheaf, SheafOfRings)  :=
+sheafHom(CoherentSheaf, SheafOfRings)  := 
 sheafHom(CoherentSheaf, CoherentSheaf) := CoherentSheaf => o -> (F, G) -> (
     assertSameVariety(F, G); sheaf(variety F, Hom(module F, module G, o)))
+sheafHom(CoherentSheaf, Module) := CoherentSheaf => o -> (F, G) -> (
+    sheaf(variety F, Hom(module F, G, o))
+)
+sheafHom(Module, CoherentSheaf) := CoherentSheaf => o -> (F, G) -> (
+    sheaf(variety G, Hom(F, module G, o))
+)
+sheafHom(ZZ, CoherentSheaf) := CoherentSheaf => o -> (d, F) -> (
+    if d != 0 then error "expected integer 0";
+    sheafHom((ring F)^0, F)
+)
+sheafHom(CoherentSheaf, ZZ) := CoherentSheaf => o -> (F, d) -> (
+    if d != 0 then error "expected integer 0";
+    sheafHom(F, (ring F)^0)
+)
 
 sheafExt = new ScriptedFunctor from {
     superscript => i -> new ScriptedFunctor from {
