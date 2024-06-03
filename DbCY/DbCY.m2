@@ -4,8 +4,11 @@ orlovTruncateLess = method()
 orlovTruncateLess(Complex, ZZ) := (F, i) -> (
     m := min F;
     M := max F;
-    mapList := for j from m+1 to M list submatrixByDegrees(F.dd_j, (0, i-1), (0, i-1));
-    complex(mapList)
+    mapList := for j from m+1 to M list {submatrixByDegrees(F.dd_j, (-10000, i-1), (-10000, i-1)), j};
+    for i from 0 to #mapList - 1 do (
+	if mapList_i = 0 then j = j +1; 
+	);
+    complex(mapList)[]
     )
 
 orlovTruncateGeq = method()
@@ -19,22 +22,37 @@ orlovTruncateGeq(Complex, ZZ) := (F, i) -> (
 -- Input: a complex F which is already minimal resolution, a number i
 -- Output: a number, which is the upper bound
 supTruncate = method();
-supTruncate(Complex, ZZ) := (F, i) -> (
-    R := ring F;
+supTruncate(Module, ZZ) := (M, i) -> (
+    R := ring M;
     d := dim R;
-    t := (min degrees target F.dd_1)_0;
+    t := min flatten degrees M;
     -- get the min degree of all gens of the module
-    d+i-t
+    if i >= t then d+i-t else d
+)
+
+truncateGeqDualize = method();
+truncateGeqDualize(Module, ZZ) := (M, i) -> (
+    F := freeResolution(M, LengthLimit => supTruncate(M, i));
+    Fi := orlovTruncateGeq(F, i);
+    Fidual := dual Fi;
+    canonicalTruncation(Fidual, -supTruncate(M, i) + 1, 10000)
+)
+
+singularityToSheaves = method();
+singularityToSheaves(Module, ZZ, ZZ) := (M, i, j) -> (
+    G := resolution(truncateGeqDualize(M, i), LengthLimit => j);
+    D := dual G;
+    orlovTruncateLess(D, i)
 )
 
 end;
 
 restart
 load "DbCY.m2"
-
-R = ZZ/101[x_1..x_4, Degrees => {1, 1, 3, 4}]
-F = koszulComplex vars R
+R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
+M = coker matrix{{x_0*x_2}}
 i = 3
-orlovTruncateLess(F, i)
-orlovTruncateGeq(F, i)
+j = supTruncate(M, i) + dim(R)
+singularityToSheaves(M, i, supTruncate(M, i) + dim(R))
+
 F
