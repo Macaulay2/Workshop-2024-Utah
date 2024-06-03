@@ -4,7 +4,7 @@ newPackage(
     	Date => "June 1, 2024",
     	Authors => {
 	     {Name => "Hunter Simper", Email => "hunter.simper@utah.edu", HomePage => "https://www.huntersimper.com"},
-	     {}
+	     {Name => "Van Vo"}
 	     },
     	Headline => "Template for gl ideals package",
 	PackageExports => {"SchurRings","SimpleDoc"},
