@@ -122,7 +122,6 @@ TEST ///
     ssK_[1]
     idssK^[0]
     ssK[1]
-    
 ///
 
 end--
@@ -130,7 +129,5 @@ restart
 loadPackage("Truncations", FileName => currentDirectory() | "Truncations.m2", Reload => true)
 loadPackage("Complexes",   FileName => currentDirectory() | "Complexes.m2",   Reload => true)
 debug loadPackage("Varieties",   FileName => currentDirectory() | "Varieties.m2",   Reload => true)
-errorDepth=1
-installPackage("Varieties",   FileName => currentDirectory() | "Varieties.m2")
 
 check Varieties
