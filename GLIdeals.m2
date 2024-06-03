@@ -174,18 +174,16 @@ goodDegree(ZZ, ZZ, List) := (n, m, L) -> (
     return edegree == fdegree;
 );
 
-idealToChi = method();
-idealToChi(Matrix, Ideal) := (Y, J) -> (
-	-- J is an ideal
-	-- return the list of partitions chi such that J = idealIChi(Y, chi)
-
-
+correctSymmetricAlgebraHelper = method();
+correctSymmetricAlgebraHelper(Matrix) := Y -> (
+	-- take in a matrix Y
 	-- S is the ring that Y is defined over
 	-- assuming that S = k[Y]
 	-- we will construct an isomorphic ring R = k[X]
 	-- with a specific grading where deg(x_(i, j)) = (e_i, f_j) \in Z^n x Z^m = Z^{n+m}
-	-- will compute everything within R
-
+	-- define phi : S -> R, where the entries of Y are mapped to the entries of X (correspondingly...)
+	-- return (R, X, phi)
+	
 	x := symbol x;
 	n := numRows Y;
 	m := numColumns Y;
@@ -201,36 +199,29 @@ idealToChi(Matrix, Ideal) := (Y, J) -> (
     X := transpose genericMatrix(R, m, n);
 
 	phi := map(S, R, flatten entries Y);
-	print "constructed phi";
+
+	return (R, X, phi);
+)
+
+idealToChi = method();
+idealToChi(Matrix, Ideal) := (Y, J) -> (
+	-- J is an ideal
+	-- return the list of partitions chi such that J = idealIChi(Y, chi)
+
+	(R, X, phi) := correctSymmetricAlgebraHelper(Y);
 	I := phi^(-1)(J);
-	print "constructed I";
 
 	-- now we have the ideal I in R
 	L := flatten entries mingens I;
-	print "constructed L";
 	-- print L;
 	degrees := apply(L, degree);
-	print "constructed degrees";
 	goodDegrees := select(degrees, deg -> goodDegree(n, m, deg));
-	print "constructed goodDegrees";
 
 	possiblePartitions := apply(goodDegrees, deg -> take(deg, n));
 	possiblePartitions = unique(possiblePartitions);
 	possiblePartitions = apply(possiblePartitions, P -> delete(0, P));
-
-	print "constructed possiblePartitions";
-
-	c := new List from {};
-	for P in possiblePartitions do(
-		print ("parition", P);
-		detl := detLam(X, P);
-		print("detl", detl, ring detl);
-		if detl % I == 0 then c = append(c, P);
-	);
-	-- c := select(possiblePartitions, P -> (detLam(X, P) % I == 0));
-
-	print "constructed c";
-	return c;
+	
+	return select(possiblePartitions, P -> (detLam(X, P) % I == 0));
 );
 
 partitionsLeq = method();
