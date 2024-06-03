@@ -24,6 +24,7 @@ export {
     -- methods
     "projectiveBundle",
     "findGlobalGeneratorsOfTwist",
+    "multiProjEmbedding",
 }
 
 needsPackage "Varieties"
@@ -50,6 +51,13 @@ findGlobalGeneratorsOfTwist(CoherentSheaf) := E -> (
     while sheaf coker basis(i, module E) == 0 do i = i - 1;
     (i + 1, sheaf basis(i + 1, module E))
 )
+
+multiProjEmbedding = method()
+multiProjEmbedding(CoherentSheaf) := E -> (
+    q := matrix last findGlobalGeneratorsOfTwist E;
+    ker symmetricAlgebra q
+)
+
 
 
 
