@@ -4,11 +4,11 @@ orlovTruncateLess = method()
 orlovTruncateLess(Complex, ZZ) := (F, i) -> (
     m := min F;
     M := max F;
-    mapList := for j from m+1 to M list {submatrixByDegrees(F.dd_j, (-10000, i-1), (-10000, i-1)), j};
+    mapList := for j from m+1 to M list submatrixByDegrees(F.dd_j, (-10000, i-1), (-10000, i-1));
     --for i from 0 to #mapList - 1 do (
 	--if mapList_i = 0 then j = j +1; 
 	--);
-    complex(mapList)[m]
+    complex(mapList)[-m]
     )
 
 orlovTruncateGeq = method()
