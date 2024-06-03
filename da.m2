@@ -5,11 +5,6 @@ debug installPackage("Varieties", FileName => "/Users/daniel/Documents/GitHub/Wo
 
 R = QQ[x,y];
 
-closedSSSequence := method();
-
-
-
-
 Sleuler(Complex) := C -> (
     d = length(C);
     c = 0;
@@ -18,3 +13,14 @@ Sleuler(Complex) := C -> (
     );
     return c
 )
+
+koszulComplex(Ideal) := I -> (
+    return koszulComplex(gens I);
+);
+koszulComplex(Variety, Variety) := (X, Y) -> (
+    return sheaf(koszulComplex(ideal Y));
+);
+koszulComplex(SheafMap) := phi -> (
+    C := koszulComplex((phi)#map);
+    return sheaf C;
+);
