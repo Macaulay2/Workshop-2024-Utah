@@ -66,7 +66,8 @@ export {
     "toricLinearSeries",
     "baseLocusIdeal",
     "isBasepointFree",
-    "batyrevConstructor"
+    "batyrevConstructor",
+    "toricMap"
     }
 
 
@@ -126,6 +127,6 @@ uninstallPackage "ToricExtras";
 restart
 installPackage "ToricExtras"
 check ToricExtras
-check (ToricExtras,Verbose=>true)
+check (ToricExtras, Verbose => true)
 
 needsPackage "ToricExtras";

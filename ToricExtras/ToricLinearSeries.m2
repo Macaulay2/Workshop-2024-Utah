@@ -8,7 +8,8 @@ toricLinearSeries List := ToricLinearSeries => m -> (
     if not all(m, x -> d == degree x) then error "toricLinearSeries expects a list of monomials of the same degree";
     s := new ToricLinearSeries from {
         "monomials" => m,
-        "degree" => d
+        "degree" => d,
+        "variety" => variety ring m#0
     };
     s
 )
@@ -50,6 +51,11 @@ isBasepointFree ToricLinearSeries := linSeries -> (
     isSubset(B,I)
 ) 
 
+variety ToricLinearSeries :=
+normalToricVariety ToricLinearSeries := linSeries -> (
+    linSeries#"variety"
+)
+
 
 -- -- helper for listing monomials of given degree in the ring
 -- -- TODO: move to Core
@@ -60,9 +66,21 @@ isBasepointFree ToricLinearSeries := linSeries -> (
 -- getting map of tori from a divisor or linear series
 map(NormalToricVariety, NormalToricVariety, ToricLinearSeries) :=
 map(NormalToricVariety, NormalToricVariety, ToricDivisor) := ToricMap => opts -> (Y, X, D) -> map(Y, X, monomials D)
-map(NormalToricVariety, NormalToricVariety, List)         := ToricMap => opts -> (Y, X, L) -> map(Y, X, transpose(
-	divmap := matrix transpose(first \ exponents \ L); -- map CDiv Y -> CDiv X
-	(divmap * matrix rays Y) // matrix rays X))        -- map    M_Y -> M_X
+
+map(NormalToricVariety, NormalToricVariety, List) := ToricMap => opts -> (Y, X, L) -> (
+    divmap := matrix transpose(first \ exponents \ L); -- map CDiv Y -> CDiv X    
+    D := (divmap * matrix rays Y)//(matrix rays X);
+    map(Y, X, transpose D) -- map    M_Y -> M_X
+)
+
+toricMap = method(TypicalValue => ToricMap)
+toricMap ToricLinearSeries := linSeries -> (
+    m := monomials linSeries;
+    X := variety linSeries;
+    if #m == 1 then error "toricMap expects a toric linear series of length at least 2";
+    Pn := toricProjectiveSpace (#m - 1);
+    map(Pn, X, m)
+)
 
 -- if the source is not given, get the variety from the linear series or divisor
 map(NormalToricVariety, Nothing, ToricLinearSeries) :=

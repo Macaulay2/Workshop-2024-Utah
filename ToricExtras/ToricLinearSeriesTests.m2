@@ -75,3 +75,38 @@ TEST ///
     assert(not isBasepointFree M3)
     assert(not isBasepointFree M4)
 ///
+
+-- test 5: test the toricMap function
+TEST ///
+    P1 = toricProjectiveSpace 1;
+    X = P1 ** P1;
+    T = ring X;
+    M1 = toricLinearSeries {T_{0,2,2,0},T_{0,2,0,2},T_{2,0,0,2},T_{2,0,2,0}};
+    M2 = toricLinearSeries {T_{0,2,2,0},T_{0,2,0,2},T_{2,0,0,2}};
+    M3 = toricLinearSeries {T_{0,2,2,0},T_{0,2,0,2},T_{2,0,0,2},T_{1,1,2,0}};
+    --M4 = toricLinearSeries {T_{0,2,2,0},T_{0,2,0,2},T_{2,0,0,2},T_{1,1,1,1}};
+    M4 = toricLinearSeries {T_{2,0,0,1}, T_{2,0,1,0}, T_{0,2,1,0}, T_{0, 2, 0, 1}};
+
+    map1 = toricMap(M1);
+    map2 = toricMap(M2);
+    map3 = toricMap(M3);
+    map4 = toricMap(M4);
+    
+    assert(isWellDefined(map1));
+    assert(not isWellDefined(map2));
+    assert(not isWellDefined(map3));
+    assert(isWellDefined(map4));
+
+    assert(source(map1) === X);
+    assert( (#(rays target(map1)) == 4) and isSmooth(target(map1)) and (dim(target(map1)) == 3)); --checks if target is P3
+
+    assert(source(map2) === X);
+    assert( (#(rays target(map2)) == 3) and isSmooth(target(map2)) and (dim(target(map2)) == 2)); --checks if target is P2
+    
+    assert(source(map3) === X);
+    assert( (#(rays target(map3)) == 4) and isSmooth(target(map3)) and (dim(target(map3)) == 3)); --checks if target is P3
+    
+    assert(source(map4) === X);
+    assert( (#(rays target(map4)) == 4) and isSmooth(target(map4)) and (dim(target(map4)) == 3)); --checks if target is P3
+
+///

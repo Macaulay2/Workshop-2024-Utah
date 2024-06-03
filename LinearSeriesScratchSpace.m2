@@ -4,7 +4,7 @@ needsPackage "NormalToricVarieties"
 P2 = toricProjectiveSpace 2
 
 S = ring P2
-
+matrix rays P2
 basis (2,S)
 
 m = flatten entries basis (3,S)
