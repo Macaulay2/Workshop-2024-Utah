@@ -14,17 +14,18 @@ newPackage(
 	    Email => "fxiang2@uci.edu",
 	    HomePage => "" }
         },
-    AuxiliaryFiles => true
+    AuxiliaryFiles => true,
+    Reload => true
 )
 export {
     -- Types
     "ProjectiveBundle",
     -- methods
     "projectiveBundle",
+    "findGlobalGeneratorsOfTwist",
 }
 
 needsPackage "Varieties"
-
 
 ProjectiveBundle = new Type of HashTable
 
@@ -39,5 +40,19 @@ projectiveBundle(ProjectiveVariety, CoherentSheaf) := (X, E) -> (
     new ProjectiveBundle from{symbol Variety => X, symbol CoherentSheaf => E, symbol rank => rank E}
 )
 
+
+findGlobalGeneratorsOfTwist = method()
+findGlobalGeneratorsOfTwist(CoherentSheaf) := E -> (
+    i := regularity module E;
+    while sheaf coker basis(i, module E) == 0 do i = i - 1;
+    (i + 1, sheaf basis(i + 1, module E))
+)
+
+
+
 --load "./RuledSurfaces/RS-tests.m2"
+
+
+
+
 
