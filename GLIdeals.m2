@@ -105,7 +105,7 @@ randomLam(ZZ, ZZ) := (n,k) -> (
     for i from 0 to (n-2) do(
         x := random(0, k-sumsofar);
         L#i=x;
-        sumsofar := sumsofar + x;
+        sumsofar = sumsofar + x;
         );
     L#(n-1) = k - sumsofar;
     L=toList L;
