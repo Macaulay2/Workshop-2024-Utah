@@ -81,7 +81,7 @@ export{
 	"dualize", --added checks
 	"embedAsIdeal", --added checks, has IsGraded option
 	"isDomain", --added checks
-	"isSmooth", --added checks, has IsGraded option
+	--"isSmooth", --added checks, has IsGraded option
     --options
     "Safe", --an option, if set true then the above commands avoid doing any checks
 	"CoefficientType", --an option, one can set the coefficient type
@@ -1912,7 +1912,7 @@ isDomain(Ring) := Boolean => (R1) -> (
 );
 
 --checks whether R/J1 is regular
-isSmooth  = method(Options => {IsGraded => false});
+--isSmooth  = method(Options => {IsGraded => false});
 
 isSmooth(Ideal) := Boolean => o->J1 -> (
 	--empty schemes are smooth (which is why we are first check whether ideals are the whole ring or contain the irrelevant ideal
@@ -4075,14 +4075,14 @@ doc ///
    	Key
    	 isSmooth
    	 (isSmooth, Ideal)
-   	 [isSmooth, IsGraded]
+   	 --[isSmooth, IsGraded]
    	Headline
    	 whether R mod the ideal is smooth
    	Usage
    	 isSmooth( I )
    	Inputs
    	 I: Ideal
-   	 IsGraded => Boolean
+   	 --IsGraded => Boolean
    	   specify that we should do this computation on a projective algebraic variety
    	Outputs
    	 flag: Boolean
@@ -4107,12 +4107,12 @@ doc ///
    	  R = QQ[x, y, z];
    	  I = ideal(x * y - z^2 )
    	  isSmooth(I)
-   	  isSmooth(I, IsGraded => true)
+   	  --isSmooth(I, IsGraded => true)
    	 Example
    	  R = QQ[x, y, u, v];
    	  I = ideal(x * y - u * v)
    	  isSmooth(I)
-   	  isSmooth(I, IsGraded => true)
+   	  --isSmooth(I, IsGraded => true)
 ///
 
 doc ///
