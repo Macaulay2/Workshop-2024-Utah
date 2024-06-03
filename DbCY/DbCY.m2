@@ -1,3 +1,4 @@
+needsPackage "Complexes"
 
 orlovTruncateLess = method()
 orlovTruncateLess(Complex, ZZ) := (F, i) -> (
@@ -29,8 +30,8 @@ supTruncate(Complex, ZZ) := (F, i) -> (
 end;
 
 restart
-needsPackage "Complexes"
-load "Singularity_to_derived.m2"
+load "DbCY.m2"
+
 R = ZZ/101[x_1..x_4, Degrees => {1, 1, 3, 4}]
 F = koszulComplex vars R
 i = 3
