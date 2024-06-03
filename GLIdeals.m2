@@ -12,7 +12,7 @@ newPackage(
 	Reload=>true
     	)
     
-export{"idealILambda","numgensILambda"}
+export{"idealILambda","numgensILambda", "idealToChi"}
 
 numgensILambda = method() -- TODO: Make it accept Partitions as well
 numgensILambda(Matrix, List) := (X, lam) -> (
@@ -89,14 +89,13 @@ numgensIChi(Matrix, List) := (X, chi) -> (
 
 detLam = method()
 detLam (Matrix, List) := (X,lam) -> (
-    (m,n) := (numColumns(X), numRows(X));
-    base := ring X;
+	conjlam := toList conjugate( new Partition from lam);
     C := 1;
-    for i in lam do(
-	C = C*determinant(submatrix(X,{0..i},{0..i}));
+    for i from 0 to #conjlam-1 do(
+	C = C*determinant(submatrix(X,{0..conjlam_i - 1},{0..conjlam_i - 1}));
     );
     return C 
-    )
+)
 
 randomLam = method();
 randomLam(ZZ, ZZ) := (n,k) -> (
@@ -155,6 +154,83 @@ idealIChi(Matrix,List) := (X,chi) -> (
 		I = I + idealILambda(X, c#i);
 	);
 	return I;
+);
+
+goodDegree = method();
+goodDegree(ZZ, ZZ, List) := (n, m, L) -> (
+    -- L is a length n + m list of integers
+    -- return if L is a good degree for n, m
+    -- i.e., if L = (lam, lam) for a partition lam (suitably padded)
+    edegree := take(L, n);      -- the first n elements of L
+    fdegree := drop(L, n);      -- the remaining elements
+    
+    isPartition := P -> (rsort(P) == P);
+    
+    if not (isPartition(edegree) and isPartition(fdegree)) then return false;
+    -- edegree and fdegree are weakly decreasing
+
+    edegree = delete(0, edegree);    -- remove the trailing 0s
+    fdegree = delete(0, fdegree);    -- remove the trailing 0s
+    return edegree == fdegree;
+);
+
+idealToChi = method();
+idealToChi(Matrix, Ideal) := (Y, J) -> (
+	-- J is an ideal
+	-- return the list of partitions chi such that J = idealIChi(Y, chi)
+
+
+	-- S is the ring that Y is defined over
+	-- assuming that S = k[Y]
+	-- we will construct an isomorphic ring R = k[X]
+	-- with a specific grading where deg(x_(i, j)) = (e_i, f_j) \in Z^n x Z^m = Z^{n+m}
+	-- will compute everything within R
+
+	x := symbol x;
+	n := numRows Y;
+	m := numColumns Y;
+	S := ring Y;
+	k := baseRing S;
+
+	indices := toList((1, 1)..(n, m));
+    myVars := apply(indices, ind -> x_(ind));
+    edegree := i -> toList(insert(i-1, 1, ((n-1) : 0)));    -- e(i) = (0, ..., 0, 1, 0, ..., 0) \in Z^n
+    fdegree := j -> toList(insert(j-1, 1, ((m-1) : 0)));    -- f(j) = (0, ..., 0, 1, 0, ..., 0) \in Z^m
+    myDegrees := apply(indices, ind -> edegree(ind#0) | fdegree(ind#1));
+    R := k[myVars, Degrees => myDegrees];
+    X := transpose genericMatrix(R, m, n);
+
+	phi := map(S, R, flatten entries Y);
+	print "constructed phi";
+	I := phi^(-1)(J);
+	print "constructed I";
+
+	-- now we have the ideal I in R
+	L := flatten entries mingens I;
+	print "constructed L";
+	-- print L;
+	degrees := apply(L, degree);
+	print "constructed degrees";
+	goodDegrees := select(degrees, deg -> goodDegree(n, m, deg));
+	print "constructed goodDegrees";
+
+	possiblePartitions := apply(goodDegrees, deg -> take(deg, n));
+	possiblePartitions = unique(possiblePartitions);
+	possiblePartitions = apply(possiblePartitions, P -> delete(0, P));
+
+	print "constructed possiblePartitions";
+
+	c := new List from {};
+	for P in possiblePartitions do(
+		print ("parition", P);
+		detl := detLam(X, P);
+		print("detl", detl, ring detl);
+		if detl % I == 0 then c = append(c, P);
+	);
+	-- c := select(possiblePartitions, P -> (detLam(X, P) % I == 0));
+
+	print "constructed c";
+	return c;
 );
 
 partitionsLeq = method();
