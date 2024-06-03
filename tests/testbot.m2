@@ -23,7 +23,7 @@ path = join( { currentDirectory() | "packages/" }, path )
 --capture get "tests/example.m2"
 
 loadPackage("Truncations",  FileName => currentDirectory() | "packages/Truncations.m2", Reload => true)
-loadPackage("Complexes",    FileName => currentDirectory() | "packages/Complexes.m2",   Reload => true)
+installPackage("Complexes", FileName => currentDirectory() | "packages/Complexes.m2")
 installPackage("Varieties", FileName => currentDirectory() | "packages/Varieties.m2")
 check Varieties
 
