@@ -40,6 +40,17 @@ baseLocusIdeal ToricLinearSeries := linSeries -> (
     ideal monomials linSeries
 )
 
+isBasepointFree = method(TypicalValue => Boolean)
+
+isBasepointFree ToricLinearSeries := linSeries -> (
+    m := monomials(linSeries);
+    S := ring m#0;
+    B := ideal(S.variety);
+    I := radical (ideal m, Strategy => Monomial);
+    isSubset(B,I)
+) 
+
+
 -- -- helper for listing monomials of given degree in the ring
 -- -- TODO: move to Core
 -- monomials(ZZ,   Ring) :=

@@ -49,14 +49,15 @@ newPackage(
     Headline => "new routines for working with normal toric varieties",
     Keywords => {"Toric Geometry"},
     PackageExports => {"NormalToricVarieties"},
-    PackageImports => {},
+    PackageImports => {"PrimaryDecomposition"},
     DebuggingMode => true
     )
 
 export {
     "ToricLinearSeries",
     "toricLinearSeries",
-    "baseLocusIdeal"
+    "baseLocusIdeal",
+    "isBasepointFree"
     }
 
 
