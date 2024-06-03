@@ -54,35 +54,34 @@ export{
 -- ** Part 2: Huneke's Algorithm **
 -----------------------------------
 
-hunekeAlgorithm = method(TypicalValue => Ideal)
-hunekeAlgorithm(Ideal) := I -> (
-    R := ring I;
-    J := ideal(0_R);
-    previous := ideal(0_R);
-    while (J != ideal(1_R)) do (
-	M := presentation module I;
-	c := codim I;
-	n := rank target M;
-	k := n-1;
-	while codim minors(n-k,M) != c do (
-	    k = k-1;
+restart
+genericSocle := (I) -> (
+    d:=dim I;
+    return (I:minors(dim ring I -d, jacobian I));
+)
+ 
+ hunekeAlgorithm := (I) -> (
+	J:=ideal(0_R);
+	repetitionCount:=1;
+	previousI:=ideal(0_R);
+	while (J!=ideal(1_R)) do (
+	    M:=presentation module I;
+	    c:=codim I;
+	    n:=rank target M;
+	    k:=n-1;
+	    if (codim minors(n-c,M) >= c +1) then (
+		return genericSocle(I);
+		);
+	    while (codim minors(n-k,M)!=c) do (
+		k=k-1;
+		);
+	    J=I:minors(n-k,M);
+	    previousI=I;
+	    I=J;
+	    repetitionCount=repetitionCount+1;
 	    );
-	if (k == c) then (
-	    print("generically CI");
-	    return null;
-	    )
-	else if (k < c) then (
-	    print("k<c, what now?");
-	    return null;
-	    )
-	else (
-	    J = I : minors(n-k,M);
-	    previous = I;
-	    I = J;
-	    );
-    );
-    return previous
- )
+	return genericSocle(previousI);
+)
 
 
 
