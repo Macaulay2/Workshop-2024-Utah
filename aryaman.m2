@@ -70,6 +70,65 @@ minimizeChi(List) := (chi) -> (
 )
 
 c = apply(5, i -> randomLam(3, 2));
+c = minimizeChi(c);
 R = QQ[X_(1, 1)..X_(3, 4)];
 XM = transpose genericMatrix(R, 4, 3);
-idealIChi(XM, c)
+I = idealIChi(XM, c);
+
+n = 3;
+m = 4;
+K = QQ;
+x = symbol x;
+c = apply(5, i -> randomLam(3, 2));
+(R, X) = myConstructor(n, m, K, x);
+I = idealIChi(X, c);
+J = I^2;
+L = flatten entries mingens J;
+gL = select(L, f -> goodDegree(n, m, degree f));
+unique(apply(gL, degree))
+
+myConstructor = (n, m, K, x) -> (
+    -- n, m are ZZ, K is a ring, x is a variable/symbol?
+
+    if not isField K then error("K must be a field");
+    -- n is number of rows, m is number of columns
+    -- want to degree to x_ij as (e_i, f_j) \in Z^n x Z^m = Z^(n + m)
+    
+    indices := toList((1, 1)..(n, m));
+    myVars := apply(indices, ind -> x_(ind));
+    edegree := i -> toList(insert(i-1, 1, ((n-1) : 0)));    -- e(i) = (0, ..., 0, 1, 0, ..., 0) \in Z^n
+    fdegree := j -> toList(insert(j-1, 1, ((m-1) : 0)));    -- f(j) = (0, ..., 0, 1, 0, ..., 0) \in Z^m
+    myDegrees := apply(indices, ind -> edegree(ind#0) | fdegree(ind#1));
+    R := K[myVars, Degrees => myDegrees];
+    X := transpose genericMatrix(R, m, n);
+
+    return (R, X);
+)
+
+goodDegree = method();
+goodDegree(ZZ, ZZ, List) := (n, m, L) -> (
+    -- L is a length n + m list of integers
+    -- return if L is a good degree for n, m
+    -- i.e., if L = (lam, lam) for a partition lam (suitably padded)
+    edegree := take(L, n);      -- the first n elements of L
+    fdegree := drop(L, n);      -- the remaining elements
+    
+    isPartition = P -> (rsort(P) == P);
+    
+    if not (isPartition(edegree) and isPartition(fdegree)) then return false;
+    -- edegree and fdegree are weakly decreasing
+
+    edegree = delete(0, edegree);    -- remove the trailing 0s
+    fdegree = delete(0, fdegree);    -- remove the trailing 0s
+    return edegree == fdegree;
+)
+
+
+
+restart
+load "GLIdeals.m2";
+R = QQ[x_(1,1)..x_(2,3)];X = transpose genericMatrix (R, 3, 2);I = (minors(2, X))^3;
+-- detLam(X, {3, 3})
+idealToChi(X, I)
+J = annihilator Ext^3(R^1/I, R)
+idealToChi(X, J)
