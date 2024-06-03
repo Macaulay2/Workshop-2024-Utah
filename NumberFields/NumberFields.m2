@@ -63,6 +63,10 @@ numberField(Ring) := opts -> R1 -> (
     new NumberField from {ring => toField (flattenedR1)}
 )
 
+internalNumberFieldConstructor := R1 -> (
+    
+);
+
 --****************************
 --NumberField basic operations
 --****************************
@@ -93,6 +97,27 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
     }
 );
 
+source(NumberFieldExtension) := phi1 -> (source phi1);
+target(NumberFieldExtension) := phi1 -> (target phi1);
+map(NumberFieldExtension) := phi1 -> (map phi1);
+
+
+--*************************
+--Methods
+--*************************
+
+isGalois = method(Options =>{})
+isGalois(NumberFieldExtension) := opts -> iota -> (
+     myMapList := {}; --replace with Jack's function when ready
+    --assuming iota : K -> L, myMapList is a list of maps L -> L_i where 
+    --L_i is one of the components of L **_K L.
+    
+    --check if all degrees are the same, and equal to 1.
+)
+
+isGalois(RingMap) := opts -> iota -> (
+   isGalois(numberFieldExtension iota)
+)
 
 
 end
