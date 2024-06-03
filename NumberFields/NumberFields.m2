@@ -9,6 +9,7 @@ newPackage(
             {Name => "Karl Schwede", Email=>"schwede@math.utah.edu", HomePage=>"http://www.math.utah.edu/~schwede"}
         },
         Headline => "number fields",
+        Keywords => {"field extension"},
     PackageImports => {}, 
     PackageExports => {"PushForward"}
     )
@@ -22,7 +23,11 @@ export{
 --   "degreeNF",
 };
 
-NumberField = new Type of Ring
+NumberField = new Type of HashTable
+
+--****************************
+--NumberField constructors
+--****************************
 
 numberField = method(Options => {})
 numberField(RingElement) := opts -> f1 -> (
@@ -38,7 +43,7 @@ numberField(RingElement) := opts -> f1 -> (
     print(f1);
     if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-    new NumberField from toField (R1/ideal(f1))
+    new NumberField from { ring => toField (R1/ideal(f1))}
 )
 
 numberField(Ring) := opts -> R1 -> (
@@ -53,8 +58,18 @@ numberField(Ring) := opts -> R1 -> (
     iota := map(flattenedR1,QQ);
     try pushFwd(iota) else error("Not finite dimensional over QQ");
 
-    new NumberField from toField (flattenedR1)
+    new NumberField from {ring => toField (flattenedR1)}
 )
+
+--****************************
+--NumberField basic operations
+--****************************
+
+ring(NumberField) := R1 -> (
+    R1#ring
+)
+
+
 
 
 --degreeNF = method(Options => {})
