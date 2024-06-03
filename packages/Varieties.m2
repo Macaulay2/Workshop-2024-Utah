@@ -668,7 +668,7 @@ tangentSheaf = method(TypicalValue => CoherentSheaf, Options => options cotangen
 tangentSheaf ProjectiveVariety := opts -> X -> dual cotangentSheaf(X, opts)
 
 idealSheaf = method(TypicalValue => CoherentSheaf, Options => options cotangentSheaf)
-idealSheaf ProjectiveVariety := opts -> X -> sheaf flattenModule module sheaf X
+idealSheaf ProjectiveVariety := opts -> X -> sheaf ideal (ring X).relations
 
 -- TODO: document
 canonicalBundle = method(TypicalValue => CoherentSheaf, Options => options cotangentSheaf)
