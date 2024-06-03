@@ -15,9 +15,10 @@ newPackage(
 	    HomePage => "https://math.mcmaster.ca/~cummim5/"},
 	{Name => "David Eisenbud",
 	    Email => "de@berkeley.edu"},
-	 {Name => "Manohar Kumar",
-	     Email => "manhar349@gmail.com"},
-	 {Name => "Adam LaClair", 
+	{Name => "Manohar Kumar",
+	     Email => "manhar349@gmail.com",
+             HomePage => "https://sites.google.com/view/manohar-kumar-pmrf-update/"},
+	{Name => "Adam LaClair", 
             Email => "alaclair@purdue.edu", 
             HomePage => "https://sites.google.com/view/adamlaclair/home"}
     },
@@ -28,8 +29,14 @@ newPackage(
 )
 
 export{
--- ++ means tested
+    -- UNTESTED EXPORTS
+    "hunekeAlgorithm"
+    
+    -- TESTED EXPORTS
+
 }
+
+
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- **CODE** --
@@ -45,12 +52,43 @@ export{
 -- ** Part 2: Huneke's Algorithm **
 -----------------------------------
 
+hunekeAlgorithm = method(TypicalValue => Ideal)
+hunekeAlgorithm(Ideal) := I -> (
+    R := ring I;
+    J := ideal(0_R);
+    previous := ideal(0_R);
+    while (J != ideal(1_R)) do (
+	M := presentation module I;
+	c := codim I;
+	n := rank target M;
+	k := n-1;
+	while codim minors(n-k,M) != c do (
+	    k = k-1;
+	    );
+	if (k == c) then (
+	    print("generically CI");
+	    return null;
+	    )
+	else if (k < c) then (
+	    print("k<c, what now?");
+	    return null;
+	    )
+	else (
+	    J = I : minors(n-k,M);
+	    previous = I;
+	    I = J;
+	    );
+    );
+    return previous
+ )
+
+
+
 
 
 -----------------------------------
 -- ** Part 3: Experimenting **
 ----------------------------------
-
 
 
 ------------------------------------------------------------------------------
@@ -77,11 +115,38 @@ doc ///
 	    }@ 
 ///
 
+doc ///
+    Key
+        hunekeAlgorithm
+	(hunekeAlgorithm, Ideal)
+    Headline
+        computes the radical using an algorithm of Huneke
+    Usage
+	hunekeAlgorithm(I)
+    Inputs
+	I: Ideal
+	    an unmixed ideal
+    Outputs
+	: Ideal
+	    the radical of the given ideal
+    Description
+        Text
+	    Let $k$ be a field.
+	    Given an ideal $I \subseteq k[x_1, \ldots, x_n]$, this method computes $\sqrt I$
+	    using the result of [Hun24, Theorem 10.3].
+    References
+	[Hun24] Huneke, Craig (2024). Computing Radicals with Wolmer Vasconcelos        
+///
+
+
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- **TESTS** --
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
+
+-- hunekeAlgorithm
+-- can we write some tests?
 TEST ///
 
 ///
@@ -132,6 +197,77 @@ time J: ideal(jacobian(ideal J_1))
 ------------------------------------
 --Development Section
 ------------------------------------
+
+
+------------------------------------------------------------------------------------------------------------
+-- test: computing radicals with colon of partial minors of the jacobian of a subset of generators
+------------------------------------------------------------------------------------------------------------
+
+needsPackage "MatrixSchubert"
+
+isFPFInv = w -> (
+    -- returns true iff the permutation w (a list) is a Fixed-Point-Free Involution
+    -- def: w is fixed-point-free iff w(i) never equals i
+    -- def: w is an involution iff w^2 = id
+    -- so w is a fixed-point-free involution if its permutation matrix is symmetric with 0's on the diagonal
+    n := #w;
+    wMatrix := map(ZZ^n, n, (i,j) -> if w#j == i+1 then 1 else 0);
+
+    (wMatrix == transpose wMatrix) and not any(w, i -> i == w#(i-1))
+    )
+
+
+skewSymmEssentialSet = w -> (
+    -- the usual essential set, but only the (i, j) for which i < j
+    D := select(rotheDiagram w, L -> (L_0 < L_1));  -- the skew-symmetric diagram
+    select(D, L -> ( not( isMember((L_0+1, L_1), D) or  isMember((L_0, L_1+1), D) )))
+    )
+
+
+skewSymmDetIdeal = (R, w) -> (
+    -- returns the skew-symmetric matrix Schubert determinantal ideal
+    -- the radical of this ideal defines the skew-symmetric matrix Schubert variety
+   
+    n := #w;
+    M := genericSkewMatrix(R, n);
+
+    -- get the essential set and re-index 
+    essSet := apply(skewSymmEssentialSet w, L -> (L_0 - 1, L_1 - 1));
+
+    -- find the determinantal ideal
+    ranks := rankTable w;
+    ideal apply(essSet, L -> (
+	    row := L_0;
+	    col := L_1;
+	    r := ranks_(row, col);
+
+	    minors(r+1, M^(toList(0..row))_(toList(0..col)))
+	    )
+        )
+    );
+
+
+R = QQ[x_1..x_50];
+w = {3, 6, 1, 8, 7, 2, 5, 4};
+I = trim skewSymmDetIdeal(R, w);  -- 21 mingens, not radical
+radI = radical I;
+
+needsPackage "FastMinors"
+
+K = ideal( (random I_*)_{0..10} );
+maybeRadI = I : chooseGoodMinors(5, 4, jacobian K);
+J == maybeRadI
+-- this sometimes gives the right radical, see notes on M2 Github > Workshop > Projects > Radical Algorithms
+
+
+
+
+
+------------------------------------
+
+
+
+
 
 restart
 uninstallPackage "RadicalAlgorithms"
