@@ -157,6 +157,31 @@ idealIChi(Matrix,List) := (X,chi) -> (
 	return I;
 );
 
+
+
+naiveClosure = method();---
+naiveClosure (Matrix, Ideal) := (Y,I) ->( 
+    (R,X,phi):=correctSymmetricAlgebraHelper(Y);
+    kk=baseRing ring Y;
+    n:=rank target X;
+    m:=rank source X;
+    II:=(inverse(phi))(I);
+    A:=random(kk^n,kk^n, MaximalRank=>true);
+    B:=random(kk^m,kk^m, MaximalRank=>true);
+    act:=map(R,R,flatten entries(A*X*B));
+    JJ:=II+act(II);   
+    while not(II==JJ) do(
+    II=JJ;
+    A=random(kk^n,kk^n, MaximalRank=>true);
+    B=random(kk^m,kk^m, MaximalRank=>true);
+    act=map(R,R,flatten entries(A*X*B));
+    JJ=II+act(II);    
+    );
+return (ideal mingens phi(II));
+    )
+
+
+
 goodDegree = method();
 goodDegree(ZZ, ZZ, List) := (n, m, L) -> (
     -- L is a length n + m list of integers
