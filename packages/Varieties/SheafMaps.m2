@@ -739,7 +739,7 @@ CoherentSheaf ^ Array := SheafMap => (F, v) -> (
 
 eulerSequence = method()
 -- TODO: should return a complex of sheaves
-eulerSequence ProjectiveVariety := Sequence => X -> (
+eulerSequence ProjectiveVariety := Complex => X -> (
     -- Given a projective variety X \subset PP^n, returns the two maps
     -- 0 <-- OO_X^1 <-- OO_X^(n+1)(-1) <-- Omega_PP^n|X <-- 0
     complex { sheaf_X vars(S := ring X), sheaf_X inducedMap(source vars S, ker vars S) })

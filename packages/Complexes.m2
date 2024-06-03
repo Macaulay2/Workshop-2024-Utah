@@ -110,10 +110,10 @@ homTensorAdjoint(Module, Module, Module) := (L, M, N) -> (
 --------------------------------------------------------------------
 -- package code ----------------------------------------------------
 --------------------------------------------------------------------
-load "Complexes/ChainComplex.m2"
-load "Complexes/FreeResolutions.m2"
-load "Complexes/ChainComplexMap.m2"
-load "Complexes/Tor.m2"
+load "./Complexes/ChainComplex.m2"
+load "./Complexes/FreeResolutions.m2"
+load "./Complexes/ChainComplexMap.m2"
+load "./Complexes/Tor.m2"
 
 --------------------------------------------------------------------
 -- interface code to legacy types ----------------------------------
@@ -166,8 +166,8 @@ undocumented{
     component
     }
 
-load "Complexes/ChainComplexDoc.m2"
-load "Complexes/ChainComplexMapDoc.m2"
+load "./Complexes/ChainComplexDoc.m2"
+load "./Complexes/ChainComplexMapDoc.m2"
 
 --------------------------------------------------------------------
 -- documentation for legacy type conversion ------------------------
@@ -367,8 +367,8 @@ doc ///
 --------------------------------------------------------------------
 -- package tests ---------------------------------------------------
 --------------------------------------------------------------------
-load "Complexes/ChainComplexTests.m2"
-load "Complexes/FreeResolutionTests.m2"
+load "./Complexes/ChainComplexTests.m2"
+load "./Complexes/FreeResolutionTests.m2"
 
 end------------------------------------------------------------
 
