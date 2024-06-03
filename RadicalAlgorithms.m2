@@ -109,8 +109,8 @@ doc ///
 	    {"[Hun24] Huneke, Craig (2024). Computing Radicals with Wolmer Vasconcelos"},
 	    {"[Vas94] Vasconcelos, Wolmer V (1994). Arithmetic of blowup algebras. Vol. 195. Cambridge University Press."}
 	    }@
-	Subnodes
-	    hunekeAlgorithm
+    Subnodes
+        hunekeAlgorithm
 ///
 
 doc ///
@@ -245,23 +245,124 @@ skewSymmDetIdeal = (R, w) -> (
     );
 
 
-R = QQ[x_1..x_50];
-w = {3, 6, 1, 8, 7, 2, 5, 4};
-I = trim skewSymmDetIdeal(R, w);  -- 21 mingens, not radical
+R = QQ[x_1..x_28];
+--w = {3, 6, 1, 8, 7, 2, 5, 4};
+--I = trim skewSymmDetIdeal(R, w);  -- 21 mingens, not radical
+
+w = {3, 8, 1, 7, 6, 5, 4, 2};
+I = trim skewSymmDetIdeal(R, w);  -- 34 mingens, not radical
+
 radI = radical I;
 
 needsPackage "FastMinors"
 
-K = ideal( (random I_*)_{0..10} );
-maybeRadI = I : chooseGoodMinors(5, 4, jacobian K);
-J == maybeRadI
--- this sometimes gives the right radical, see notes on M2 Github > Workshop > Projects > Radical Algorithms
+K = ideal( (random I_*)_{0..4} );
+
+codim minors(4, jacobian K)
+
+#select(
+    apply(
+    toList(1..100), i -> 
+    radI == (I : chooseGoodMinors(9, 4, jacobian K))
+    ),
+    B -> B
+)
+
+
+restart
+
+-- patch ideals of regular nilpotent Hessenberg varieties
+needsPackage "MatrixSchubert";
+needsPackage "FastMinors";
+
+patchIdealFromMatrix = (X, h) -> (
+    -- X, matrix; h, Hessenberg function
+    n := #h;
+    idealGenerators := flatten(for i from 1 to n list ( for j from 1 to n list (if i > h#(j-1) then X_(i-1,j-1) else 0 ) ));
+    return ideal(delete(0, idealGenerators));
+    )
+
+patchIdeal = (w, h) -> (
+    W := permToMatrix w;
+    X := (inverse(W*M)) * N * (W*M);
+    patchIdealFromMatrix(X, h)
+    )
+
+R = QQ[x_21,x_31,x_32,x_41..x_43];
+M = matrix{
+    {1, 0, 0, 0},
+    {x_21, 1, 0, 0},
+    {x_31, x_32, 1, 0},
+    {x_41, x_42, x_43, 1}
+    }
+
+N = matrix{
+    {0,1,0,0},
+    {0,0,1,0},
+    {0,0,0,1},
+    {0,0,0,0}
+    }
+
+h = {2, 3, 4, 4}
+S4 = permutations toList (1..4);
+
+patchIdeals = apply(S4, w -> patchIdeal(w, h));
+primesPatchIdeals = apply(patchIdeals, decompose);
+
+I = trim (intersect((random patchIdeals)_{0..1}))^2;
+radI = radical I;
+I == radI  -- ensure that this is false
+
+J = chooseGoodMinors(3, 3, jacobian I);
+J == radI
+
+------------------------------------------------------------------------
 
 
 
+-- this is very rough and not tested at all
 
 
-------------------------------------
+needsPackage "AnalyzeSheafOnP1";  -- don't really need this, just being lazy
+
+radicalAlgTest = I -> (
+    -- assume I is an ideal in a polynomial ring
+    R := ring I;
+    supp := support I;
+        
+    R' := (coefficientRing R) monoid([supp]);
+    I' := sub(I, R');
+    M' := module I';
+    jacI := jacobian I';
+    
+    n := #supp;
+    k := min(n, #(I'_*));
+    c := codim I';
+    
+    while k > c do (
+	J := minors(min(n, #(I'_*)), jacI);
+
+	-- check that at least one minor is a nonzero divisor mod I', if not, decrement k and go to top of loop
+	if any(J_*, j -> isNZD(j, M')) then break;
+	k := k-1;
+	)
+
+    -- maybe should check that k>=c, otherwise something will have gone wrong
+    -- assume now that J has at least one nonzero divisor mod I'
+
+    I1 := I':J;
+    c1 := codim I1;
+
+    if I1 == I1:(minors(n-c1, jacobian I1)) then return sub(I1, R);
+    return radicalAlgTest(sub(I1, R));
+    )
+
+
+
+------------------------------------------------------------------------
+
+
+
 
 
 
