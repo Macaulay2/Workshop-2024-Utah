@@ -1,10 +1,9 @@
-needsPackage "ToricExtras";
-needsPackage "NormalToricVarieties";
+needsPackage "LLLBases";
 
 makeBatyrevMatrix = method();
 makeBatyrevMatrix(List, List, List) := (P, B, C) -> (
 
-    Cprime = {0} | C;    
+    Cprime := {0} | C;    
     listRows := {};
 
     r10 := toList flatten(P#0 : {1});
