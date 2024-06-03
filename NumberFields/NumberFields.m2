@@ -95,6 +95,8 @@ degree(NumberField) := nf -> (
     rk
 )
 
+
+
 NumberFieldExtension = new Type of HashTable
 
 numberFieldExtension = method(Options => {})
@@ -102,14 +104,21 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
     new NumberFieldExtension from {
         source=>numberField source phi1, 
         target=>numberField target phi1, 
-        map=>phi1
+        "map"=>phi1, 
+        cache => new CacheTable from {}
     }
 );
 
-source(NumberFieldExtension) := phi1 -> (source phi1);
-target(NumberFieldExtension) := phi1 -> (target phi1);
-map(NumberFieldExtension) := phi1 -> (map phi1);
+source(NumberFieldExtension) := phi1 -> (phi1#source);
+target(NumberFieldExtension) := phi1 -> (phi1#target);
+map(NumberFieldExtension) := opts -> phi1 -> (phi1#"map");
 
+degree(NumberFieldExtension) := nfe -> (
+    if (nfe#cache#?degree) then return nfe#cache#degree;
+    rk := rank((pushFwd(map nfe))#0);
+    nfe#cache#degree = rk;
+    rk
+)
 
 --*************************
 --Methods
