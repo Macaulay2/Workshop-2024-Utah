@@ -115,8 +115,8 @@ randomLam(ZZ, ZZ) := (n,k) -> (
 
 idealILambda = method()
 idealILambda(Matrix,List) := (X,lam) -> (
-     n:=rank target X;
-     m:=rank source X;
+     n:=rank source X;
+     m:=rank target X;
      kk:=baseRing ring X; 
      if char kk !=0 then(
 		error "Base ring is not characteristic 0";
@@ -143,7 +143,19 @@ idealILambda(Matrix,List) := (X,lam) -> (
 	return ideal minJ;
 );
 
-
+idealIChi = method()
+idealIChi(Matrix,List) := (X,chi) -> (
+	-- chi is a list of partitions
+	-- return sum of ideals idealILambda(X, chi_i) for all i
+	R := ring X;
+	if #chi == 0 then return ideal(0_R);
+	c := minimizeChi(chi);
+	I := idealILambda(X, c#0);
+	for i in 1..#c-1 do(
+		I = I + idealILambda(X, c#i);
+	);
+	return I;
+);
 
 partitionsLeq = method();
 partitionsLeq(Partition, Partition) := (A, B) -> (

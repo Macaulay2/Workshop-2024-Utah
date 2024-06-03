@@ -69,4 +69,7 @@ minimizeChi(List) := (chi) -> (
     return apply(minimals, P -> toList(P));
 )
 
-c = apply(5, i -> randomLam(10, 10));
+c = apply(5, i -> randomLam(3, 2));
+R = QQ[X_(1, 1)..X_(3, 4)];
+XM = transpose genericMatrix(R, 4, 3);
+idealIChi(XM, c)
