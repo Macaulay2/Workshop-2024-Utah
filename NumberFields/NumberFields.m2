@@ -28,6 +28,12 @@ export{
 
 NumberField = new Type of HashTable
 
+--
+--The entries should be:
+--ring (the ring it points to)
+--cache (cached data)
+--
+
 --****************************
 --NumberField constructors
 --****************************
@@ -44,7 +50,7 @@ numberField(RingElement) := opts -> f1 -> (
     print(f1);
     if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-    new NumberField from { ring => toField (R1/ideal(f1))}
+    new NumberField from { ring => toField (R1/ideal(f1)), cache => new CacheTable from {}}
 )
 
 numberField(Ring) := opts -> R1 -> (
@@ -59,7 +65,7 @@ numberField(Ring) := opts -> R1 -> (
     iota := map(flattenedR1,QQ);
     try pushFwd(iota) else error("Not finite dimensional over QQ");
 
-    new NumberField from {ring => toField (flattenedR1)}
+    new NumberField from {ring => toField (flattenedR1), cache => new CacheTable from {}}
 )
 
 internalNumberFieldConstructor := R1 -> (
@@ -71,7 +77,10 @@ internalNumberFieldConstructor := R1 -> (
 --****************************
 
 ring(NumberField) := R1 -> (
-    coefficientRing(R1#ring)
+    if (class (R1#ring) === PolynomialRing) then (
+        return coefficientRing(R1#ring);
+    );
+    R1#ring
 )
 
 
@@ -79,10 +88,11 @@ ring(NumberField) := R1 -> (
 
 --degreeNF = method(Options => {})
 degree(NumberField) := nf -> (
-
+    if (nf#cache#?degree) then return nf#cache#degree;
     iota := map(ring(nf),QQ);
-
-    rank((pushFwd(iota))#0)
+    rk := rank((pushFwd(iota))#0);
+    nf#cache#degree = rk;
+    rk
 )
 
 NumberFieldExtension = new Type of HashTable
