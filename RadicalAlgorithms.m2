@@ -20,7 +20,9 @@ newPackage(
              HomePage => "https://sites.google.com/view/manohar-kumar-pmrf-update/"},
 	{Name => "Adam LaClair", 
             Email => "alaclair@purdue.edu", 
-            HomePage => "https://sites.google.com/view/adamlaclair/home"}
+            HomePage => "https://sites.google.com/view/adamlaclair/home"},
+	{Name => "Justin Fong",
+	    Email => "jafong1@gmail.com"}
     },
     Headline => "Implementing and benchmarking radical algorithms by Craig Huneke",
     PackageExports => {
