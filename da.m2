@@ -4,3 +4,17 @@ debug installPackage("Varieties", FileName => "/Users/daniel/Documents/GitHub/Wo
 
 
 R = QQ[x,y];
+
+closedSSSequence := method();
+
+
+
+
+Sleuler(Complex) := C -> (
+    d = length(C);
+    c = 0;
+    for i from -d to d do (
+        c = c + (-1)^i * (euler(HH_i()))
+    );
+    return c
+)
