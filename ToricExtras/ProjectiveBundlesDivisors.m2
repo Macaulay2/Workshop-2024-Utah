@@ -17,18 +17,61 @@ inputVariety := variety(listOfDivisors#0);
 -- Construct Fi's: Fi = cone(e_0, ... , exclude e_i , ... , e_r )
 -- 
 
-numberOfDivisors := #listOfDivisors;
+listOfDivisorCoefficients := apply(listOfDivisors, i -> entries(i));
+
+numberOfDivisors := #listOfDivisors - 1;
 
 inputConeList := max(inputVariety);
 inputRayList := rays(inputVariety);
+inputFanDimension := #(inputRayList#0);
+
+extendedInputRayList := {};
+
+for oldRay in inputRayList do(
+
+extendedInputRayList = append(extendedInputRayList, oldRay | {numberOfDivisors : 0});
+
+)
+
+
+
+
 
 -- for each cone sigma in inputConeList, for each ray rho in sigma
 -- construct cone(inputRayList#rho +  )
 -- 
 
-rayList := {};
-coneList := {};
-outputVariety := normalToricVariety(rayList , coneList);
+-- extendedStandardBasisMatrix := map(ZZ^inputFanDimension, ZZ^numberOfDivisors, 0) || id_(ZZ^numberOfDivisors);
+
+rayLiftingCoefficients := {};
+-- build rayliftingCoeffs
+for i from 1 to numberOfDivisors do(
+
+rayLiftingCoefficients = append(rayLiftingCoefficients , listOfDivisorCoefficients#i - listOfDivisorCoefficients#0);
+
+);
+
+extendedRayLiftingMatrix = map(ZZ^inputFanDimension, ZZ^numberOfDivisors, 0) || matrix(rayLiftingCoefficients)
+
+newRayList := {};
+
+for oldRay in extendedInputRayList do(
+
+    newRayList = append(newRayList , 
+    
+    
+    );
+    
+
+
+
+    );
+);
+
+ 
+
+newConeList := {};
+newVariety := normalToricVariety(newRayList , newConeList);
 
 );
 
