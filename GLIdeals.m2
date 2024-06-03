@@ -280,12 +280,372 @@ Partition == Partition := (A, B) -> (
 )
 -----
 
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+-- **DOCUMENTATION** --
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
 beginDocumentation()
 
 
 doc ///
+    Key
+        numgensILambda
+	(numgensILambda, Matrix, List)
+    Headline
+        computes the number of generators of the I_Lambda ideal
+    Usage
+	numgensILambda(X, lam)
+    Inputs
+	X: Matrix
+	    a matrix with dimensions r x c
+	lam: List
+	    a list of integers representing a partition
+    Outputs
+	: ZZ
+	    the number of generators of the I_Lambda ideal
+    Description
+        Text
+	    The `numgensILambda` function computes the number of generators of the I_Lambda ideal
+	    associated with the input matrix `X` and partition `lam`. It uses the hook length formula
+	    to compute the dimension of the space. The partition `lam` should be compatible with the 
+	    dimensions of the matrix `X`.
+	Example
+
+    Caveat 
 
 ///
+
+
+doc ///
+    Key
+        minimizeChi
+	(minimizeChi, List)
+    Headline
+        computes the minimal elements of a list of partitions
+    Usage
+	minimizeChi(chi)
+    Inputs
+	chi: List
+	    a list of partitions, where each partition is represented as a list of integers
+    Outputs
+	: List
+	    a list of partitions, which are the minimal elements of the input list
+    Description
+        Text
+	    The `minimizeChi` function takes a list of partitions and returns the minimal elements
+	    of that list. A partition is minimal if it is not greater than any other partition
+	    in the list according to the dominance order.
+	Example
+	    chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
+	    minimizeChi(chi)
+    Caveat 
+///
+
+
+doc ///
+    Key
+        numgensIChi
+	(numgensIChi, Matrix, List)
+    Headline
+        computes the total number of generators for I_Chi ideals
+    Usage
+	numgensIChi(X, chi)
+    Inputs
+	X: Matrix
+	    a matrix with dimensions r x c
+	chi: List
+	    a list of partitions, where each partition is represented as a list of integers
+    Outputs
+	: ZZ
+	    the total number of generators for the I_Chi ideals
+    Description
+        Text
+	    The `numgensIChi` function takes a matrix `X` and a list of partitions `chi` and computes the
+	    total number of generators for the I_Chi ideals. It first minimizes the list of partitions using
+	    `minimizeChi`, and then computes the sum of the number of generators for each minimal partition
+	    using the `numgensILambda` function.
+	Example
+
+    Caveat 
+///
+
+
+doc ///
+    Key
+        minimizeChi
+	(minimizeChi, List)
+    Headline
+        computes the minimal elements of a list of partitions
+    Usage
+	minimizeChi(chi)
+    Inputs
+	chi: List
+	    a list of partitions, where each partition is represented as a list of integers
+    Outputs
+	: List
+	    a list of partitions, which are the minimal elements of the input list
+    Description
+        Text
+	    The `minimizeChi` function takes a list of partitions and returns the minimal elements
+	    of that list. A partition is minimal if it is not greater than any other partition
+	    in the list according to the dominance order. The function uses the hook length formula
+	    to determine the dominance order among partitions.
+	Example
+	    chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
+	    minimizeChi(chi)
+    Caveat 
+  		  
+///
+
+
+doc ///
+    Key
+        numgensIChi
+        (numgensIChi, Matrix, List)
+    Headline
+        computes the total number of generators for I_Chi ideals
+    Usage
+	numgensIChi(X, chi)
+    Inputs
+	 X: Matrix
+	    a matrix with dimensions r x c
+	 chi: List
+	    a list of partitions, where each partition is represented as a list of integers
+    Outputs
+	 : ZZ
+	    the total number of generators for the I_Chi ideals
+    Description
+        Text
+	    The `numgensIChi` function takes a matrix `X` and a list of partitions `chi` and computes the
+	    total number of generators for the I_Chi ideals. It first minimizes the list of partitions using
+	    `minimizeChi`, and then computes the sum of the number of generators for each minimal partition
+	    using the `numgensILambda` function.
+	Example 
+
+    Caveat 
+///
+
+
+doc ///
+    Key
+        detLam
+        (detLam, Matrix, List)
+    Headline
+        computes the product of determinants of specific submatrices
+    Usage
+	detLam(X, lam)
+    Inputs
+	 X: Matrix
+	    a matrix with dimensions r x c
+	 lam: List
+	    a list of integers representing the sizes of submatrices
+    Outputs
+	 : RingElement
+	    the product of the determinants of the specified submatrices
+    Description
+        Text
+	    The `detLam` function takes a matrix `X` and a list of integers `lam`. For each integer in `lam`,
+	    it computes the determinant of the submatrix of `X` formed by the first i rows and columns, where i
+	    is an element of `lam`. It then returns the product of these determinants.
+	Example 
+
+    Caveat 
+///
+
+
+doc ///
+    Key
+        randomLam
+        (randomLam, ZZ, ZZ)
+    Headline
+        generates a random partition of an integer
+    Usage
+	randomLam(n, k)
+    Inputs
+	 n: ZZ
+	    the number of parts in the partition
+	 k: ZZ
+	    the integer to be partitioned
+    Outputs
+	 : List
+	    a list representing a partition of the integer k into n parts
+    Description
+        Text
+	    The `randomLam` function generates a random partition of the integer `k` into `n` parts. 
+	    It constructs a list of `n` non-negative integers that sum to `k`, then sorts the list 
+	    in non-increasing order and removes any zero entries.
+	Example
+	    randomLam(4, 10)
+    Caveat 
+
+///
+	
+doc ///
+    Key
+        idealILambda
+        (idealILambda, Matrix, List)
+    Headline
+        constructs the I_Lambda ideal for a given matrix and partition
+    Usage
+	idealILambda(X, lam)
+    Inputs
+	 X: Matrix
+	    a matrix with dimensions m x n
+	 lam: List
+	    a list of integers representing a partition
+    Outputs
+	 : Ideal
+	    the I_Lambda ideal generated from the matrix and partition
+    Description
+        Text
+	    The `idealILambda` function constructs the I_Lambda ideal for a given matrix `X` and a partition `lam`.
+	    It first checks that the base ring of `X` has characteristic 0. Then, it generates random matrices `A` and `B`
+	    to compute the matrix `N = A * X * B`. It calculates the determinants of submatrices of `N` based on the
+	    conjugate of the partition `lam` and constructs the ideal from these determinants. The process ensures that
+	    the rank of the source of the minimal generators of the ideal matches the required number of generators.
+	Example
+
+    Caveat 
+
+///
+
+doc ///
+    Key
+        idealIChi
+        (idealIChi, Matrix, List)
+    Headline
+        constructs the sum of I_Lambda ideals for a list of partitions
+    Usage
+	idealIChi(X, chi)
+    Inputs
+	 X: Matrix
+	    a matrix with dimensions m x n
+	 chi: List
+	    a list of partitions, where each partition is represented as a list of integers
+    Outputs
+	 : Ideal
+	    the sum of the I_Lambda ideals for the given partitions
+    Description
+        Text
+	    The `idealIChi` function constructs the sum of I_Lambda ideals for a given matrix `X` and a list of partitions `chi`.
+	    It first minimizes the list of partitions using `minimizeChi`. If the list of partitions is empty, it returns the zero ideal.
+	    For each minimal partition, it computes the corresponding I_Lambda ideal using `idealILambda` and sums these ideals to form the final result.
+	Example
+
+    Caveat 
+///
+
+
+doc ///
+    Key
+        partitionsLeq
+        (partitionsLeq, Partition, Partition)
+    Headline
+        checks if one partition is less than or equal to another
+    Usage
+	partitionsLeq(A, B)
+    Inputs
+	 A: Partition
+	    a partition represented as a list of integers in weakly decreasing order
+	 B: Partition
+	    another partition represented as a list of integers in weakly decreasing order
+    Outputs
+	 : Boolean
+	    true if partition A is less than or equal to partition B, false otherwise
+    Description
+        Text
+	    The `partitionsLeq` function checks if one partition `A` is less than or equal to another partition `B`
+	    in the dominance order. It assumes that both partitions are represented as lists of integers in weakly
+	    decreasing order. The function iterates through the parts of `A` and `B` and returns false if any part
+	    of `A` is greater than the corresponding part of `B`.
+	Example
+	    A = {3, 2, 1}
+	    B = {4, 2, 1}
+	    partitionsLeq(A, B)
+	    partitionsLeq(B, A)
+    Caveat 
+  
+///
+
+doc ///
+    Key
+        ?
+        (?, Partition, Partition)
+    Headline
+        compares two partitions and returns their relationship
+    Usage
+	A ? B
+    Inputs
+	 A: Partition
+	    a partition represented as a list of integers in weakly decreasing order
+	 B: Partition
+	    another partition represented as a list of integers in weakly decreasing order
+    Outputs
+	 : Symbol
+	    the symbol representing the relationship between partitions A and B:
+	    `<` if A is less than B, `>` if A is greater than B, `==` if A equals B, and `incomparable` if they are incomparable
+    Description
+        Text
+	    The `Partition ? Partition` function compares two partitions `A` and `B` and returns a symbol
+	    representing their relationship. It first checks if `A` is less than or equal to `B` and if `B` is
+	    less than or equal to `A` using the `partitionsLeq` function. Depending on the results of these checks,
+	    it returns `<` if `A` is less than `B`, `>` if `A` is greater than `B`, `==` if `A` equals `B`, and 
+	    `incomparable` if neither partition is less than or equal to the other.
+        Example
+	    A = {3, 2, 1}
+	    B = {4, 2, 1}
+	    A ? B
+	    B ? A
+	    C = {3, 3, 1}
+	    D = {3, 2, 2}
+	    C ? D
+    Caveat 
+///
+
+doc ///
+    Key
+        ==
+        (==, Partition, Partition)
+    Headline
+        checks if two partitions are equal
+    Usage
+	A == B
+    Inputs
+	 A: Partition
+	    a partition represented as a list of integers in weakly decreasing order
+	 B: Partition
+	    another partition represented as a list of integers in weakly decreasing order
+    Outputs
+	 : Boolean
+	    true if partition A is equal to partition B, false otherwise
+    Description
+        Text
+	    The `Partition == Partition` function checks if two partitions `A` and `B` are equal. 
+	    It uses the comparison function `A ? B` and returns true if the result is the symbol `==`,
+	    indicating that the partitions are equal.
+        Example
+            A = {3, 2, 1}
+	    B = {3, 2, 1}
+	    C = {4, 2, 1}
+	    A == B
+	    A == C
+    Caveat 
+ 
+///
+
+
+
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+-- **TESTS** --
+------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+
+TEST ///
+
+///
+
 
 
 end
