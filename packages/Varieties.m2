@@ -921,9 +921,7 @@ Q = QQ[x_1..x_3];
 X = Proj Q;
 K = koszulComplex vars Q;
 sK = sheaf K
-sheafOf sK
 G = sheaf freeResolution ideal(x_1^2+x_2^2)
-sheafOf G
 RHom(OO_X^1, sK)
 RHom(OO_X^1, G)
 S := coker G.dd_1
