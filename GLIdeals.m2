@@ -208,6 +208,8 @@ idealToChi(Matrix, Ideal) := (Y, J) -> (
 	-- J is an ideal
 	-- return the list of partitions chi such that J = idealIChi(Y, chi)
 
+	n := numRows Y;
+	m := numColumns Y;
 	(R, X, phi) := correctSymmetricAlgebraHelper(Y);
 	I := phi^(-1)(J);
 
@@ -220,7 +222,7 @@ idealToChi(Matrix, Ideal) := (Y, J) -> (
 	possiblePartitions := apply(goodDegrees, deg -> take(deg, n));
 	possiblePartitions = unique(possiblePartitions);
 	possiblePartitions = apply(possiblePartitions, P -> delete(0, P));
-	
+
 	return select(possiblePartitions, P -> (detLam(X, P) % I == 0));
 );
 
