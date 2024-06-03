@@ -14,6 +14,10 @@ newPackage(
 	    Email => "fxiang2@uci.edu",
 	    HomePage => "" }
         },
+    {   Name => "Swaraj Pande,",
+	    Email => "swarajsp@umich.edu",
+	    HomePage => "" }
+        },
     AuxiliaryFiles => true,
     Reload => true
 )
