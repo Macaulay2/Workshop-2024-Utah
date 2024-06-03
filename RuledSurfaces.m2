@@ -7,15 +7,12 @@ newPackage(
     Authors  => {
 	{   Name => "Devlin Mallory,",
 	    Email => "malloryd@math.utah.edu",
-	    HomePage => "https://www.math.utah.edu/~malloryd/" }
-        },
-    Authors  => {
+	    HomePage => "https://www.math.utah.edu/~malloryd/" },
+        {   Name => "Swaraj Pande,",
+	    Email => "swarajsp@umich.edu",
+	    HomePage => "" },
 	{   Name => "Fei Xiang,",
 	    Email => "fxiang2@uci.edu",
-	    HomePage => "" }
-        },
-    {   Name => "Swaraj Pande,",
-	    Email => "swarajsp@umich.edu",
 	    HomePage => "" }
         },
     AuxiliaryFiles => true,
