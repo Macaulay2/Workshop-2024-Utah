@@ -374,6 +374,8 @@ dual CoherentSheaf := CoherentSheaf => options(dual, Module) >> o -> F -> sheaf(
 -- TODO: benchmark different strategies
 CoherentSheaf == CoherentSheaf := Boolean => (F, G) -> hilbertPolynomial F === hilbertPolynomial G and module prune F == module prune G
 CoherentSheaf == ZZ            := Boolean => (F, z) -> if z == 0 then dim module F <= 0 else error "attempted to compare sheaf to nonzero integer"
+CoherentSheaf == Module        := Boolean => (F, M) -> F == sheaf M
+Module        == CoherentSheaf := Boolean => (M, F) -> sheaf M == F
 ZZ            == CoherentSheaf := Boolean => (z, F) -> F == z
 -- isIsomorphic is defined in SheafMaps.m2 because we return the isomorphism as well
 
@@ -697,19 +699,19 @@ sheafHom = method(TypicalValue => CoherentSheaf, Options => options Hom)
 sheafHom(SheafOfRings, SheafOfRings)  :=
 sheafHom(SheafOfRings, CoherentSheaf) :=
 sheafHom(CoherentSheaf, SheafOfRings)  := 
-sheafHom(CoherentSheaf, CoherentSheaf) := CoherentSheaf => o -> (F, G) -> (
-    assertSameVariety(F, G); sheaf(variety F, Hom(module F, module G, o)))
-sheafHom(CoherentSheaf, Module) := CoherentSheaf => o -> (F, G) -> (
-    sheaf(variety F, Hom(module F, G, o))
+sheafHom(CoherentSheaf, CoherentSheaf) := CoherentSheaf => opts-> (F, G) -> (
+    assertSameVariety(F, G); sheaf(variety F, Hom(module F, module G, opts)))
+sheafHom(CoherentSheaf, Module) := CoherentSheaf => opts-> (F, G) -> (
+    sheaf(variety F, Hom(module F, G, opts))
 )
-sheafHom(Module, CoherentSheaf) := CoherentSheaf => o -> (F, G) -> (
-    sheaf(variety G, Hom(F, module G, o))
+sheafHom(Module, CoherentSheaf) := CoherentSheaf => opts-> (F, G) -> (
+    sheaf(variety G, Hom(F, module G, opts))
 )
-sheafHom(ZZ, CoherentSheaf) := CoherentSheaf => o -> (d, F) -> (
+sheafHom(ZZ, CoherentSheaf) := CoherentSheaf => opts-> (d, F) -> (
     if d != 0 then error "expected integer 0";
     sheafHom((ring F)^0, F)
 )
-sheafHom(CoherentSheaf, ZZ) := CoherentSheaf => o -> (F, d) -> (
+sheafHom(CoherentSheaf, ZZ) := CoherentSheaf => opts-> (F, d) -> (
     if d != 0 then error "expected integer 0";
     sheafHom(F, (ring F)^0)
 )
