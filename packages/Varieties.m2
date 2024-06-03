@@ -935,3 +935,5 @@ RHom(OO_X^1, G, 3)
 RHom(sK, G, 0)
 RHom(sK, OO_X^1,0)
 RHom(S, OO_X^1(3))
+F = eulerSequence X
+Ext^0 (OO_X^1, F(2))
