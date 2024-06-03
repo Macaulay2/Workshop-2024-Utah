@@ -30,6 +30,8 @@ needsPackage "Varieties"
 ProjectiveBundle = new Type of HashTable
 
 projectiveBundle = method()
+projectiveBundle(CoherentSheaf) := E -> projectiveBundle(variety E, E)
+
 projectiveBundle(ProjectiveVariety, CoherentSheaf) := (X, E) -> (
 --checks on X and E
     if variety E =!= X then error "expected a coherent sheaf on X";
