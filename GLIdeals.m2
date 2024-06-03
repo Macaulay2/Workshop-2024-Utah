@@ -278,7 +278,15 @@ Partition ? Partition := (A, B) -> (
 Partition == Partition := (A, B) -> (
     return (A ? B) == (symbol ==);
 )
------
+
+
+
+
+
+
+
+
+
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
@@ -469,10 +477,10 @@ doc ///
 	    the integer to be partitioned
     Outputs
 	 : List
-	    a list representing a partition of the integer k into n parts
+	    a list representing a partition of the integer k into at most n parts
     Description
         Text
-	    The `randomLam` function generates a random partition of the integer `k` into `n` parts. 
+	    The `randomLam` function generates a random partition of the integer `k` into at most `n` parts. 
 	    It constructs a list of `n` non-negative integers that sum to `k`, then sorts the list 
 	    in non-increasing order and removes any zero entries.
 	Example
