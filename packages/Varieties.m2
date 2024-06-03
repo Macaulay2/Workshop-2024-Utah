@@ -67,6 +67,7 @@ export {
     "tangentSheaf",
     "cotangentSheaf",  "Ω" => "cotangentSheaf",
     "canonicalBundle", "ω" => "canonicalBundle",
+    "idealSheaf", 
     "isProjective",
     "isLocallyFree",
     -- Functors
