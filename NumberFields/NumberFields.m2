@@ -11,7 +11,7 @@ newPackage(
         Headline => "number fields",
         Keywords => {"field extension"},
     PackageImports => {}, 
-    PackageExports => {"PushForward"},
+    PackageExports => {"PushForward", "MinimalPrimes"},
     Reload => true,
     DebuggingMode => true
     )
@@ -50,7 +50,10 @@ numberField(RingElement) := opts -> f1 -> (
     print(f1);
     if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-    new NumberField from { ring => toField (R1/ideal(f1)), cache => new CacheTable from {}}
+    new NumberField from { 
+        ring => toField (R1/ideal(f1)), 
+        cache => new CacheTable from {}
+    }
 )
 
 numberField(Ring) := opts -> R1 -> (
@@ -65,7 +68,10 @@ numberField(Ring) := opts -> R1 -> (
     iota := map(flattenedR1,QQ);
     try pushFwd(iota) else error("Not finite dimensional over QQ");
 
-    new NumberField from {ring => toField (flattenedR1), cache => new CacheTable from {}}
+    new NumberField from {
+        ring => toField (flattenedR1), 
+        cache => new CacheTable from {}
+    }
 )
 
 internalNumberFieldConstructor := R1 -> (
