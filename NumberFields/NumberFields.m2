@@ -1,8 +1,8 @@
 newPackage(
        "NumberFields",
     Version => "0.0.0", 
-        Date => "June 1, 2024",
-        Authors => {{}},
+        Date => "June 3, 2024",
+        Authors => {{Name=>"Jack Garzella"},{Name=>"Nicholas Gaubatz"},{Name=>"Ethan Toshihiro Mowery"},{Name => "Karl Schwede", Email=>"schwede@math.utah.edu", HomePage=>"http://www.math.utah.edu/~schwede"}, },
         Headline => "number fields",
     PackageImports => {}, 
     PackageExports => {"PushForward"}
@@ -97,3 +97,7 @@ loadPackage ("NumberFields", Reload=>true)
 --    -- get maps from K1 & K2
 --
 --)
+
+-*
+This is a comment block.
+*-
