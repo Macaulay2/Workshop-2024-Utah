@@ -46,6 +46,35 @@ numgensILambda(Matrix, List) := (X, lam) -> (
 	return sub(dimension * myHookLength(P),ZZ);
 );
 
+minimizeChi = method();
+minimizeChi(List) := (chi) -> (
+	-- chi is a list of partitions (possibly of Type List)
+	-- return a list of partitions (of Type List) 
+	-- these are the minimal elements of chi
+
+    minimals = new List from {};
+	c := apply(chi, L -> new Partition from L);
+    i := 0;
+	while i < #c do(
+        isMinimalPartition := true;
+        lambda := c#i;
+        j := i + 1;
+        while j < #c do(
+            compare = lambda ? c#j;
+            j = j + 1;
+            if compare == incomparable then continue;
+            if compare == (symbol >) then (isMinimalPartition = false; break;);
+            
+            j = j - 1;
+            -- we have lambda <= c#j at this point
+            c = drop(c, {j, j});    -- remove c#j
+        );
+        if isMinimalPartition then minimals = append(minimals, lambda);
+        i = i + 1;
+    );
+    return apply(minimals, P -> toList(P));
+)
+
 -- numgensIChi = method();
 -- numgensIChi(Matrix, List) := (X, chi) -> (
 --  	-- chi is a list of partitions

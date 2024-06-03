@@ -8,7 +8,7 @@ partitionsLeq(Partition, Partition) := (A, B) -> (
     n := #B;
     for i in 0..#A-1 do(
         if A#i == 0 then break;
-        if i > n then return false;
+        if i >= n then return false;
         if A#i > B#i then return false;
     );
     return true;
@@ -40,24 +40,31 @@ myHookLength := P -> (
     return num / den;
 );
 
-generateIlambda = method()
-generateIlambda(ZZ,ZZ,List,PolynomialRing) := (n,m,lam,S) -> (
-     r := local r;
-     s := local s;
-     x := local x;
-     R := schurRing(r,n);
-     T := schurRing(s,m);
-     conjlam := toList conjugate( new Partition from lam);
-     d := dim r_lam;
-     e := dim s_lam;
-     print ("expected: ",d*e);
-     M := genericMatrix(S,m,n);
-     lis := for i from 0 to d*e-1 list
-     (
-    A := random(kk^m,kk^m);
-    B := random(kk^n,kk^n);
-    N := A * M * B;
-    product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
-    J := ideal lis;
-    ideal mingens J
-    )
+minimizeChi = method();
+minimizeChi(List) := (chi) -> (
+	-- chi is a list of partitions (possibly of Type List)
+	-- return a list of partitions (of Type List) 
+	-- these are the minimal elements of chi
+
+    minimals = new List from {};
+	c := apply(chi, L -> new Partition from L);
+    i := 0;
+	while i < #c do(
+        isMinimalPartition := true;
+        lambda := c#i;
+        j := i + 1;
+        while j < #c do(
+            compare = lambda ? c#j;
+            j = j + 1;
+            if compare == incomparable then continue;
+            if compare == (symbol >) then (isMinimalPartition = false; break;);
+            
+            j = j - 1;
+            -- we have lambda <= c#j at this point
+            c = drop(c, {j, j});    -- remove c#j
+        );
+        if isMinimalPartition then minimals = append(minimals, lambda);
+        i = i + 1;
+    );
+    return apply(minimals, P -> toList(P));
+)
