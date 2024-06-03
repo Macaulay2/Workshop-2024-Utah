@@ -12,7 +12,7 @@ newPackage(
 	Reload=>true
     	)
     
-export{"idealILambda"}
+export{"idealILambda","numgensILambda"}
 
 numgensILambda = method() -- TODO: Make it accept Partitions as well
 numgensILambda(Matrix, List) := (X, lam) -> (
@@ -52,7 +52,7 @@ minimizeChi(List) := (chi) -> (
 	-- return a list of partitions (of Type List) 
 	-- these are the minimal elements of chi
 
-    minimals = new List from {};
+    minimals := new List from {};
 	c := apply(chi, L -> new Partition from L);
     i := 0;
 	while i < #c do(
@@ -60,7 +60,7 @@ minimizeChi(List) := (chi) -> (
         lambda := c#i;
         j := i + 1;
         while j < #c do(
-            compare = lambda ? c#j;
+            compare := lambda ? c#j;
             j = j + 1;
             if compare == incomparable then continue;
             if compare == (symbol >) then (isMinimalPartition = false; break;);
@@ -88,7 +88,7 @@ numgensIChi(Matrix, List) := (X, chi) -> (
 );
 
 detLam = method()
-detLam = (X,lam) -> (
+detLam (Matrix, List) := (X,lam) -> (
     (m,n) := (numColumns(X), numRows(X));
     base := ring X;
     C := 1;
@@ -100,12 +100,12 @@ detLam = (X,lam) -> (
 
 randomLam = method();
 randomLam(ZZ, ZZ) := (n,k) -> (
-    L=new MutableList from {};
-    sumsofar = 0;
+    L:=new MutableList from {};
+    sumsofar := 0;
     for i from 0 to (n-2) do(
-        x = random(0, k-sumsofar);
+        x := random(0, k-sumsofar);
         L#i=x;
-        sumsofar = sumsofar + x;
+        sumsofar := sumsofar + x;
         );
     L#(n-1) = k - sumsofar;
     L=toList L;
@@ -115,8 +115,8 @@ randomLam(ZZ, ZZ) := (n,k) -> (
 
 idealILambda = method()
 idealILambda(Matrix,List) := (X,lam) -> (
-     n:=rank source X;
-     m:=rank target X;
+     n:=rank target X;
+     m:=rank source X;
      kk:=baseRing ring X; 
      if char kk !=0 then(
 		error "Base ring is not characteristic 0";
@@ -125,8 +125,8 @@ idealILambda(Matrix,List) := (X,lam) -> (
      d:=numgensILambda(X,lam);
      lis := for i from 0 to d-1 list
      (
-    A := random(kk^m,kk^m);
-    B := random(kk^n,kk^n);
+    A := random(kk^n,kk^n);
+    B := random(kk^m,kk^m);
     N := A * X * B;
     product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
     J := ideal lis;
