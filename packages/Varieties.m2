@@ -663,6 +663,9 @@ cotangentSheaf(ZZ, ProjectiveVariety) := opts -> (i, X) -> exteriorPower(i, cota
 tangentSheaf = method(TypicalValue => CoherentSheaf, Options => options cotangentSheaf)
 tangentSheaf ProjectiveVariety := opts -> X -> dual cotangentSheaf(X, opts)
 
+idealSheaf = method(TypicalValue => CoherentSheaf, Options => options idealSheaf)
+idealSheaf ProjectiveVariety := opts -> X -> sheaf flattenModule module sheaf X
+
 -- TODO: document
 canonicalBundle = method(TypicalValue => CoherentSheaf, Options => options cotangentSheaf)
 canonicalBundle ProjectiveVariety := opts -> X -> determinant(cotangentSheaf(X, opts), Strategy => opts.Strategy)
