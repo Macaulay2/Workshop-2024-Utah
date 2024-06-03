@@ -115,6 +115,12 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
     }
 );
 
+numberFieldExtension(RingElement) := opts -> f1 -> (
+    if not (gens ring f1 == 1) then error "Expected a polynomial in a single variable";
+    baseField := numberField coefficientRing ring f1;
+    
+);
+
 source(NumberFieldExtension) := phi1 -> (phi1#source);
 target(NumberFieldExtension) := phi1 -> (phi1#target);
 map(NumberFieldExtension) := opts -> phi1 -> (phi1#"map");
@@ -149,6 +155,7 @@ splittingField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     S1 := R1;
     K1 := coefficientRing R1;
+    K2 := coefficientRing R1;
     variableIndex := 1;
     finished := false;
     while not finished do (
@@ -161,8 +168,8 @@ splittingField(RingElement) := opts -> f1 -> (
                 if not (length(currentEntry)==1 and max(degree(currentEntry#0))==1) then (
                     finished = false;
                     K1 = R1/(L1#i);
-                    S1 = K1[local x_variableIndex];
-                    phi1 := map(S1, R1, {x_variableIndex});
+                    S1 = K1[local a_variableIndex];
+                    phi1 := map(S1, R1, {a_variableIndex});
                     f1 = phi1(f1);
                     R1 = S1;
                     variableIndex += 1;
@@ -171,8 +178,10 @@ splittingField(RingElement) := opts -> f1 -> (
             );
         );
     );
-    numberField K1
-    --R1
+    --K1
+    --numberField K1
+    --numberFieldExtension map((flattenRing K1)#0[local y], R1)
+    numberFieldExtension (map(K1, K2))
 )
 
 
