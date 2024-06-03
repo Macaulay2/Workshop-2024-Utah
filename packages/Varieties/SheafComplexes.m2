@@ -67,7 +67,7 @@ sheafHom(Complex, Complex) := Complex => opts -> (C,D) -> (
                         if k-j === {0,1} then (-1)^(k#1-k#0+1) * sheafHom(C_(k#0), dd^D_(k#1), opts)
                         else if k-j === { -1,0 } then sheafHom(dd^C_(j#0), D_(k#1), opts)
                         else 0);
-		    if instance(m, Matrix) then m else matrix m
+		    m
                     ))));
     result = complex maps;
     result.cache.homomorphism = (C,D); -- source first, then target
@@ -301,6 +301,7 @@ restart
 loadPackage("Truncations", FileName => currentDirectory() | "Truncations.m2", Reload => true)
 loadPackage("Complexes",   FileName => currentDirectory() | "Complexes.m2",   Reload => true)
 debug loadPackage("Varieties",   FileName => currentDirectory() | "Varieties.m2",   Reload => true)
+installPackage("Varieties",   FileName => currentDirectory() | "Varieties.m2")
 
 Complex _ ZZ := (C,i) -> if C.module#?i then C.module#i else OO_(variety C)^0 -- (ring C)^0
 variety Complex := Variety => C -> variety C_0
