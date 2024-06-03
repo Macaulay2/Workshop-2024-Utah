@@ -21,7 +21,7 @@ complex CoherentSheaf := Complex => lookup(complex, Module)
 
 sheaf Complex := Complex => C -> (
     (lo,hi) := concentration C;
-    complex for i from lo+1 to hi list sheaf C.dd_i;
+    complex for i from lo+1 to hi list sheaf C.dd_i
     )
 
 Complex(ZZ) := Complex Sequence := Complex => (C,a) -> (
