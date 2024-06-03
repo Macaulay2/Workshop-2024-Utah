@@ -15,10 +15,10 @@ newPackage(
 	    HomePage => "https://math.mcmaster.ca/~cummim5/"},
 	{Name => "David Eisenbud",
 	    Email => "de@berkeley.edu"},
-	 {Name => "Manohar Kumar",
+	{Name => "Manohar Kumar",
 	     Email => "manhar349@gmail.com",
              HomePage => "https://sites.google.com/view/manohar-kumar-pmrf-update/"},
-	 {Name => "Adam LaClair", 
+	{Name => "Adam LaClair", 
             Email => "alaclair@purdue.edu", 
             HomePage => "https://sites.google.com/view/adamlaclair/home"}
     },
@@ -29,8 +29,14 @@ newPackage(
 )
 
 export{
--- ++ means tested
+    -- UNTESTED EXPORTS
+    "hunekeAlgorithm"
+    
+    -- TESTED EXPORTS
+
 }
+
+
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- **CODE** --
@@ -46,7 +52,9 @@ export{
 -- ** Part 2: Huneke's Algorithm **
 -----------------------------------
 
- hunekeAlgorithm := (I) -> (
+hunekeAlgorithm = method(TypicalValue => Ideal)
+hunekeAlgorithm(Ideal) := I -> (
+    R := ring I;
     J := ideal(0_R);
     previous := ideal(0_R);
     while (J != ideal(1_R)) do (
@@ -71,7 +79,7 @@ export{
 	    I = J;
 	    );
     );
-    return previousI
+    return previous
  )
 
 
@@ -82,8 +90,11 @@ export{
 -- ** Part 3: Experimenting **
 ----------------------------------
 
+-*  -- this is throwing errors for some reason...M2 is forgetting the `radical` method
+
 restart
 --for this class, unmixed is faster
+
 R = ZZ/101[x_(1,1)..x_(2,3)]
 M = genericMatrix(R,2,3)
 time radical (minors(2,M))^4
@@ -92,6 +103,7 @@ I = (minors(2,M))^4 -- 15 gens
 I' = ideal (random(I_*))_0;
 time I : ideal(jacobian(I'))
 radical I'
+
 --for this class, taking the colon with the jacobian
 --of a single generator gives the correct radical
 
@@ -100,6 +112,8 @@ J = ideal(a^124-b^124,a^123*b-c^124);
 time radical I
 time radical(J, Strategy => Unmixed)
 time J: ideal(jacobian(ideal J_1))
+
+*-
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
@@ -128,19 +142,24 @@ doc ///
 doc ///
     Key
         hunekeAlgorithm
-	hunekeAlgorithm(Ideal)
+	(hunekeAlgorithm, Ideal)
     Headline
-        Implement the algorithm of Huneke using minors of the presentation matrix
+        computes the radical using an algorithm of Huneke
     Usage
 	hunekeAlgorithm(I)
     Inputs
 	I: Ideal
 	    an unmixed ideal
     Outputs
-	:
+	: Ideal
+	    the radical of the given ideal
     Description
         Text
-            Given an ideal, it gives the outputs of Huneke's algorithm.
+	    Let $k$ be a field.
+	    Given an ideal $I \subseteq k[x_1, \ldots, x_n]$, this method computes $\sqrt I$
+	    using the result of [Hun24, Theorem 10.3].
+    References
+	[Hun24] Huneke, Craig (2024). Computing Radicals with Wolmer Vasconcelos        
 ///
 
 
@@ -149,6 +168,9 @@ doc ///
 -- **TESTS** --
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
+
+-- hunekeAlgorithm
+-- can we write some tests?
 TEST ///
 
 ///
