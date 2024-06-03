@@ -75,13 +75,17 @@ minimizeChi(List) := (chi) -> (
     return apply(minimals, P -> toList(P));
 )
 
--- numgensIChi = method();
--- numgensIChi(Matrix, List) := (X, chi) -> (
---  	-- chi is a list of partitions
---  	-- return sum numgensILambda(chi_i) for all i
--- 	chi = minimizeChi(chi);
--- 	return sum for i in 0..#chi-1 list numgensILambda(X, chi#i);
--- );
+numgensIChi = method();
+numgensIChi(Matrix, List) := (X, chi) -> (
+ 	-- chi is a list of partitions
+ 	-- return sum numgensILambda(chi_i) for all i
+	c := minimizeChi(chi);
+	s := 0;
+	for lam in c do(
+		s = s + numgensILambda(X, lam);
+	);
+	return s;
+);
 
 detLam = method()
 detLam = (X,lam) -> (
