@@ -1,4 +1,5 @@
 loadPackage ("NumberFields", Reload=>true)
-trace(Ring, RingElement) := (S, elt) -> (
-    trace pushFwd(map(S^1, S^1, {{elt}}))
+trace(RingElement) := (elt) -> (
+    S = ring elt;
+    return trace pushFwd(map(S^1, S^1, {{elt}}));
 );
