@@ -34,9 +34,7 @@ NumberField = new Type of HashTable
 
 numberField = method(Options => {})
 numberField(RingElement) := opts -> f1 -> (
-    print("1");
     R1 := ring f1;
-    print("2");
     if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
     if #(gens R1) != 1 then error("Expected a polynomial in one variable.");
     if char R1 != 0 then error("Expected characteristic 0.");
@@ -63,6 +61,10 @@ numberField(Ring) := opts -> R1 -> (
 
     new NumberField from {ring => toField (flattenedR1)}
 )
+
+internalNumberFieldConstructor := R1 -> (
+    
+);
 
 --****************************
 --NumberField basic operations
@@ -94,6 +96,27 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
     }
 );
 
+source(NumberFieldExtension) := phi1 -> (source phi1);
+target(NumberFieldExtension) := phi1 -> (target phi1);
+map(NumberFieldExtension) := phi1 -> (map phi1);
+
+
+--*************************
+--Methods
+--*************************
+
+isGalois = method(Options =>{})
+isGalois(NumberFieldExtension) := opts -> iota -> (
+     myMapList := {}; --replace with Jack's function when ready
+    --assuming iota : K -> L, myMapList is a list of maps L -> L_i where 
+    --L_i is one of the components of L **_K L.
+    
+    --check if all degrees are the same, and equal to 1.
+)
+
+isGalois(RingMap) := opts -> iota -> (
+   isGalois(numberFieldExtension iota)
+)
 -- splittingField method
 splittingField = method(Options => {})
 splittingField(RingElement) := opts -> f1 -> (
