@@ -21,9 +21,7 @@ complex CoherentSheaf := Complex => lookup(complex, Module)
 
 sheaf Complex := Complex => C -> (
     (lo,hi) := concentration C;
-    sC := complex for i from lo+1 to hi list sheaf C.dd_i;
-    sC.sheafOf = C;
-    sC
+    complex for i from lo+1 to hi list sheaf C.dd_i;
     )
 
 Complex(ZZ) := Complex Sequence := Complex => (C,a) -> (
@@ -33,8 +31,6 @@ Complex(ZZ) := Complex Sequence := Complex => (C,a) -> (
     tC
     )
 
-sheafOf = method()
-sheafOf Complex := Complex => C -> if C.?sheafOf then C.sheafOf else error "Complex not obtained as sheaf associated to a complex";
 
 sheafHom(Complex, Complex) := Complex => opts -> (C,D) -> (
     -- signs here are based from Christensen and Foxby
@@ -292,12 +288,29 @@ cohomology(ZZ, Complex) := Complex => (p,C) -> (
     C.cache.HH#p = Ext^p(OO_X^1, C)
     )
 
+euler(Complex) := C -> (
+    d = length(C);
+    c = 0;
+    for i from -d to d do (
+        c = c + (-1)^i * (euler(C_i))
+    );
+    return c
+    )
 
 moduleComplex = method()
 moduleComplex(Complex) := Complex => C -> (
     (lo, hi) := concentration C;
     maxTruncDeg := max for i from lo+1 to hi list degree C.dd_i;
     complex(for i from lo+1 to hi list truncate(maxTruncDeg, matrix C.dd_i), Base => lo)
+    )
+
+sheafRes = method()
+sheafRes(Complex) := Complex => C -> (
+    sheaf res moduleComplex C
+    )
+
+sheafRes(CoherentSheaf) := Complex => F -> (
+    sheaf freeResolution module F
     )
 
     
