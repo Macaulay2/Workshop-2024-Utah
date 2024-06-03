@@ -71,19 +71,19 @@ internalNumberFieldConstructor := R1 -> (
 --****************************
 
 ring(NumberField) := R1 -> (
-    R1#ring
+    coefficientRing(R1#ring)
 )
 
 
 
 
 --degreeNF = method(Options => {})
---degreeNF(NumberField) := opts -> nf -> (
---
---    iota := map(nf,QQ);
---
---    degree((pushFwd(iota))#0)
---)
+degree(NumberField) := nf -> (
+
+    iota := map(ring(nf),QQ);
+
+    rank((pushFwd(iota))#0)
+)
 
 NumberFieldExtension = new Type of HashTable
 
