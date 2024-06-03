@@ -199,6 +199,77 @@ EXAMPLE \\\
 --Development Section
 ------------------------------------
 
+
+------------------------------------------------------------------------------------------------------------
+-- test: computing radicals with colon of partial minors of the jacobian of a subset of generators
+------------------------------------------------------------------------------------------------------------
+
+needsPackage "MatrixSchubert"
+
+isFPFInv = w -> (
+    -- returns true iff the permutation w (a list) is a Fixed-Point-Free Involution
+    -- def: w is fixed-point-free iff w(i) never equals i
+    -- def: w is an involution iff w^2 = id
+    -- so w is a fixed-point-free involution if its permutation matrix is symmetric with 0's on the diagonal
+    n := #w;
+    wMatrix := map(ZZ^n, n, (i,j) -> if w#j == i+1 then 1 else 0);
+
+    (wMatrix == transpose wMatrix) and not any(w, i -> i == w#(i-1))
+    )
+
+
+skewSymmEssentialSet = w -> (
+    -- the usual essential set, but only the (i, j) for which i < j
+    D := select(rotheDiagram w, L -> (L_0 < L_1));  -- the skew-symmetric diagram
+    select(D, L -> ( not( isMember((L_0+1, L_1), D) or  isMember((L_0, L_1+1), D) )))
+    )
+
+
+skewSymmDetIdeal = (R, w) -> (
+    -- returns the skew-symmetric matrix Schubert determinantal ideal
+    -- the radical of this ideal defines the skew-symmetric matrix Schubert variety
+   
+    n := #w;
+    M := genericSkewMatrix(R, n);
+
+    -- get the essential set and re-index 
+    essSet := apply(skewSymmEssentialSet w, L -> (L_0 - 1, L_1 - 1));
+
+    -- find the determinantal ideal
+    ranks := rankTable w;
+    ideal apply(essSet, L -> (
+	    row := L_0;
+	    col := L_1;
+	    r := ranks_(row, col);
+
+	    minors(r+1, M^(toList(0..row))_(toList(0..col)))
+	    )
+        )
+    );
+
+
+R = QQ[x_1..x_50];
+w = {3, 6, 1, 8, 7, 2, 5, 4};
+I = trim skewSymmDetIdeal(R, w);  -- 21 mingens, not radical
+radI = radical I;
+
+needsPackage "FastMinors"
+
+K = ideal( (random I_*)_{0..10} );
+maybeRadI = I : chooseGoodMinors(5, 4, jacobian K);
+J == maybeRadI
+-- this sometimes gives the right radical, see notes on M2 Github > Workshop > Projects > Radical Algorithms
+
+
+
+
+
+------------------------------------
+
+
+
+
+
 restart
 uninstallPackage "RadicalAlgorithms"
 restart
