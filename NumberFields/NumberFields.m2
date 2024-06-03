@@ -11,7 +11,9 @@ newPackage(
         Headline => "number fields",
         Keywords => {"field extension"},
     PackageImports => {}, 
-    PackageExports => {"PushForward"}
+    PackageExports => {"PushForward"},
+    Reload => true,
+    DebuggingMode => true
     )
 
 export{
