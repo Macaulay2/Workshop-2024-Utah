@@ -68,3 +68,5 @@ minimizeChi(List) := (chi) -> (
     );
     return apply(minimals, P -> toList(P));
 )
+
+c = apply(5, i -> randomLam(10, 10));
