@@ -2,7 +2,12 @@ newPackage(
        "NumberFields",
     Version => "0.0.0", 
         Date => "June 3, 2024",
-        Authors => {{Name=>"Jack Garzella"},{Name=>"Nicholas Gaubatz"},{Name=>"Ethan Toshihiro Mowery"},{Name => "Karl Schwede", Email=>"schwede@math.utah.edu", HomePage=>"http://www.math.utah.edu/~schwede"}, },
+        Authors => {
+            {Name=>"Jack Garzella"},
+            {Name=>"Nicholas Gaubatz"},
+            {Name=>"Ethan Toshihiro Mowery"},
+            {Name => "Karl Schwede", Email=>"schwede@math.utah.edu", HomePage=>"http://www.math.utah.edu/~schwede"}
+        },
         Headline => "number fields",
     PackageImports => {}, 
     PackageExports => {"PushForward"}
