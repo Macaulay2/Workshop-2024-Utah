@@ -15,14 +15,14 @@ newPackage(
 	    HomePage => "https://math.mcmaster.ca/~cummim5/"},
 	{Name => "David Eisenbud",
 	    Email => "de@berkeley.edu"},
+	{Name => "Justin Fong",
+	    Email => "jafong1@gmail.com"},
 	{Name => "Manohar Kumar",
 	     Email => "manhar349@gmail.com",
              HomePage => "https://sites.google.com/view/manohar-kumar-pmrf-update/"},
 	{Name => "Adam LaClair", 
             Email => "alaclair@purdue.edu", 
-            HomePage => "https://sites.google.com/view/adamlaclair/home"},
-	{Name => "Justin Fong",
-	    Email => "jafong1@gmail.com"}
+            HomePage => "https://sites.google.com/view/adamlaclair/home"}
     },
     Headline => "Implementing and benchmarking radical algorithms by Craig Huneke",
     PackageExports => {
@@ -114,7 +114,9 @@ doc ///
             @UL {
 	    {"[Hun24] Huneke, Craig (2024). Computing Radicals with Wolmer Vasconcelos"},
 	    {"[Vas94] Vasconcelos, Wolmer V (1994). Arithmetic of blowup algebras. Vol. 195. Cambridge University Press."}
-	    }@ 
+	    }@
+	Subnodes
+	    hunekeAlgorithm
 ///
 
 doc ///
