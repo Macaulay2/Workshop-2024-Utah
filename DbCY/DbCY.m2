@@ -5,10 +5,10 @@ orlovTruncateLess(Complex, ZZ) := (F, i) -> (
     m := min F;
     M := max F;
     mapList := for j from m+1 to M list {submatrixByDegrees(F.dd_j, (-10000, i-1), (-10000, i-1)), j};
-    for i from 0 to #mapList - 1 do (
-	if mapList_i = 0 then j = j +1; 
-	);
-    complex(mapList)[]
+    --for i from 0 to #mapList - 1 do (
+	--if mapList_i = 0 then j = j +1; 
+	--);
+    complex(mapList)[m]
     )
 
 orlovTruncateGeq = method()
@@ -16,7 +16,7 @@ orlovTruncateGeq(Complex, ZZ) := (F, i) -> (
     m := min F;
     M := max F;
     mapList := for j from m+1 to M list submatrixByDegrees(F.dd_j, (i, 10000), (i, 10000));
-    complex(mapList)
+    complex(mapList)[m]
     )
 
 -- Input: a complex F which is already minimal resolution, a number i
