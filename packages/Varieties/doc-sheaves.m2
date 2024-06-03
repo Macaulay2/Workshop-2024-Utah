@@ -322,8 +322,6 @@ Node
   Key
     idealSheaf
    (idealSheaf, ProjectiveVariety)
-   [idealSheaf, MinimalGenerators]
-   [idealSheaf, Strategy]
   Headline
     ideal sheaf of a projective variety
   Usage
@@ -340,9 +338,8 @@ Node
     Text
       As an example, consider the projective variety defined by the equation $x^4 + y^4 + z^4 = 0$. The ideal sheaf of this variety is computed.
     Example
-      Code
-        X = Proj QQ[x,y,z]/(x^4+y^4+z^4)
-        I = idealSheaf X
+      X = Proj QQ[x,y,z]/(x^4+y^4+z^4)
+      I = idealSheaf X
   SeeAlso
     cotangentSheaf
     ProjectiveVariety
