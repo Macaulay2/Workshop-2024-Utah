@@ -4,19 +4,31 @@ orlovTruncateLess = method()
 orlovTruncateLess(Complex, ZZ) := (F, i) -> (
     m := min F;
     M := max F;
-    mapList := for j from m+1 to M list submatrixByDegrees(F.dd_j, (-10000, i-1), (-10000, i-1));
-    --for i from 0 to #mapList - 1 do (
-	--if mapList_i = 0 then j = j +1; 
-	--);
-    complex(mapList)[-m]
+    mapList := for j from m+1 to M list submatrixByDegrees(F.dd_j, (, i-1), (, i-1));
+    complex(mapList, Base => m)
+    )
+
+--orlovTruncateLess = method()
+orlovTruncateLess(ComplexMap, ZZ) := (f, i) -> (
+    m := min{min source f, min target f};
+    M := max{max source f, max target f};
+    mapList := for j from m to M list submatrixByDegrees(f_j, (, i-1), (, i-1));
+    map(orlovTruncateLess(target f, i), orlovTruncateLess(source f, i), mapList)
     )
 
 orlovTruncateGeq = method()
 orlovTruncateGeq(Complex, ZZ) := (F, i) -> (
     m := min F;
     M := max F;
-    mapList := for j from m+1 to M list submatrixByDegrees(F.dd_j, (i, 10000), (i, 10000));
-    complex(mapList)[m]
+    mapList := for j from m+1 to M list submatrixByDegrees(F.dd_j, (i,), (i,));
+    complex(mapList, Base => m)
+    )
+
+orlovTruncateGeq(ComplexMap, ZZ) := (f, i) -> (
+    m := min{min source f, min target f};
+    M := max{max source f, max target f};
+    mapList := for j from m to M list submatrixByDegrees(f_j, (i, ), (i,));
+    map(orlovTruncateGeq(target f, i), orlovTruncateGeq(source f, i), mapList)
     )
 
 -- Input: a complex F which is already minimal resolution, a number i
@@ -45,14 +57,16 @@ singularityToSheaves(Module, ZZ, ZZ) := (M, i, j) -> (
     orlovTruncateLess(D, i)
 )
 
+
+
 end;
 
 restart
 load "DbCY.m2"
 R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
 M = coker matrix{{x_0*x_2}}
+F = freeResolution (M, LengthLimit => 3)
 i = 3
-j = supTruncate(M, i) + dim(R)
-singularityToSheaves(M, i, supTruncate(M, i) + dim(R))
-
-F
+f = id_F
+orlovTruncateGeq(id_F, i)
+dual id_F
