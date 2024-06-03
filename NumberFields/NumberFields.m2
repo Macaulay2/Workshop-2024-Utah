@@ -11,7 +11,7 @@ newPackage(
         Headline => "number fields",
         Keywords => {"field extension"},
     PackageImports => {}, 
-    PackageExports => {"PushForward"},
+    PackageExports => {"PushForward", "MinimalPrimes"},
     Reload => true,
     DebuggingMode => true
     )
@@ -50,7 +50,10 @@ numberField(RingElement) := opts -> f1 -> (
     print(f1);
     if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-    new NumberField from { ring => toField (R1/ideal(f1)), cache => new CacheTable from {}}
+    new NumberField from { 
+        ring => toField (R1/ideal(f1)), 
+        cache => new CacheTable from {}
+    }
 )
 
 numberField(Ring) := opts -> R1 -> (
@@ -65,7 +68,10 @@ numberField(Ring) := opts -> R1 -> (
     iota := map(flattenedR1,QQ);
     try pushFwd(iota) else error("Not finite dimensional over QQ");
 
-    new NumberField from {ring => toField (flattenedR1), cache => new CacheTable from {}}
+    new NumberField from {
+        ring => toField (flattenedR1), 
+        cache => new CacheTable from {}
+    }
 )
 
 internalNumberFieldConstructor := R1 -> (
@@ -95,6 +101,8 @@ degree(NumberField) := nf -> (
     rk
 )
 
+
+
 NumberFieldExtension = new Type of HashTable
 
 numberFieldExtension = method(Options => {})
@@ -102,14 +110,27 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
     new NumberFieldExtension from {
         source=>numberField source phi1, 
         target=>numberField target phi1, 
-        map=>phi1
+        "map"=>phi1, 
+        cache => new CacheTable from {}
     }
 );
 
-source(NumberFieldExtension) := phi1 -> (source phi1);
-target(NumberFieldExtension) := phi1 -> (target phi1);
-map(NumberFieldExtension) := phi1 -> (map phi1);
+numberFieldExtension(RingElement) := opts -> f1 -> (
+    if not (gens ring f1 == 1) then error "Expected a polynomial in a single variable";
+    baseField := numberField coefficientRing ring f1;
+    
+);
 
+source(NumberFieldExtension) := phi1 -> (phi1#source);
+target(NumberFieldExtension) := phi1 -> (phi1#target);
+map(NumberFieldExtension) := opts -> phi1 -> (phi1#"map");
+
+degree(NumberFieldExtension) := nfe -> (
+    if (nfe#cache#?degree) then return nfe#cache#degree;
+    rk := rank((pushFwd(map nfe))#0);
+    nfe#cache#degree = rk;
+    rk
+)
 
 --*************************
 --Methods
