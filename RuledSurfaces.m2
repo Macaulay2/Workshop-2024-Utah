@@ -60,13 +60,13 @@ multiProjEmbedding(CoherentSheaf) := E -> (
 )
 
 --given a projective bundle p: P(E) -> X, a divisor D on X, and an integer m, finds the closure image of P(E) under the rational map corresponding to p^* O_X(D) ** OO_P(e)(m)
-imageOfLinearSeries = method()
-imageOfLinearSeries(ProjectiveBundle, Divisor, ZZ) := (PE, D, m) -> (
+--imageOfLinearSeries = method()
+--imageOfLinearSeries(ProjectiveBundle, Divisor, ZZ) := (PE, D, m) -> (
     --first do the map phi_D x id_P^r:
     --if OO_X(-a) -> E is our surjection, global sections of E(a) live in degree {1,a}; i.e., linear series p^*OO_X(n) ** OO_PE(m) should live in degree {m, n}.
-    B:=basis({m,n},T);
-    Proj quotient ker map(T, (coefficientRing T)[rank B], B)
-)
+ --   B:=basis({m,n},T);
+  --  Proj quotient ker map(T, (coefficientRing T)[rank B], B)
+--)
 
 
 --load "./RuledSurfaces/RS-tests.m2"
