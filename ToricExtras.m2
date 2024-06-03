@@ -40,11 +40,19 @@ newPackage(
             Name => "Jay Yang",
             Email => "jayy@wustl.edu"},
         {
-            Name => "Anna Chlopecki",
+            Name => "Anna Natalie Chlopecki",
             Email => "achlopec@purdue.edu"},
         {
             Name => "Eduardo Torres Dávila",
-            Email => "torre680@umn.edu"}},
+            Email => "torre680@umn.edu"},
+        {
+            Name => "Sean Grate",
+            Email => "sean.grate@auburn.edu"},
+        {
+            Name => "Thiago Holleben",
+            Email => "hollebenthiago@dal.ca"
+        }
+        },
 
     Headline => "new routines for working with normal toric varieties",
     Keywords => {"Toric Geometry"},
@@ -57,7 +65,8 @@ export {
     "ToricLinearSeries",
     "toricLinearSeries",
     "baseLocusIdeal",
-    "isBasepointFree"
+    "isBasepointFree",
+    "batyrevConstructor"
     }
 
 
