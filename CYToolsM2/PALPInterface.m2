@@ -10,10 +10,70 @@ newPackage(
     )
 
 export {
-    "palpVertices"
+    "palpVertices","getVerticesFromWS"
     }
 
 executableDir = "/Users/mike/src/git-from-others/PALPfromTGZ/palp-2.21/";
+
+-- str = get "!poly.x -v -r << FOO
+-- 10 1 2 3 4
+-- FOO
+-- "
+
+-- L = lines str
+-- L = drop(drop(L, 3), -2)
+-- netList L
+-- L0 = separate(" +", L_0)
+-- for x in drop(L0, 1) list value x
+-- M = matrix for ell in L list (
+--     L0 := separate(" +", ell);
+--     for x in drop(L0, 1) list value x
+--     )
+-- needsPackage "Polyhedra"
+-- needsPackage "StringTorics"
+-- P = convexHull M
+-- vertices P
+-- isReflexive P
+
+getVerticesFromWS = method()
+
+getVerticesFromWS String := Matrix => w -> (
+    str1 := "!poly.x -v -r << FOO\n";
+    str2 := "\nFOO\n";
+    str3 := str1|w|str2;
+    PALPOutput := get str3;
+    L := lines PALPOutput;
+    L = drop(drop(L, 3), -2);
+    M := for ell in L list (
+        L0 := separate(" +", ell);
+        for x in L0 list if x!="" then value x else continue
+        );
+    matrix M)
+
+
+
+--matrix oo
+--getVerticesFromWS "10 1 2 3 4"
+--oo_0    
+--oo/class
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 --programPaths#"PALP" = executableDir;
 PALP = findProgram("PALP", "poly.x -h")
@@ -66,6 +126,7 @@ normalForm Matrix := Matrix => (M) -> (
 beginDocumentation()
 
 end--
+
 
 doc ///
 Key
@@ -129,8 +190,6 @@ M = matrix{{1,1,1,1},{0,1,2,3}}
 palpMatrix M
 "foo" << palpMatrix M << close
 runPoly(M, "v")
-needsPackage "StringTorics"
-matrix
 normalForm M
 viewHelp runProgram
 
@@ -180,7 +239,7 @@ poly.x -e << FOO
 FOO
 
 # points are the rows
-poly.x -e << FOO
+poly.x -v << FOO
 45 5 6 7 8 9 10
 FOO
 
@@ -194,19 +253,30 @@ run "poly.x -e << FOO
 FOO
 "
 
-str = get "!poly.x -e << FOO
+str = get "!poly.x -v -r << FOO
 36 1 4 4 6 9 12
 FOO
 "
+
+str = get "!poly.x -v -r << FOO
+10 1 2 3 4
+FOO
+"
+
 L = lines str
 L = drop(drop(L, 3), -2)
 netList L
-L0 = separate(" +", L#0)
+L0 = separate(" +", L_0)
 for x in drop(L0, 1) list value x
 M = matrix for ell in L list (
     L0 := separate(" +", ell);
     for x in drop(L0, 1) list value x
     )
+needsPackage "Polyhedra"
+needsPackage "StringTorics"
+P = convexHull M
+vertices P
+isReflexive P
 
 get "!poly.x -e << FOO
 42 2 3 5 5 6 21
@@ -227,3 +297,82 @@ lines get///!curl "http://rgc.itp.tuwien.ac.at/fourfolds/db/5d_reflexive,h11=100
 #oo == 204046
 o31_100000
 
+
+
+
+restart
+needsPackage"PALPInterface"
+M = getVerticesFromWS("10 1 2 3 4")
+
+M2 = getVerticesFromWS("3 1 1 1 0 0 0  3 0 0 0 1 1 1")
+
+needsPackage "StringTorics"
+P = convexHull(M2)
+isReflexive P
+#latticePoints P
+
+
+---------- nef-partitions ---------
+restart
+needsPackage "PALPInterface"
+needsPackage "StringTorics"
+needsPackage "NormalToricVarieties"
+viewHelp NormalToricVarieties
+
+V = smoothFanoToricVariety(3, 4)
+rays V
+max V
+V_0
+V_1
+V_4
+toricDivisor V
+S = ring V
+describe S
+2*V_3 + 10*V_2
+degree V_3
+degree V_1
+degree(V_1 + V_3)
+degree (-toricDivisor V)
+basis({3,2}, S)
+F = random({3,2}, S)
+size F
+isNef V_0
+isNef V_1
+isNef V_4
+
+V = smoothFanoToricVariety(5, 6)
+rays V
+transpose matrix degrees ring V
+dim V
+
+nef.x -N -c2 -p << FOO
+8 5
+-1 0 0 0 0
+0 -1 0 0 0
+0 0 -1 0 0
+0 0 0 -1 0
+0 0 0 0 1
+0 0 0 0 -1
+0 0 0 1 -1
+1 1 1 0 -3
+FOO
+
+D1 = V_4 + V_6 + V_7
+D2 = V_0 + V_1 + V_2 + V_3 + V_5
+isNef(V_4 + V_6 + V_7)
+degree(V_4 + V_6 + V_7)
+isNef(V_0 + V_1 + V_2 + V_3 + V_5)
+degree(V_0 + V_1 + V_2 + V_3 + V_5)
+for i from 0 to 7 list isNef V_i
+for i from 0 to 7 list if i == 5 then continue else isNef(V_i + V_3 +  V_5)
+
+X = completeIntersection(V, {D1, D2})
+hodgeDiamond X
+pt = base(a,b)
+Xa = abstractVariety(X, pt)
+IX = intersectionRing Xa
+describe IX
+basis(1, IX)
+h = a * t_6 + b * t_7
+integral(h^3)
+integral((chern_2 tangentBundle Xa) * h)
