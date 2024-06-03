@@ -115,6 +115,12 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
     }
 );
 
+numberFieldExtension(RingElement) := opts -> f1 -> (
+    if not (gens ring f1 == 1) then error "Expected a polynomial in a single variable";
+    baseField := numberField coefficientRing ring f1;
+    
+);
+
 source(NumberFieldExtension) := phi1 -> (phi1#source);
 target(NumberFieldExtension) := phi1 -> (phi1#target);
 map(NumberFieldExtension) := opts -> phi1 -> (phi1#"map");
