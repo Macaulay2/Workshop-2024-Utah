@@ -53,3 +53,42 @@ splittingField(RingElement) := opts -> f1 -> (
 )
 
 decompose ideal(f)
+
+polynomialSplits = f1 -> (
+    L1 = decompose ideal f1;
+    splits = true;
+    for i from 0 to #L1-1 do (
+        currentEntry := (entries gens L1#i)#0;
+        if not (length(currentEntry)==1 and max(degree(currentEntry#0))==1) then (splits = false; break;)
+    );
+    splits
+)
+
+--*******************
+-- To confirm that a polynomial splits in its splitting field
+loadPackage ("NumberFields", Reload=>true)
+R = QQ[x]
+f1 = x^3+1
+L1 = decompose ideal f1
+polynomialSplits f1
+
+S = splittingField f1
+T = (flattenRing ring S)#0[y]
+f11 = (map(T, R, {y})) f1
+L2 = decompose ideal f11
+polynomialSplits f11
+
+--TODO for Nicholas: make splittingField return a NumberField and then make it work when the parameter polynomial comes from 
+--something like QQ[x]/(x^2-2). Actually, make splittingField return a NumberFieldExtension.
+
+loadPackage ("NumberFields", Reload=>true)
+R = QQ[w]/(w^2+1)[x] -- R = QQ[i][x]
+f1 = x^2-2
+L1 = decompose ideal f1
+polynomialSplits f1
+
+S = splittingField f1
+T = (flattenRing ring S)#0[y]
+f11 = (map(T, R, {y})) f1
+L2 = decompose ideal f11
+polynomialSplits f11

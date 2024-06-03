@@ -165,7 +165,7 @@ splittingField(RingElement) := opts -> f1 -> (
             );
         );
     );
-    K1
+    numberField K1
     --R1
 )
 
