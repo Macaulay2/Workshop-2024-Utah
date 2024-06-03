@@ -1,12 +1,15 @@
-
+needsPackage "ToricExtras";
+needsPackage "NormalToricVarieties";
 
 makeBatyrevMatrix = method();
 makeBatyrevMatrix(List, List, List) := (P, B, C) -> (
-    
+
+    Cprime = {0} | C;    
     listRows := {};
+
     r10 := toList flatten(P#0 : {1});
     r11 := toList flatten(P#1 : {1});
-    r12 := apply(C, i -> -i);
+    r12 := apply(Cprime, i -> -i);
     r13 := apply(B, i -> -i - 1);
     r14 := toList flatten(P#4 : {0});
 
@@ -38,10 +41,10 @@ makeBatyrevMatrix(List, List, List) := (P, B, C) -> (
 
     r50 := toList flatten(P#0 : {1});
     r51 := toList flatten(P#1 : {0});
-    r52 := apply(C, i -> -i);
+    r52 := apply(Cprime, i -> -i);
     r53 := apply(B, i -> -i);
     r54 := toList flatten(P#4 : {1});
-    
+
     R5 := r50 | r51 | r52 | r53 | r54;
 
     return matrix{R1, R2, R3, R4, R5}
@@ -50,8 +53,9 @@ makeBatyrevMatrix(List, List, List) := (P, B, C) -> (
 batyrevRays = method();
 batyrevRays(Matrix, List) := (A, P) -> (
 
-    K := ker A;
-    bRays := entries gens K;
+    K := kernelLLL A;
+    -- bRays := entries gens K;
+    bRays := entries K;
     
     primitiveCollection1 := for i from 0 to P#0 + P#1 - 1 list i;
     primitiveCollection2 := for i from P#0 to P#0 + P#1 + P#2 -1 list i;
