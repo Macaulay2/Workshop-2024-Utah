@@ -1,44 +1,6 @@
-idealILambda = method()
-idealILambda(Matrix,List) := (X,lam) -> (
-     n:=rank target X;
-     m:=rank source X;
-     kk:=baseRing ring X; 
-     if char kk !=0 then(
-		error "Base ring is not characteristic 0";
-	);
-     conjlam := toList conjugate( new Partition from lam);
-     d:=numgensILambda(X,lam);
-     lis := for i from 0 to d-1 list
-     (
-    A := random(kk^n,kk^n);
-    B := random(kk^m,kk^m);
-    N := A * X * B;
-    product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
-    J := ideal lis;
-    minJ:=mingens J;
-    if rank source minJ != d then(
-	error "Did not compute full ideal";
-	);
-    ideal mingens J
-    )
-
-
 restart
-loadPackage"GLIdeals"
 
 
-R=QQ[x_1..x_12];
-X=genericMatrix(R,3,4)
-n=rank target X
-m=rank source X
-
-degs=flatten apply(m,i->entries id_(ZZ^n))
-
---degs=join(entries id_(ZZ^n),apply(n*(m-1),i->apply(n,i->0)))
-S=QQ[xx_(1,1)..xx_(m,n), Degrees=>degs, MonomialOrder=>Lex]
-vars S
-
-phi1=map(R,S,flatten entries transpose X) 
 
 
 
@@ -93,11 +55,48 @@ naiveClosure (Matrix, Ideal) := (Y,I) ->(
 return (ideal mingens phi(II));
     )
 
+idealILambda2 = method()
+idealILambda2(Matrix,List) := (X,lam) -> (
+     n:=rank target X;
+     m:=rank source X;
+     kk:=baseRing ring X; 
+     if char kk !=0 then(
+		error "Base ring is not characteristic 0";
+	);
+     d:=numgensILambda(X,lam);
+     (R,Y,phi):=correctSymmetricAlgebraHelper(X);
+     gen:=detLam(Y,lam);
+     lis := for i from 0 to d-1 list
+     (
+    A:=random(kk^n,kk^n);
+    B:=random(kk^m,kk^m);
+    act:=map(R,R,flatten entries(A*Y*B));
+    act(gen));
+    J := ideal lis;
+    minJ:=mingens J;
+    	while rank source minJ != d do(
+		A = random(kk^n,kk^n);
+		B = random(kk^m,kk^m);
+		act=map(R,R,flatten entries(A*Y*B));
+		lis = append(lis,act(gen));
+		J = ideal lis;
+		minJ = mingens J;		
+	);
+	return phi(ideal minJ);
+);
 
-S=QQ[x_1..x_6];
-Y=genericMatrix(S,2,3);
+needsPackage"GLIdeals"
 
-baseRing ring Y
+S=QQ[x_1..x_9];
+Y=genericMatrix(S,3,3);
 
-(a,b,c)=correctSymmetricAlgebraHelper(Y)
-(inverse c)(x_1) 
+
+numgensILambda(Y,{2})
+
+for i from 1 to 10 do(
+    p=randomLam(3,2);
+    print (p,numgensILambda(Y,p));
+    elapsedTime(idealILambda(Y,p));
+    elapsedTime(idealILambda2(Y,p));
+    )
+
