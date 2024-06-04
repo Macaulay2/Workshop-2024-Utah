@@ -109,3 +109,71 @@ T = (ring target S)[y]
 f11 = (map(T, R, {y})) f1
 L2 = decompose ideal f11
 polynomialSplits f11
+
+-- Let's try to see what's going on here.
+R1 = ring f1
+S1 = R1;
+K1 = coefficientRing R1
+K2 = coefficientRing R1
+variableIndex = 1
+-- Begin for loop
+L1 = decompose ideal f1
+currentEntry = (entries gens L1#0)#0
+length(currentEntry)==1 and max(degree(currentEntry#0))==1
+degree(currentEntry#0)
+K1 = R1/(L1#0)
+describe K1
+S1 = K1[a_variableIndex]
+describe S1
+phi1 = map(S1, R1, {a_variableIndex})
+f1 = phi1(f1)
+f1 = f1//(a_variableIndex-x)
+R1 = S1
+describe R1
+describe K1
+variableIndex += 1
+-- Second iteration of for loop
+L1 = decompose ideal f1
+currentEntry = (entries gens L1#0)#0
+K1 = R1/(L1#0)
+describe K1
+S1 = K1[a_variableIndex]
+describe S1
+phi1 = map(S1, R1, {a_variableIndex})
+f1 = phi1(f1)
+f1 //= (a_variableIndex-a_(variableIndex-1))
+R1 = S1
+describe R1
+describe K1
+variableIndex += 1
+-- Third iteration of for loop
+L1 = decompose ideal f1
+currentEntry = (entries gens L1#0)#0
+degree currentEntry#0
+K1 = R1/(L1#0)
+describe K1
+S1 = K1[a_variableIndex]
+describe S1
+phi1 = map(S1, R1, {a_variableIndex})
+f1 = phi1(f1)
+f1 //= (a_variableIndex-a_(variableIndex-1))
+R1 = S1
+describe R1
+describe K1
+variableIndex += 1
+-- Fourth iteration of for loop
+-- Note: the below line is where things take too long. Need to figure out a way to get decompose running more quickly.
+L1 = decompose ideal f1
+currentEntry = (entries gens L1#0)#0
+degree currentEntry#0
+K1 = R1/(L1#0)
+describe K1
+S1 = K1[a_variableIndex]
+describe S1
+phi1 = map(S1, R1, {a_variableIndex})
+f1 = phi1(f1)
+f1 //= (a_variableIndex-a_(variableIndex-1))
+R1 = S1
+describe R1
+describe K1
+variableIndex += 1
