@@ -1,4 +1,5 @@
 needsPackage "Complexes"
+needsPackage "TorAlgebra"
 
 orlovTruncateLess = method()
 orlovTruncateLess(Complex,    ZZ) := (F,   i) -> complex applyValues(F.dd.map, f -> submatrixByDegrees(f, (, i-1), (, i-1)))
@@ -30,11 +31,15 @@ truncateGeqDualize(Module, ZZ) := (M, i) -> (
     F := freeResolution(M, LengthLimit => supTruncate(M, i));
     Fi := orlovTruncateGeq(F, i);
     Fidual := dual Fi;
-    canonicalTruncation(Fidual, -supTruncate(M, i) + 1, 10000)
+    canonicalTruncation(Fidual, -supTruncate(M, i) + 1, )
 )
 
 singularityToSheaves = method();
 singularityToSheaves(Module, ZZ, ZZ) := (M, i, j) -> (
+    R := ring M;
+    d := dim R;
+    kk := coker vars R;
+    if (flatten degrees Ext^d(kk, R^1))_0 < 0 then error "The Gorenstein parameter is negative."
     G := resolution(truncateGeqDualize(M, i), LengthLimit => j);
     D := dual G;
     orlovTruncateLess(D, i)
@@ -44,7 +49,11 @@ end;
 restart
 load "DbCY.m2"
 R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
+d = dim(R)
+k = coker vars R
+degrees Ext^d(k, R^1)
 M = coker matrix{{x_0*x_2}}
+singularityToSheaves(M, 3, 7)
 F = freeResolution (M, LengthLimit => 3)
 i = 3
 f = id_F
