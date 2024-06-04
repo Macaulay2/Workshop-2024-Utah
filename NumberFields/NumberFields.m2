@@ -227,9 +227,9 @@ simpleExt(NumberField) := opts -> nf ->(
         R := QQ[xx];
         phi := map( K, R, {r});
         if  isPrime (kernel phi) then (
-            I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), QQ);
+            I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), R);
             simpleExt := numberField(R / I);
-            d := degree simpleExt;
+            d = degree simpleExt;
         );
     );
     return simpleExt;
