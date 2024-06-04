@@ -13,7 +13,7 @@ newPackage(
 	Reload=>true
     	)
     
-export{"idealILambda","numgensILambda", "idealToChi"}
+export{"idealILambda","numgensILambda", "idealToChi", "naiveClosure","detLam"}
 
 numgensILambda = method() -- TODO: Make it accept Partitions as well
 numgensILambda(Matrix, List) := (X, lam) -> (
@@ -133,8 +133,8 @@ idealILambda(Matrix,List) := (X,lam) -> (
     minJ:=mingens J;
     
 	while rank source minJ != d do(
-		A := random(kk^m,kk^m);
-		B := random(kk^n,kk^n);
+		A := random(kk^n,kk^n);
+		B := random(kk^m,kk^m);
 		N := A * X * B;
 		lis = append(lis, product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
 		J = ideal lis;
@@ -162,7 +162,7 @@ idealIChi(Matrix,List) := (X,chi) -> (
 naiveClosure = method();---
 naiveClosure (Matrix, Ideal) := (Y,I) ->( 
     (R,X,phi):=correctSymmetricAlgebraHelper(Y);
-    kk=baseRing ring Y;
+    kk:=baseRing ring Y;
     n:=rank target X;
     m:=rank source X;
     II:=(inverse(phi))(I);
