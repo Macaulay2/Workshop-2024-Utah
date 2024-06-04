@@ -10,10 +10,10 @@ newPackage(
     )
 
 export {
-    "palpVertices","getVerticesFromWS"
+    "palpVertices","getVerticesFromWS", "Drange"
     }
 
-executableDir = "/Users/mike/src/git-from-others/PALPfromTGZ/palp-2.21/";
+executableDir = "/Users/frenly/Desktop/palp-2.21/";
 
 -- str = get "!poly.x -v -r << FOO
 -- 10 1 2 3 4
@@ -50,6 +50,27 @@ getVerticesFromWS String := Matrix => w -> (
         );
     matrix M)
 
+getWSFromDim = method(Options => {Drange => null})
+
+getWSFromDim ZZ := List => opts -> d -> (
+    drange := opts.Drange;
+    str0 := toString(d);
+    str1 := toString(drange_0);
+    str2 := toString(drange_1);
+    str3 := if opts.Drange === null then "!cws.x -w"|str0
+    else "!cws.x -w"|str0|" "|str1|" "|str2;
+
+    PALPOutput := get str3;
+    L := lines PALPOutput;
+    M := for ell in L list(
+	L0 := separate(" +",ell);
+	L0Mod := take(L0, {0,d+1});
+	for x in L0Mod list value x
+	)
+    )
+///
+getWSFromDim(3,Drange => {5,8})
+///
 
 
 --matrix oo
@@ -411,3 +432,5 @@ basis(1, IX)
 h = a * t_6 + b * t_7
 integral(h^3)
 integral((chern_2 tangentBundle Xa) * h)
+
+
