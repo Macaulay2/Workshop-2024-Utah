@@ -89,10 +89,6 @@ importFrom_Core {
     "BinaryPowerMethod",
     }
 
--- TODO: remove before pull request
-loadPackage("Truncations", FileName => "./Truncations.m2", Reload => true)
-loadPackage("Complexes",   FileName => "./Complexes.m2",   Reload => true)
-
 -- Backporting changes in the core that didn't make it to M2 v1.24.04
 load "./Varieties/backports.m2"
 

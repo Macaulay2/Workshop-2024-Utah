@@ -69,9 +69,6 @@ export {
     "UseTarget"
     }
 
--- TODO: remove before pull request
-loadPackage("Truncations", FileName => "./Truncations.m2", Reload => true)
-
 -- keys into the type `Complex`
 protect modules
 
