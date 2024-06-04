@@ -107,13 +107,13 @@ internalNumberFieldConstructor := R1 -> (
 --NumberField display
 --*****************************
 
---net NumberField := nf -> (
---    myStr := "Hello world";
---
---    --do some code
---
---    myStr
---)
+net NumberField := nf -> (
+    myStr := "Hello world";
+
+    --do some code
+
+    myStr
+)
 
 --****************************
 --NumberField basic operations
