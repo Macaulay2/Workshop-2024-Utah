@@ -241,12 +241,15 @@ idealToChi(Matrix, Ideal) := (Y, J) -> (
 
 	-- now we have the ideal I in R
 	L := flatten entries mingens I;
-	-- print L;
 	degrees := apply(L, degree);
-	goodDegrees := select(degrees, deg -> goodDegree(n, m, deg));
+	-- goodDegrees := select(degrees, deg -> goodDegree(n, m, deg));
+
+	goodDegrees := {};
+	for deg in degrees do(
+		if ((not member(deg, goodDegrees)) and goodDegree(n, m, deg)) then goodDegrees = append(goodDegrees, deg);
+	);
 
 	possiblePartitions := apply(goodDegrees, deg -> take(deg, n));
-	possiblePartitions = unique(possiblePartitions);
 	possiblePartitions = apply(possiblePartitions, P -> delete(0, P));
 
 	return select(possiblePartitions, P -> (detLam(X, P) % I == 0));
