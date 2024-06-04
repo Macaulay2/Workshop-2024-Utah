@@ -23,4 +23,4 @@ jobs:
 
       - name: Run testbot on project branch
         run: |
-          M2 --script tests/testbot.m2
+          M2 --stop --no-debug --silent < tests/testbot.m2
