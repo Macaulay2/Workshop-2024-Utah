@@ -1,6 +1,6 @@
 needsPackage "NormalToricVarieties"
 
-divisorsToVariety := method();
+divisorsToVariety = method()
 
 --check that underlying varieties of given divisors are same
 
@@ -17,75 +17,91 @@ inputVariety := variety(listOfDivisors#0);
 -- Construct Fi's: Fi = cone(e_0, ... , exclude e_i , ... , e_r )
 -- 
 
+-- make list of coefficients of divisors 
 listOfDivisorCoefficients := apply(listOfDivisors, i -> entries(i));
 
-numberOfDivisors := #listOfDivisors - 1;
+extendingDimension := #listOfDivisors - 1;
 
 inputConeList := max(inputVariety);
 inputRayList := rays(inputVariety);
+
+-- get dimension of N_R
 inputFanDimension := #(inputRayList#0);
 
+-- padd with zeros to include the rays of the original fan in N_R x R^r
 extendedInputRayList := {};
 
 for oldRay in inputRayList do(
 
-extendedInputRayList = append(extendedInputRayList, oldRay | {numberOfDivisors : 0});
+    extendedInputRayList = append(extendedInputRayList, (oldRay | toList (extendingDimension : 0)));
 
-)
-
-
+);
 
 
-
--- for each cone sigma in inputConeList, for each ray rho in sigma
--- construct cone(inputRayList#rho +  )
--- 
-
--- extendedStandardBasisMatrix := map(ZZ^inputFanDimension, ZZ^numberOfDivisors, 0) || id_(ZZ^numberOfDivisors);
+--build rayliftingCoeffs
 
 rayLiftingCoefficients := {};
--- build rayliftingCoeffs
-for i from 1 to numberOfDivisors do(
+
+for i from 1 to extendingDimension do(
 
 rayLiftingCoefficients = append(rayLiftingCoefficients , listOfDivisorCoefficients#i - listOfDivisorCoefficients#0);
 
 );
 
-extendedRayLiftingMatrix = map(ZZ^inputFanDimension, ZZ^numberOfDivisors, 0) || matrix(rayLiftingCoefficients)
+extendedStandardBasisMatrix := map(ZZ^inputFanDimension, ZZ^extendingDimension, 0) || id_(ZZ^extendingDimension);
 
+--extendedRayLiftingMatrix := map(ZZ^inputFanDimension, ZZ^extendingDimension, 0) || matrix(rayLiftingCoefficients);
+
+
+-- add lifted original rays to new ray list
 newRayList := {};
 
-for oldRay in extendedInputRayList do(
+for j from 0 to (#extendedInputRayList - 1) do(
 
-    newRayList = append(newRayList , 
+    oldRay := extendedInputRayList#j;
+
+    for i from 0 to (extendingDimension - 1) do(
+        oldRay = oldRay + entries((rayLiftingCoefficients#i)#j*extendedStandardBasisMatrix_i);
+
+    );
+    
+    newRayList = append(newRayList , oldRay);
     
     
     );
-    
+
+--add padded standard basis vectors to new ray list
 
 
 
-    );
-);
+
+--    );
+--);
 
  
 
-newConeList := {};
-newVariety := normalToricVariety(newRayList , newConeList);
+--newConeList := {};
+--newVariety := normalToricVariety(newRayList , newConeList);
 
+
+newRayList
 );
 
 end ------------------------------
 
 restart
 needsPackage "NormalToricVarieties"
-rayList = {{-1} , {1}}
+load("ProjectiveBundlesDivisors.m2")
+rayList = {{1} , {-1}}
 coneList = {{1}, {0}}
 X = normalToricVariety (rayList, coneList)
+D0 = toricDivisor ( { 0 , 0}, X)
+D1 = toricDivisor ( {0 , 7} , X)
+L = divisorsToVariety({D0, D1})
+
 dim X
 rays X
 X1 = toricProjectiveSpace 1
-X == X1
 rays X1 == rays X
 max X1
 rayListH = { {1 , 0} , { 0 , 1} , {-1, 3}, {0 , -1}}
@@ -94,9 +110,10 @@ Y = normalToricVariety (rayListH , coneListH)
 Y1 = hirzebruchSurface 3
 max Y1
 
-D1 = toricDivisor ( {0 , 7} , X)
-D0 = toricDivisor ( { 0 , 0}, X)
+
 variety(D1)
+
+divisorsToVariety()
 
 -----
 PP2RayList = {
