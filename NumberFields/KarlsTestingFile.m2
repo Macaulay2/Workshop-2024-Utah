@@ -21,3 +21,5 @@ loadPackage("PushForward", DebuggingMode => true, Reload=>true)
 
 
 R = QQ[x,y]/ideal(y^2-x*(x-1)*(x-2), x^2-y*(y-1)*(y-2))
+psi = map(R, QQ)
+pushFwd(psi)
