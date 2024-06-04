@@ -110,3 +110,21 @@ TEST ///
     assert( (#(rays target(map4)) == 4) and isSmooth(target(map4)) and (dim(target(map4)) == 3)); --checks if target is P3
 
 ///
+
+-- test 6: test ideal function gives ideal of image of the induced toric map by a toric linear series
+TEST ///
+    P1 = toricProjectiveSpace 1;
+    X = P1 ** P1;
+    T = ring X;
+    M1 = toricLinearSeries {T_{0,2,2,0},T_{0,2,0,2},T_{2,0,0,2},T_{2,0,2,0}};
+    I = ideal toricMap M1
+    S = ring I
+    assert(idealOfImage(M1, TargetRing => S) == I)
+
+    S = ring P1;
+    v3 = toricLinearSeries first entries basis(3,S);
+    
+    needsPackage "Resultants";
+    idealOfVeronese3 = kernel veronese(1, 3, QQ);
+    assert(idealOfImage(v3, TargetRing => ring idealOfVeronese3) == idealOfVeronese3);
+///

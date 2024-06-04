@@ -9,7 +9,8 @@ toricLinearSeries List := ToricLinearSeries => m -> (
     s := new ToricLinearSeries from {
         "monomials" => m,
         "degree" => d,
-        "variety" => variety ring m#0
+        "variety" => variety ring m#0,
+        "projectiveSpace" => (if (#m - 1)>0 then toricProjectiveSpace (#m - 1) else null)
     };
     s
 )
@@ -81,6 +82,21 @@ toricMap ToricLinearSeries := linSeries -> (
     Pn := toricProjectiveSpace (#m - 1);
     map(Pn, X, m)
 )
+
+idealOfImage = method(Options => true)
+
+idealOfImage ToricLinearSeries := {TargetRing => null} >> o -> linSeries ->(
+    m := monomials linSeries;
+    T := if o.TargetRing === null then ring linSeries#"projectiveSpace" else o.TargetRing;
+    matrixOfMonomials := matrix transpose(first \ exponents \ m);
+    K := kernelLLL matrixOfMonomials;
+    returnPositive := n -> if n >= 0 then n else 0; -- returns n if n is positive
+    I := ideal ((entries transpose K) / (c -> T_(c / returnPositive)  - T_((-c )/ returnPositive)));
+    saturate(I, T_(m/(t->1))) -- saturate with respect to coordinate axes of Proj T
+)
+
+-- completeLinearSeriesFromDivisor Divisor := D ->(
+-- )
 
 -- if the source is not given, get the variety from the linear series or divisor
 map(NormalToricVariety, Nothing, ToricLinearSeries) :=
