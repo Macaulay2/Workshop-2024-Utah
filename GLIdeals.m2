@@ -441,7 +441,11 @@ doc ///
     Description
         Text
 	    This function takes a matrix X and a list of integers lam.
-
+	Example
+	    S=QQ[x_(1,1)..x_(3,5)];
+	    X=transpose genericMatrix(S,5,3)
+	    L={1,2,3}
+	    detLam(X,L)
 ///
 
 doc ///
