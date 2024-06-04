@@ -134,28 +134,34 @@ randomLam(ZZ, ZZ) := (n,k) -> (
     return delete(0,L)
     )
 
-idealILambda = method()
-idealILambda(Matrix,List) := (X,lam) -> (
-     n:=rank target X;
-     m:=rank source X;
-     kk:=baseRing ring X; 
-     if char kk !=0 then(
-		error "Base ring is not characteristic 0";
+idealILambda = method(Options => {MaximalRank => true});
+idealILambda(Matrix,List) := opts -> (X,lam) -> (
+    kk:=baseRing ring X; 
+    if char kk !=0 then(
+		I := ideal(detLam(X,lam);
+		return naiveClosure(X,I,MaximalRank => opts#MaximalRank);
+		);
 	);
-     conjlam := toList conjugate( new Partition from lam);
-     d:=numgensILambda(X,lam);
-     lis := for i from 0 to d-1 list
-     (
-    A := random(kk^n,kk^n);
-    B := random(kk^m,kk^m);
-    N := A * X * B;
-    product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
+
+    n:=rank target X;
+    m:=rank source X;
+    conjlam := toList conjugate( new Partition from lam);
+    d:=numgensILambda(X,lam);
+    
+	myRand := n -> random(kk^n,kk^n,MaximalRank=>opts#MaximalRank);
+
+	lis := for i from 0 to d-1 list(
+    	A := myRand(n);
+    	B := myRand(m);
+    	N := A * X * B;
+    	product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1})
+	);
     J := ideal lis;
     minJ:=mingens J;
     
 	while rank source minJ != d do(
-		A := random(kk^n,kk^n);
-		B := random(kk^m,kk^m);
+		A := myRand(n);
+    	B := myRand(m);
 		N := A * X * B;
 		lis = append(lis, product for j from 0 to #conjlam-1 list det(N_{0..conjlam_j-1}^{0..conjlam_j-1}));
 		J = ideal lis;
@@ -188,7 +194,7 @@ idealIChi(ZZ, ZZ, List) := (n, m, chi) -> (
 	return idealIChi(X, chi);
 );
 
-naiveClosure = method(Optional => {MaximalRank => true});
+naiveClosure = method(Options => {MaximalRank => true});
 naiveClosure (Matrix, Ideal) := opts -> (Y,I) ->( 
     (R,X,phi):=correctSymmetricAlgebraHelper(Y);
     kk:=baseRing ring Y;
