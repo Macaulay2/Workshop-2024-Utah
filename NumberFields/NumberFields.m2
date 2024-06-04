@@ -24,7 +24,7 @@ export{
    "isGalois",
    "splittingField",
    "compositums",
-   "remakField"--this probably shouldn't be exposed to the user long term
+   "remakeField"--this probably shouldn't be exposed to the user long term
 };
 
 NumberField = new Type of HashTable
@@ -51,9 +51,10 @@ remakeField(Ring) := opts -> R1 -> (
     if instance(R2, QuotientRing) then (amb = ambient R2; myIdeal = ideal R2) else (amb = R2; myIdeal = ideal(sub(0,R2)));
     numVars := #(gens amb);
 
-    if opts.Variable === null then (var = local symbol a) else (var = opts.Variable);
-    newRing1 := QQ(monoid[(var_1..var_numVars)]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
-    phi := map(R2, newRing1, gens amb);
+    if opts.Variable === null then (var = a) else (var = opts.Variable);
+    varList := {var_1..var_numVars};
+    newRing1 := QQ(monoid[varList]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
+    phi := map(newRing1, amb, gens newRing1);
 
     newRing1/phi(myIdeal)
 )
@@ -71,7 +72,7 @@ numberField(RingElement) := opts -> f1 -> (
     if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
     new NumberField from { 
-        ring => toField (R1/ideal(f1)), 
+        ring => toField remakeField(R1/ideal(f1), Variable=>opts.Variable), 
         cache => new CacheTable from {}
     }
 )
@@ -89,7 +90,7 @@ numberField(Ring) := opts -> R1 -> (
     try pushFwd(iota) else error("Not finite dimensional over QQ");
 
     new NumberField from {
-        ring => toField (flattenedR1), 
+        ring => toField (remakeField(flattenedR1,Variable=>opts.Variable)), 
         cache => new CacheTable from {}
     }
 )
