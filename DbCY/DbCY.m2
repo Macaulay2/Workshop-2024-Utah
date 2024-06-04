@@ -39,9 +39,6 @@ singularityToSheaves(Module, ZZ, ZZ) := (M, i, j) -> (
     D := dual G;
     orlovTruncateLess(D, i)
 )
-
-
-
 end;
 
 restart
