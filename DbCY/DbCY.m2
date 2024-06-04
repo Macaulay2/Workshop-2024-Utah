@@ -1,5 +1,9 @@
-needsPackage "Complexes"
 needsPackage "Depth"
+
+path = prepend("../packages", path)
+loadPackage("Truncations", Reload => true)
+loadPackage("Complexes", Reload => true)
+loadPackage("Varieties", Reload => true)
 
 orlovTruncateLess = method()
 -- Input: a complex F of graded free modules and an integer i.
@@ -115,8 +119,11 @@ singularityToModules(M, 1, 1)
 restart
 load "DbCY.m2"
 R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
+X = Proj R
 M = coker matrix{{x_0*x_2}}
-singularityToModules(M, 3, 7)
+C = minimize singularityToModules(M, 3, 7)
+C = sheaf C
+C.dd
 
 restart
 load "DbCY.m2"
