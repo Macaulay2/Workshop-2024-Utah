@@ -95,10 +95,12 @@ ring(NumberField) := R1 -> (
 --degreeNF = method(Options => {})
 degree(NumberField) := nf -> (
     if (nf#cache#?degree) then return nf#cache#degree;
-    iota := map(ring(nf),QQ);
+    -*iota := map(ring(nf),QQ);
     rk := rank((pushFwd(iota))#0);
     nf#cache#degree = rk;
-    rk
+    rk*-
+    --Karl:  something is wrong with pushFwd in this context, I rewrote this function for now.  The old version is above.
+    degree ((ring nf)^1)
 )
 
 
