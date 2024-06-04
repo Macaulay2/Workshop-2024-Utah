@@ -194,11 +194,14 @@ idealIChi(ZZ, ZZ, List) := (n, m, chi) -> (
 	return idealIChi(transpose genericMatrix(R, m, n);, chi);
 );
 
-naiveClosure = method(Options => {MaximalRank => true});
+naiveClosure = method(Options => {MaximalRank => true, Limit => false});
 naiveClosure (Matrix, Ideal) := opts -> (Y,I) ->( 
     (R,X,phi):=correctSymmetricAlgebraHelper(Y);
     kk:=baseRing ring Y;
 	myRand := n -> random(kk^n,kk^n,MaximalRank=>opts#MaximalRank);
+
+	keepGoing := i -> true;
+	if not (opts#Limit === false) then keepGoing = (i -> i < opts#Limit);
 
     n:=rank target X;
     m:=rank source X;
@@ -207,14 +210,20 @@ naiveClosure (Matrix, Ideal) := opts -> (Y,I) ->(
     B:=myRand(m);
     act:=map(R,R,flatten entries(A*X*B));
     JJ:=II+act(II);
-    while not(II==JJ) do(
+	counter := 0;
+	success := (II == JJ);
+    while keepGoing(counter) and not(success) do(
 		II=JJ;
 		A=myRand(n);
 		B=myRand(m);
 		act=map(R,R,flatten entries(A*X*B));
-		JJ=II+act(II);    
+		JJ=II+act(II);
+		counter = counter + 1;
+		success = (II == JJ);
     );
-	return (ideal mingens phi(II));
+	if opts#Limit === false then
+		return (ideal mingens phi(II));
+	return (ideal mingens phi(II), success);
 )
 
 
