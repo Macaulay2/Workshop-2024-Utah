@@ -205,7 +205,26 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     numberFieldExtension (map(K1, K2))
 )
-
+simpleExt = method();
+simpleExt(NumberField) := (nf) ->(
+    --We first get the degree of K as a field extension over Q and store it as D. 
+    K = ring nf;
+    D = degree K;
+    --We find an element that produces a degree D field extension.
+    d = 0;
+    while d < D do 
+    (
+        r = random(1, K);
+        R = QQ[xx];
+        phi = map( K, R, {r});
+        if  isPrime (kernel phi) then (
+            I = kernel phi --*( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0);
+            simpleExt = numberField(R / I);
+            d = degree simpleExt;
+        );
+    );
+    return simpleExt;
+)
 
 --*****************************
 --Documentation
