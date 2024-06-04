@@ -363,49 +363,6 @@ doc ///
 	    This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals. 
 ///
 
-doc ///
-    Key
-        minimizeChi
-	(minimizeChi, List)
-    Headline
-        computes the minimal elements of a list of partitions
-    Usage
-	minimizeChi(chi)
-    Inputs
-	chi: List
-	    a list of partitions, where each partition is represented as a list of integers
-    Outputs
-	: List
-	    a list of partitions, which are the minimal elements of the input list
-    Description
-        Text
-	    This function takes a list of partitions and returns the minimal elements of that list.
-	Example
-	    chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
-	    minimizeChi(chi)
-  		  
-///
-
-doc ///
-    Key
-        numgensIChi
-        (numgensIChi, Matrix, List)
-    Headline
-        computes the total number of generators for I_Chi ideals
-    Usage
-	numgensIChi(X, chi)
-    Inputs
-	 X: Matrix
-	    a matrix with dimensions r x c
-	 chi: List
-	    a list of partitions, where each partition is represented as a list of integers
-    Outputs
-	 : ZZ
-	    the total number of generators for the I_Chi ideals
-    Description
-        Text
-	    This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals.
-///
 
 doc ///
     Key
@@ -626,63 +583,7 @@ doc ///
   
 ///
 
-doc ///
-    Key
-        ?
-        (?, Partition, Partition)
-    Headline
-        compares two partitions and returns their relationship
-    Usage
-	A ? B
-    Inputs
-	 A: Partition
-	    a partition represented as a list of integers in weakly decreasing order
-	 B: Partition
-	    another partition represented as a list of integers in weakly decreasing order
-    Outputs
-	 : Symbol
-	    the symbol representing the relationship between partitions A and B:
-	    `<` if A is less than B, `>` if A is greater than B, `==` if A equals B, and `incomparable` if they are incomparable
-    Description
-        Text
-	    This function compares two partitions A and B and returns a symbol representing their relationship.
-        Example
-	    A = {3, 2, 1}
-	    B = {4, 2, 1}
-	    A ? B
-	    B ? A
-	    C = {3, 3, 1}
-	    D = {3, 2, 2}
-	    C ? D
-///
 
-doc ///
-    Key
-        ==
-        (==, Partition, Partition)
-    Headline
-        checks if two partitions are equal
-    Usage
-	A == B
-    Inputs
-	 A: Partition
-	    a partition represented as a list of integers in weakly decreasing order
-	 B: Partition
-	    another partition represented as a list of integers in weakly decreasing order
-    Outputs
-	 : Boolean
-	    true if partition A is equal to partition B, false otherwise
-    Description
-        Text
-	    This function checks if two partitions A and B are equal.
-        Example
-            A = {3, 2, 1}
-	    B = {3, 2, 1}
-	    C = {4, 2, 1}
-	    A == B
-	    A == C
- 
-///
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
