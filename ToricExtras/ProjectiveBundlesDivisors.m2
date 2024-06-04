@@ -25,6 +25,8 @@ extendingDimension := #listOfDivisors - 1;
 inputConeList := max(inputVariety);
 inputRayList := rays(inputVariety);
 
+numberOfInputRays := #inputRayList;
+
 -- get dimension of N_R
 inputFanDimension := #(inputRayList#0);
 
@@ -83,17 +85,28 @@ for i from 0 to (extendingDimension - 1) do(
 
     );
 
-
---    );
---);
-
  
 
---newConeList := {};
+newConeList := {};
+
+shiftedEis := toList(0..extendingDimension) + toList ((extendingDimension + 1) : numberOfInputRays);
+
+for i from 0 to (#inputConeList - 1) do(
+
+    for j from 0 to extendingDimension do(
+
+        newConeList = append(newConeList , inputConeList#i | drop(shiftedEis, {j , j}) );
+
+    );
+
+
+
+
+);
+
 --newVariety := normalToricVariety(newRayList , newConeList);
 
-
-newRayList
+normalToricVariety(newRayList , newConeList)
 );
 
 end ------------------------------
