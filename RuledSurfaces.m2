@@ -30,7 +30,8 @@ export {
 needsPackage "Varieties"
 needsPackage "Divisor"
 
-ProjectiveBundle = new Type of HashTable
+ProjectiveBundle = new Type of MutableHashTable
+LineBundleOnProjectiveBundle = new Type of HashTable
 
 projectiveBundle = method()
 projectiveBundle(CoherentSheaf) := E -> projectiveBundle(variety E, E)
@@ -42,11 +43,18 @@ projectiveBundle(ProjectiveVariety, CoherentSheaf) := (X, E) -> (
     if not isSmooth X then print "warning: X is not smooth and results may be incorrect";
 --TODO: add option to bypass local freeness check and pruning
     if not isLocallyFree E then error "expected a locally free sheaf";
-    new ProjectiveBundle from{symbol Variety => X, symbol CoherentSheaf => E, symbol rank => rank E}
+    new ProjectiveBundle from{
+        symbol variety => X, 
+        symbol CoherentSheaf => E, 
+        symbol rank => rank E,
+    }
 )
 
+variety ProjectiveBundle := PE -> PE.variety
+sheaf   ProjectiveBundle := PE -> PE.CoherentSheaf
 
 findGlobalGeneratorsOfTwist = method()
+findGlobalGeneratorsOfTwist(ProjectiveBundle) := PE -> if not PE.?generators then PE.generators = findGlobalGeneratorsOfTwist(sheaf PE)
 findGlobalGeneratorsOfTwist(CoherentSheaf) := E -> (
     i := regularity module E;
     while sheaf coker basis(i, module E) == 0 do i = i - 1;
