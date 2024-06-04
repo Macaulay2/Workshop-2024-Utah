@@ -119,6 +119,7 @@ numberFieldExtension(RingElement) := opts -> f1 -> (
     if not (gens ring f1 == 1) then error "Expected a polynomial in a single variable";
     baseField := numberField coefficientRing ring f1;
     
+
 );
 
 source(NumberFieldExtension) := phi1 -> (phi1#source);
@@ -180,6 +181,34 @@ splittingField(RingElement) := opts -> f1 -> (
     numberField K1
     --R1
 )
+
+
+--*****************************
+--Documentation
+--*****************************
+beginDocumentation()
+
+doc ///
+    Node
+        Key
+            NumberFields
+        Headline
+            an example Macaulay2 package
+        Description
+            Text
+                {\em FirstPackage} is a basic package to be used as an example.
+///
+
+--*****************************
+--Tests
+--*****************************
+
+TEST /// --Test #0
+    K = QQ[x]/ideal(x^3-2)
+    L = K[y]/ideal(y^2 + y + 1)
+    assert(degree numberField K == 3)
+    assert(degree numberField L == 6)
+///
 
 end
 
