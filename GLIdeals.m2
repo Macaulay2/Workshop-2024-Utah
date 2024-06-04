@@ -367,10 +367,10 @@ doc ///
         Text
 	    This function computes the number of generators of the I_Lambda ideal in the ring Sym(CC^n,CC^m). Inputting a matrix X  will set n and m to be the number of rows and columns of X.
     	Example
-    	   S=QQ[x_1..x_5,y_1..y_5];
-   	   X=transpose genericMatrix(S,5,2)
-    	   L={2,1}
-    	   numgensILambda(X,L)
+	    S=QQ[x_1..x_5,y_1..y_5];
+	    X=transpose genericMatrix(S,5,2)
+	    L={2,1}
+	    numgensILambda(X,L)
 ///
 
 doc ///
