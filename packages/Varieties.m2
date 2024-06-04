@@ -73,6 +73,7 @@ export {
     -- Functors
     "hh", -- TODO: should this be defined in Core?
     "OO",
+    "RHom",
     -- Symbols
     "GlobalSectionLimit",
     "SaturationMap",
