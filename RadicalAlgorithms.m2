@@ -322,7 +322,7 @@ J == radI
 -- this is very rough and not tested at all
 
 
-needsPackage "AnalyzeSheafOnP1";  -- don't really need this, just being lazy
+needsPackage "AnalyzeSheafOnP1";  -- don't really need this, just being lazy for now
 
 radicalAlgTest = I -> (
     -- assume I is an ideal in a polynomial ring
@@ -331,7 +331,7 @@ radicalAlgTest = I -> (
         
     R' := (coefficientRing R) monoid([supp]);
     I' := sub(I, R');
-    M' := module I';
+    M' := comodule I';
     jacI := jacobian I';
     
     n := #supp;
@@ -342,14 +342,18 @@ radicalAlgTest = I -> (
 	J := minors(min(n, #(I'_*)), jacI);
 
 	-- check that at least one minor is a nonzero divisor mod I', if not, decrement k and go to top of loop
-	if any(J_*, j -> isNZD(j, M')) then break;
-	k := k-1;
+
+	-- get first nonzero divisor
+	nonzerodiv := select(1, J_*, j -> if isNZD(j, M'));
+
+	if nonzerodiv == {} then (
+	    k := k-1;
+	    continue;
+	    )
+	break;
 	)
 
-    -- maybe should check that k>=c, otherwise something will have gone wrong
-    -- assume now that J has at least one nonzero divisor mod I'
-
-    I1 := I':J;
+    I1 := I' : (ideal first nonzerodiv) ;
     c1 := codim I1;
 
     if I1 == I1:(minors(n-c1, jacobian I1)) then return sub(I1, R);
