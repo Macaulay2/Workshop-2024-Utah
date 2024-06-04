@@ -48,9 +48,16 @@ numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
 	P = P | apply(maxSize - minSize, i -> 0); -- make it size maxSize
 	return sub(dimension * myHookLength(P),ZZ);
 );
+numgensILambda(ZZ,ZZ,Partition):(n,m,P)->(
+    return numgensILambda(n,m,toList P);
+    )
+    
 numgensILambda(Matrix, List) := (X, lam) -> (
 	return numgensILambda(numRows X, numColumns X, lam);
 );
+numgensILambda(Matrix,Partition):(X,P)->(
+    return numgensILambda(X,toList P);
+    )
 
 minimizeChi = method();
 minimizeChi(List) := (chi) -> (
@@ -81,18 +88,25 @@ minimizeChi(List) := (chi) -> (
     return apply(minimals, P -> toList(P));
 )
 
+
 numgensIChi = method(Options => {IsMinimal => false});
-numgensIChi(Matrix, List) := opts -> (X, chi) -> (
+numgensIChi(ZZ,ZZ, List) := opts->(n,m, chi) -> (
+
  	-- chi is a list of partitions
  	-- return sum numgensILambda(chi_i) for all i
 	c := chi;
 	if not (opts#IsMinimal) then c = minimizeChi(chi);
 	s := 0;
 	for lam in c do(
-		s = s + numgensILambda(X, lam);
+		s = s + numgensILambda(n,m, lam);
 	);
 	return s;
 );
+
+numgensIChi(Matrix, List) := opts->(X, chi) -> (
+	return numgensIChi(numRows X, numColumns X, chi);
+);
+
 
 detLam = method()
 detLam (Matrix, List) := (X,lam) -> (
@@ -103,6 +117,7 @@ detLam (Matrix, List) := (X,lam) -> (
     );
     return C 
 )
+
 
 randomLam = method();
 randomLam(ZZ, ZZ) := (n,k) -> (
