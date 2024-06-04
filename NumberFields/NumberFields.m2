@@ -24,6 +24,7 @@ export{
    "isGalois",
    "splittingField",
    "compositums",
+   "remakField"--this probably shouldn't be exposed to the user long term
 };
 
 NumberField = new Type of HashTable
@@ -38,7 +39,25 @@ NumberField = new Type of HashTable
 --NumberField constructors
 --****************************
 
-numberField = method(Options => {})
+--The following function takes a ring and renames the variables
+--in the future, it might also try to clean up relations (prune, trim, our own combination of prune/trim)
+remakeField = method(Options => {Variable=>null});
+remakeField(Ring) := opts -> R1 -> (
+    local var;
+    local amb;
+    local myIdeal;
+    a := local a;
+    if instance(R1, QuotientRing) then (amb = ambient R1; myIdeal = ideal R1) else (amb = R1; myIdeal = ideal(sub(0,R1)));
+    numVars := #(gens amb);
+
+    if opts.Variable === null then (var = local symbol a) else (var = opts.Variable);
+    newRing1 := QQ(monoid[(var_1..var_numVars)]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
+    phi := map(R1, newRing1, gens amb);
+
+    newRing1/phi(myIdeal)
+)
+
+numberField = method(Options => {Variable=>null})
 numberField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
