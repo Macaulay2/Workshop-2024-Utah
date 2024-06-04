@@ -13,7 +13,7 @@ newPackage(
 	Reload=>true
     	)
     
-export{"idealILambda","numgensILambda", "idealToChi", "naiveClosure","detLam","randomLam","IsMinimal", "GLIdeal"}
+export{"idealILambda","numgensILambda", "idealToChi", "naiveClosure","detLam","randomLam","IsMinimal", "GLIdeal", "numgensGLIdeal"}
 
 numgensILambda = method() -- TODO: Make it accept Partitions as well
 numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
@@ -102,9 +102,8 @@ numgensIChi(ZZ,ZZ, List) := opts->(n,m, chi) -> (
 	);
 	return s;
 );
-
 numgensIChi(Matrix, List) := opts->(X, chi) -> (
-	return numgensIChi(numRows X, numColumns X, chi);
+	return numgensIChi(numRows X, numColumns X, chi, opts);
 );
 
 
@@ -326,6 +325,22 @@ GLIdeal(Matrix, List) := opts -> (X, L) -> (
 );
 GLIdeal(Matrix, Partition) := opts -> (X, P) -> (
 	return idealILambda(X, P, MaximalRank => opts#MaximalRank);
+);
+
+numgensGLIdeal = method(Options => {IsMinimal => false});
+numgensGLIdeal(ZZ, ZZ, List) := opts -> (n, m, L) -> (
+	if IsPartition(L) then return numgensILambda(n, m, L);
+	return numgensIChi(n, m, L, opts);
+);
+numgensGLIdeal(ZZ, ZZ, Partition) := opts -> (n, m, P) -> (
+	return numgensILambda(n, m, P);
+);
+numgensGLIdeal(Matrix, List) := opts -> (X, L) -> (
+	if IsPartition(L) then return numgensILambda(X, L);
+	return numgensIChi(X, L, opts);
+);
+numgensGLIdeal(Matrix, Partition) := opts -> (X, P) -> (
+	return numgensILambda(X, P);
 );
 
 partitionsLeq = method();
