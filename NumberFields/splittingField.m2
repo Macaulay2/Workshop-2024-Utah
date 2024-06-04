@@ -137,6 +137,14 @@ L1 = decompose ideal f1
 currentEntry = (entries gens L1#0)#0
 K1 = R1/(L1#0)
 describe K1
+
+-- My simpleExt idea
+(flattenRing K1)#0
+NF1 = numberField K1
+NF2 = simpleExt NF1
+K1 = ring NF2
+
+-- Back to the original loop
 S1 = K1[a_variableIndex]
 describe S1
 phi1 = map(S1, R1, {a_variableIndex})
@@ -146,12 +154,27 @@ R1 = S1
 describe R1
 describe K1
 variableIndex += 1
+
+--(flattenRing K1)#0
+--NF1 = numberField K1
+--NF2 = simpleExt NF1
+--K2 = ring NF2
+--L1 = decompose ideal f1
+--L1#0
+--describe S1
+
 -- Third iteration of for loop
 L1 = decompose ideal f1
 currentEntry = (entries gens L1#0)#0
 degree currentEntry#0
 K1 = R1/(L1#0)
 describe K1
+
+-- Another simpleExt
+NF1 = numberField K1
+NF2 = simpleExt NF1
+K1 = ring NF2
+
 S1 = K1[a_variableIndex]
 describe S1
 phi1 = map(S1, R1, {a_variableIndex})

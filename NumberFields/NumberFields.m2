@@ -287,7 +287,7 @@ minimalPolynomial = method(Options => {})
 minimalPolynomial(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     S1 := (coefficientRing(R1))[local y];
-    P1 := pushFwd(map(R1, QQ));
+    P1 := pushFwd(map(R1, coefficientRing(R1)));
     A1 := (P1#2)(1_R1);
     pow1 := 1;
     while gens(kernel(A1))==0 do (
