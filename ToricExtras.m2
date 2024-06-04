@@ -41,7 +41,8 @@ newPackage(
             Email => "jayy@wustl.edu"},
         {
             Name => "Anna Natalie Chlopecki",
-            Email => "achlopec@purdue.edu"},
+            Email => "achlopec@purdue.edu",
+	    HomePage => "https://anchlopecki.github.io"},
         {
             Name => "Eduardo Torres Dávila",
             Email => "torre680@umn.edu"},
