@@ -83,6 +83,18 @@ batyrevMaxCones(List, List) := (bRays, primitiveCollections) -> (
 
 batyrevConstructor = method();
 batyrevConstructor(List, List, List) := (P, B, C) -> (
+    if #P != 5 then (
+        erP := "P has " | toString(#P) | " elements, but should have 5 elements";
+        error erP;
+    );
+    if #B != P#3 then (
+        erB := "B has " | toString(#B) | " elements, but should have " | toString(P#3) | " elements";
+        error erB;
+    );
+    if #C != P#2 - 1 then (
+        erC := "C has " | toString(#C) | " elements, but should have " | toString(P#2 - 1) | " elements";
+        error erC;
+    );
     A := makeBatyrevMatrix(P, B, C);
     (bRays, primitiveCollections) := batyrevRays(A, P);
     maxCones := batyrevMaxCones(bRays, primitiveCollections);
@@ -98,7 +110,7 @@ degreeOfThreefold(NormalToricVariety) := X -> (
     c = chern(1, OO (-K)); -- anticanonical class in the Chow ring
     deg = integral (c*c*c);
     -- g = 1 + (deg / 2)
-    return deg;
+    return deg;)
     
     
 

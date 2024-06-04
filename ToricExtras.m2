@@ -56,8 +56,8 @@ newPackage(
             HomePage => "https://seangrate.com/"},
         {
             Name => "Thiago Holleben",
-            Email => "hollebenthiago@dal.ca"
-        },
+            Email => "hollebenthiago@dal.ca",
+            HomePage => "https://hollebenthiago.github.io/"},
 	{
             Name => "Will Gilroy",
             Email => "wlg38@cornell.edu"
@@ -134,6 +134,7 @@ TEST ///
 
 load "./ToricExtras/ToricLinearSeriesTests.m2"
 load "./ToricExtras/BatyrevTests.m2"
+load "./ToricExtras/ProjectiveBundlesDivisorsTests.m2"
 
 end---------------------------------------------------------------------------
 
