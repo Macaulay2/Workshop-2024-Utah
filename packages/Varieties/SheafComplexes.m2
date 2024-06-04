@@ -15,6 +15,27 @@ isMorphism SheafMap := isAbelianCategory CoherentSheaf := x -> true
 
 complex CoherentSheaf := Complex => lookup(complex, Module)
 
+
+-----------------------------------------------------------------------------
+-- Basic operations between sheaves, complexes, etc.
+-----------------------------------------------------------------------------
+
+tensor(CoherentSheaf, Complex) := Complex => {} >> opts -> (F, C) -> (
+    (lo,hi) := concentration C;
+    if not instance(C_lo, CoherentSheaf) then error "expected to tensor with a complex of sheaves";
+    sheaves := hashTable for i from lo to hi list i => tensor(F, C_i, opts);
+    if lo === hi then 
+        return complex(sheaves#lo, Base=>lo);
+    maps := hashTable for i from lo+1 to hi list i => 
+        map(sheaves#(i-1), sheaves#i, tensor(id_F, dd^C_i, opts));
+    complex maps
+    )
+
+tensor(Complex, CoherentSheaf) := Complex => {} >> opts -> (C, F) -> tensor(F, C, opts)
+
+CoherentSheaf ** Complex := Complex => {} >> opts -> (F, C) -> tensor(F, C, opts)
+Complex ** CoherentSheaf := Complex => {} >> opts -> (C, F) -> tensor(C, F, opts)
+
 -----------------------------------------------------------------------------
 -- Specialized methods for complexes of sheaves
 -----------------------------------------------------------------------------
@@ -84,7 +105,7 @@ RHom(Complex, Complex) := Complex => (C, D) -> (
     (loC, hiC) := C.concentration;
     if not instance(variety C_loC, ProjectiveVariety)
     then error "expected sheaves on a projective variety";
-    M := moduleComplex C;
+    M := flattenComplex moduleComplex C;
     N := flattenComplex moduleComplex D;
     R := ring M;
     if not isAffineRing R
@@ -107,7 +128,7 @@ RHom(Complex, Complex) := Complex => (C, D) -> (
 RHom(CoherentSheaf, Complex) := Complex => (C, D) -> (
     if not instance(variety C, ProjectiveVariety)
     then error "expected sheaves on a projective variety";
-    M := module C;
+    M := flattenModule module C;
     N := flattenComplex moduleComplex D;
     R := ring M;
     if not isAffineRing R
@@ -131,7 +152,7 @@ RHom(Complex, CoherentSheaf) := Complex => (C,D) -> (
     (loC, hiC) := C.concentration;
     if not instance(variety C_loC, ProjectiveVariety)
     then error "expected sheaves on a projective variety";
-    M := moduleComplex C;
+    M := flattenComplex moduleComplex C;
     N := flattenModule module D;
     R := ring M;
     if not isAffineRing R
@@ -150,7 +171,7 @@ RHom(Complex, CoherentSheaf) := Complex => (C,D) -> (
 RHom(CoherentSheaf, CoherentSheaf) := Complex => (C,D) -> (
     if not instance(variety C, ProjectiveVariety)
     then error "expected sheaves on a projective variety";
-    M := module C;
+    M := flattenModule module C;
     N := flattenModule module D;
     R := ring M;
     if not isAffineRing R
@@ -171,7 +192,7 @@ RHom(Complex, Complex, ZZ) := Complex => (C, D, d) -> (
     (loC, hiC) := C.concentration;
     if not instance(variety C_loC, ProjectiveVariety)
     then error "expected sheaves on a projective variety";
-    M := moduleComplex C;
+    M := flattenComplex moduleComplex C;
     N := flattenComplex moduleComplex D;
     R := ring M;
     if not isAffineRing R
@@ -194,7 +215,7 @@ RHom(Complex, Complex, ZZ) := Complex => (C, D, d) -> (
 RHom(CoherentSheaf, Complex, ZZ) := Complex => (C, D, d) -> (
 if not instance(variety C, ProjectiveVariety)
     then error "expected sheaves on a projective variety";
-    M := module C;
+    M := flattenModule module C;
     N := flattenComplex moduleComplex D;
     R := ring M;
     if not isAffineRing R
@@ -218,7 +239,7 @@ RHom(Complex, CoherentSheaf, ZZ) := Complex => (C,D,d) -> (
     (loC, hiC) := C.concentration;
     if not instance(variety C_loC, ProjectiveVariety)
     then error "expected sheaves on a projective variety";
-    M := moduleComplex C;
+    M := flattenComplex moduleComplex C;
     N := flattenModule module D;
     R := ring M;
     if not isAffineRing R
@@ -237,7 +258,7 @@ RHom(Complex, CoherentSheaf, ZZ) := Complex => (C,D,d) -> (
 RHom(CoherentSheaf, CoherentSheaf, ZZ) := Complex => (C,D,d) -> (
     if not instance(variety C, ProjectiveVariety)
     then error "expected sheaves on a projective variety";
-    M := module C;
+    M := flattenModule module C;
     N := flattenModule module D;
     R := ring M;
     if not isAffineRing R
@@ -257,8 +278,8 @@ RHom(CoherentSheaf, CoherentSheaf, ZZ) := Complex => (C,D,d) -> (
 Ext(ZZ, CoherentSheaf, Complex) := Complex => opts -> (m, C, D) -> (
     if not instance(variety C, ProjectiveVariety)
     then error "expected sheaves on a projective variety";
-    M := module C;
-    N := moduleComplex D;
+    M := flattenModule module C;
+    N := flattenComplex moduleComplex D;
     R := ring M;
     if not isAffineRing R
     then error "expected sheaves on a variety over a field";
@@ -310,9 +331,6 @@ sheafRes(Complex) := Complex => C -> (
 sheafRes(CoherentSheaf) := Complex => F -> (
     sheaf freeResolution module F
     )
-
-    
-
 
 end--
 
