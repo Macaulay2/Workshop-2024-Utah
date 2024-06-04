@@ -47,12 +47,13 @@ remakeField(Ring) := opts -> R1 -> (
     local amb;
     local myIdeal;
     a := local a;
-    if instance(R1, QuotientRing) then (amb = ambient R1; myIdeal = ideal R1) else (amb = R1; myIdeal = ideal(sub(0,R1)));
+    R2 := (flattenRing R1)#0;
+    if instance(R2, QuotientRing) then (amb = ambient R2; myIdeal = ideal R2) else (amb = R2; myIdeal = ideal(sub(0,R2)));
     numVars := #(gens amb);
 
     if opts.Variable === null then (var = local symbol a) else (var = opts.Variable);
     newRing1 := QQ(monoid[(var_1..var_numVars)]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
-    phi := map(R1, newRing1, gens amb);
+    phi := map(R2, newRing1, gens amb);
 
     newRing1/phi(myIdeal)
 )
