@@ -58,8 +58,10 @@ genericSocle := I -> (
     d:=dim I;
     return (I:minors(dim ring I - d, jacobian I));
 )
- 
- hunekeAlgorithm := I -> (
+
+hunekeAlgorithm = method(TypicalValue=>Ideal)
+hunekeAlgorithm(Ideal) := I -> (
+	R := ring I;
 	J:=ideal 0_R;
 	previousI:=ideal 0_R;
 	while J!=ideal 1_R do (
@@ -77,9 +79,6 @@ genericSocle := I -> (
 	    );
 	return genericSocle(previousI);
 )
-
-
-
 
 
 -----------------------------------
