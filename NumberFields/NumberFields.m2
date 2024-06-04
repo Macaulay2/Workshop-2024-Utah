@@ -78,6 +78,8 @@ numberField(RingElement) := opts -> f1 -> (
     }
 )
 
+
+
 numberField(Ring) := opts -> R1 -> (
     if R1===QQ then return new NumberField from {ring => R1};
     
