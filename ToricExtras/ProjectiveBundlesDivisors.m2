@@ -1,30 +1,28 @@
 needsPackage "NormalToricVarieties"
 
+--this method takes as input a list of toric divisors on a normal toric variety 
+--and outputs the projectivization of the associated vector bundle as a normal toric variety
+
 projectivizationOfBundle = method()
 
---check that underlying varieties of given divisors are same
+--check that underlying varieties of given divisors are same?
 
 projectivizationOfBundle List := (listOfDivisors) -> (
 
+--get input variety
 inputVariety := variety(listOfDivisors#0);
-
-
--- listOfDivisors = { {0 , 7, 9}, {8 , 0 , 1} }
--- extract coefficients
---  get r = numberOfDivisors
--- build e_i
--- set e_0 = -e_1 - ... - e_r
--- Construct Fi's: Fi = cone(e_0, ... , exclude e_i , ... , e_r )
--- 
 
 -- make list of coefficients of divisors 
 listOfDivisorCoefficients := apply(listOfDivisors, i -> entries(i));
 
+--get rank of vector bundle to projectivize minus 1, call this r
 extendingDimension := #listOfDivisors - 1;
 
+--get cones and rays of input variety
 inputConeList := max(inputVariety);
 inputRayList := rays(inputVariety);
 
+-- get number of rays in the fan of the input variety
 numberOfInputRays := #inputRayList;
 
 -- get dimension of N_R
@@ -40,7 +38,7 @@ for oldRay in inputRayList do(
 );
 
 
---build rayliftingCoeffs
+--build coefficients on standard basis vectors which will be added to input rays
 
 rayLiftingCoefficients := {};
 
@@ -50,10 +48,9 @@ rayLiftingCoefficients = append(rayLiftingCoefficients , listOfDivisorCoefficien
 
 );
 
+-- make an identity matrix padded by 0's on top
+
 extendedStandardBasisMatrix := map(ZZ^inputFanDimension, ZZ^extendingDimension, 0) || id_(ZZ^extendingDimension);
-
---extendedRayLiftingMatrix := map(ZZ^inputFanDimension, ZZ^extendingDimension, 0) || matrix(rayLiftingCoefficients);
-
 
 -- add lifted original rays to new ray list
 newRayList := {};
@@ -72,9 +69,11 @@ for j from 0 to (#extendedInputRayList - 1) do(
     
     );
 
--- make e_0 and add to new ray list
+-- make e_0 = -e_1 -e_2 - ... - e_r and add to new ray list
 
 eZero := entries((-extendedStandardBasisMatrix)*vector(toList (extendingDimension : 1)));
+
+-- add e_0 to new ray list
 
 newRayList = append(newRayList , eZero);
 
@@ -87,9 +86,15 @@ for i from 0 to (extendingDimension - 1) do(
 
  
 
-newConeList := {};
+
+-- make a list which indexes the standard basis vectors at the end of the new ray list
 
 shiftedEis := toList(0..extendingDimension) + toList ((extendingDimension + 1) : numberOfInputRays);
+
+
+-- construct cone list of projectivization
+
+newConeList := {};
 
 for i from 0 to (#inputConeList - 1) do(
 
@@ -104,7 +109,7 @@ for i from 0 to (#inputConeList - 1) do(
 
 );
 
---newVariety := normalToricVariety(newRayList , newConeList);
+-- make the projectivization!
 
 normalToricVariety(newRayList , newConeList)
 );
