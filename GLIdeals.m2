@@ -152,14 +152,18 @@ idealIChi = method()
 idealIChi(Matrix,List) := (X,chi) -> (
 	-- chi is a list of partitions
 	-- return sum of ideals idealILambda(X, chi_i) for all i
-	R := ring X;
-	if #chi == 0 then return ideal(0_R);
+	if #chi == 0 then return ideal(0_(ring X));
 	c := minimizeChi(chi);
 	I := idealILambda(X, c#0);
 	for i in 1..#c-1 do(
 		I = I + idealILambda(X, c#i);
 	);
 	return I;
+);
+idealIChi(ZZ, ZZ, List) := (n, m, chi) -> (
+	R := QQ[X_(1,1)..X_(n,m)];
+	X := transpose genericMatrix(R, m, n);
+	return idealIChi(X, chi);
 );
 
 
