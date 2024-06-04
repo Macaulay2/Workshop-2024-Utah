@@ -22,9 +22,9 @@ path = join( { currentDirectory() | "packages/" }, path )
 --load "tests/example.m2"
 --capture get "tests/example.m2"
 
-installPackage("Truncations", FileName => currentDirectory() | "packages/Truncations.m2")
-installPackage("Complexes",   FileName => currentDirectory() | "packages/Complexes.m2")
-installPackage("Varieties",   FileName => currentDirectory() | "packages/Varieties.m2")
+loadPackage("Truncations",  FileName => currentDirectory() | "packages/Truncations.m2", Reload => true)
+loadPackage("Complexes",    FileName => currentDirectory() | "packages/Complexes.m2",   Reload => true)
+installPackage("Varieties", FileName => currentDirectory() | "packages/Varieties.m2")
 check Varieties
 
 -- The following lines automatically run every file in the "tests" directory.
