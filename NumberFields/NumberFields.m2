@@ -24,6 +24,8 @@ export{
    "isGalois",
    "splittingField",
    "compositums",
+   "simpleExt",
+   "remakeField"--this probably shouldn't be exposed to the user long term
 };
 
 NumberField = new Type of HashTable
@@ -38,7 +40,27 @@ NumberField = new Type of HashTable
 --NumberField constructors
 --****************************
 
-numberField = method(Options => {})
+--The following function takes a ring and renames the variables
+--in the future, it might also try to clean up relations (prune, trim, our own combination of prune/trim)
+remakeField = method(Options => {Variable=>null});
+remakeField(Ring) := opts -> R1 -> (
+    local var;
+    local amb;
+    local myIdeal;
+    a := local a;
+    R2 := (flattenRing R1)#0;
+    if instance(R2, QuotientRing) then (amb = ambient R2; myIdeal = ideal R2) else (amb = R2; myIdeal = ideal(sub(0,R2)));
+    numVars := #(gens amb);
+
+    if opts.Variable === null then (var = a) else (var = opts.Variable);
+    varList := {var_1..var_numVars};
+    newRing1 := QQ(monoid[varList]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
+    phi := map(newRing1, amb, gens newRing1);
+
+    newRing1/phi(myIdeal)
+)
+
+numberField = method(Options => {Variable=>null})
 numberField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
@@ -51,7 +73,7 @@ numberField(RingElement) := opts -> f1 -> (
     if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
     new NumberField from { 
-        ring => toField (R1/ideal(f1)), 
+        ring => toField remakeField(R1/ideal(f1), Variable=>opts.Variable), 
         cache => new CacheTable from {}
     }
 )
@@ -69,7 +91,7 @@ numberField(Ring) := opts -> R1 -> (
     try pushFwd(iota) else error("Not finite dimensional over QQ");
 
     new NumberField from {
-        ring => toField (flattenedR1), 
+        ring => toField (remakeField(flattenedR1,Variable=>opts.Variable)), 
         cache => new CacheTable from {}
     }
 )
@@ -140,6 +162,13 @@ degree(NumberFieldExtension) := nfe -> (
 --*************************
 
 isGalois = method(Options =>{})
+isGalois(NumberField) := opts -> K -> {
+    mapList := compositums(K,K);
+    degs := apply(mapList, x -> x#3);
+    L := all(degs, d -> d == degs#0);
+    L
+}
+
 isGalois(NumberFieldExtension) := opts -> iota -> (
      myMapList := {}; --replace with Jack's function when ready
     --assuming iota : K -> L, myMapList is a list of maps L -> L_i where 
@@ -186,7 +215,27 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     numberFieldExtension (map(K1, K2))
 )
-
+simpleExt = method(Options => {});
+simpleExt(NumberField) := opts -> nf ->(
+    --We first get the degree of K as a field extension over Q and store it as D. 
+    K := ring nf;
+    D := degree K;
+    --We find an element that produces a degree D field extension.
+    d := 0;
+    while d < D do 
+    (
+        r := random(1, K);
+        xx := local xx;
+        R := QQ[xx];
+        phi := map( K, R, {r});
+        if  isPrime (kernel phi) then (
+            I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), R);
+            simpleExt := numberField(R / I);
+            d = degree simpleExt;
+        );
+    );
+    return simpleExt;
+)
 
 --*****************************
 --Documentation
