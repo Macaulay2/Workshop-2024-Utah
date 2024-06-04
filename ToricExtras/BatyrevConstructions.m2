@@ -90,3 +90,37 @@ batyrevConstructor(List, List, List) := (P, B, C) -> (
 )
 
 
+end-------
+
+degreeOfThreefold = method();
+degreeOfThreefold(NormalToricVariety) := X -> (
+    K = toricDivisor X;
+    c = chern(1, OO (-K)); -- anticanonical class in the Chow ring
+    deg = integral (c*c*c);
+    -- g = 1 + (deg / 2)
+    return deg;
+    
+    
+
+    
+-- There are 7 smooth Fano 3-folds of Picard rank 3. Of these 5 are projectivations of direct sums of two line bundles over surfaces of Picard rank 2, and by Batyrev's paper have 3 primitive collections
+-- Therefore, the remaining two (3-26) and (3-29) have Picard rank 
+
+load "BatyrevConstructions.m2"
+
+X = batyrevConstructor({2,1,1,1,1}, {-2}, {})
+--X = toricProjectiveSpace 3
+K = toricDivisor X
+c = chern(1, OO (-K))
+deg = integral (c*c*c)
+--g = 1 + (deg / 2)
+
+X = batyrevConstructor({1,1,1,1,1}, {2}, {})
+
+integral (c*c*c)
+
+isFano X
+isSmooth X
+isProjective X
+isNef(-toricDivisor X)
+isAmple(-toricDivisor X)
