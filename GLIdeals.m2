@@ -147,6 +147,11 @@ idealILambda(Matrix,List) := (X,lam) -> (
 	);
 	return ideal minJ;
 );
+idealILambda(ZZ, ZZ, List) := (n, m, lam) -> (
+	R := QQ[X_(1,1)..X_(n,m)];
+	X := transpose genericMatrix(R, m, n);
+	return idealILambda(X, lam);
+);
 
 idealIChi = method()
 idealIChi(Matrix,List) := (X,chi) -> (
@@ -165,8 +170,6 @@ idealIChi(ZZ, ZZ, List) := (n, m, chi) -> (
 	X := transpose genericMatrix(R, m, n);
 	return idealIChi(X, chi);
 );
-
-
 
 naiveClosure = method();---
 naiveClosure (Matrix, Ideal) := (Y,I) ->( 
