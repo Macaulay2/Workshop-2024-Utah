@@ -25,7 +25,8 @@ export{
    "splittingField",
    "compositums",
    "simpleExt",
-   "remakeField"--this probably shouldn't be exposed to the user long term
+   "remakeField",--this probably shouldn't be exposed to the user long term
+   "minimalPolynomial"
 };
 
 NumberField = new Type of HashTable
@@ -180,6 +181,7 @@ isGalois(NumberFieldExtension) := opts -> iota -> (
 isGalois(RingMap) := opts -> iota -> (
    isGalois(numberFieldExtension iota)
 )
+
 -- splittingField method
 splittingField = method(Options => {})
 splittingField(RingElement) := opts -> f1 -> (
@@ -236,6 +238,28 @@ simpleExt(NumberField) := opts -> nf ->(
     );
     return simpleExt;
 )
+
+minimalPolynomial = method(Options => {})
+minimalPolynomial(RingElement) := opts -> f1 -> (
+    R1 := ring f1;
+    S1 := (coefficientRing(R1))[local y];
+    P1 := pushFwd(map(R1, QQ));
+    A1 := (P1#2)(1_R1);
+    pow1 := 1;
+    while gens(kernel(A1))==0 do (
+        A1 = A1|(P1#2)(f1^pow1);
+        pow1 += 1;
+    );
+    M1 := matrix({{1_S1}});
+    for i1 from 1 to (pow1-1) do (
+        M1 |= y^i1;
+    );
+    (entries (M1*(gens(kernel(A1)))))#0#0
+)
+minimalPolynomial(List) := opts -> L1 -> (
+    apply(L1, i -> minimalPolynomial(i))
+)
+
 
 --*****************************
 --Documentation
