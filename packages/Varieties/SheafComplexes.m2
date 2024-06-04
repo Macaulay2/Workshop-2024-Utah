@@ -21,6 +21,27 @@ isMorphism SheafMap := isAbelianCategory CoherentSheaf := x -> true
 
 complex CoherentSheaf := Complex => lookup(complex, Module)
 
+
+-----------------------------------------------------------------------------
+-- Basic operations between sheaves, complexes, etc.
+-----------------------------------------------------------------------------
+
+tensor(CoherentSheaf, Complex) := Complex => {} >> opts -> (F, C) -> (
+    (lo,hi) := concentration C;
+    if not instance(C_lo, CoherentSheaf) then error "expected to tensor with a complex of sheaves";
+    sheaves := hashTable for i from lo to hi list i => tensor(F, C_i, opts);
+    if lo === hi then 
+        return complex(sheaves#lo, Base=>lo);
+    maps := hashTable for i from lo+1 to hi list i => 
+        map(sheaves#(i-1), sheaves#i, tensor(id_F, dd^C_i, opts));
+    complex maps
+    )
+
+tensor(Complex, CoherentSheaf) := Complex => {} >> opts -> (C, F) -> tensor(F, C, opts)
+
+CoherentSheaf ** Complex := Complex => {} >> opts -> (F, C) -> tensor(F, C, opts)
+Complex ** CoherentSheaf := Complex => {} >> opts -> (C, F) -> tensor(C, F, opts)
+
 -----------------------------------------------------------------------------
 -- Specialized methods for complexes of sheaves
 -----------------------------------------------------------------------------
@@ -36,6 +57,14 @@ sheaf Complex := Complex => C -> C.cache.sheaf ??= (
     D.cache.module = C;
     D)
 
+sheaf ComplexMap := ComplexMap => phi -> phi.cache.sheaf ??= (
+    S := source phi;
+    T := target phi;
+    if isSheafComplex S and isSheafComplex T then return phi;
+    sphi := map(sheaf T, sheaf S, applyValues(phi.map, sheaf));
+    sphi.cache.module = phi;
+    sphi)
+
 module Complex := Complex => D -> D.cache.module ??= (
     if not isSheafComplex D then return D;
     (lo, hi) := D.concentration;
@@ -44,6 +73,15 @@ module Complex := Complex => D -> D.cache.module ??= (
     C := complex applyValues(D.dd.map, f -> truncate(maxTruncDeg, f.map));
     C.cache.sheaf = D;
     C)
+
+module ComplexMap := ComplexMap => phi -> phi.cache.module ??= (
+    S := source phi;
+    T := target phi;
+    if not isSheafComplex S or not isSheafComplex T then return phi;
+    maxTruncDeg := max ( apply(values S.dd.map, f -> f.degree) | apply(values T.dd.map, f -> f.degree) );
+    sphi := map(truncate(maxTruncDeg,module T), truncate(maxTruncDeg,module S), applyValues(phi.map, i -> truncate(maxTruncDeg, matrix i)));
+    sphi.cache.sheaf = phi;
+    sphi)
 
 -- TODO: move to Complexes
 freeResolution Complex := Complex => opts -> C -> resolution(C, opts)

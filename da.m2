@@ -15,3 +15,31 @@ koszulComplex(ProjectiveVariety) := Complex => {Concentration => null} >> opts -
 koszulComplex(AffineVariety) := Complex => X -> {Concentration => null} >> opts -> (
     sheaf koszulComplex(vars(ring X))
 );
+
+-- ComplexMap * ZZ, RingElement works once we add this to SheafMaps.m2
+
+SheafMap * ZZ := SheafMap * RingElement := (f, r) -> r * f
+
+-- SheafMap * RingElement is odd, similarly for complexes.
+
+X = Proj QQ[x,y,z]
+F = OO_X
+id_F * x_1
+
+-- Attempt at twisting maps
+
+ZZ * SheafMap := RingElement * SheafMap := (r, f) -> (
+    if isHomogeneous(r) == false then (
+        error "expected homogeneous element"
+    );
+    (map(target f(first degree r), (source f), r * id_(module target f) * matrix f))
+);
+
+-- SheafMap + RingElement => SheafMap + Complex not defined
+
+H = sheaf truncate(2, K)
+Hp = prune H
+g = Hp.cache.pruningMap
+all(g * g^(-1) == id_(target g), g^(-1) * g == id_(source g))
+
+

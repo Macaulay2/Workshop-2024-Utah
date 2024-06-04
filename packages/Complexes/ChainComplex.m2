@@ -736,7 +736,7 @@ basis(List, Complex) := Complex => opts -> (deg, C) -> (
     (lo, hi) := C.concentration;
     if lo == hi
     then complex(basis(deg, C_lo, opts), Base => lo)
-    else complex applyValues(C.dd.map, f -> basis(deg, C.dd_i, opts)))
+    else complex applyValues(C.dd.map, f -> basis(deg, f, opts)))
 
 --------------------------------------------------------------------
 -- homology --------------------------------------------------------
