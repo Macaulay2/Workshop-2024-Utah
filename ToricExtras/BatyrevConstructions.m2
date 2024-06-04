@@ -107,7 +107,7 @@ degreeOfThreefold(NormalToricVariety) := X -> (
     c = chern(1, OO (-K)); -- anticanonical class in the Chow ring
     deg = integral (c*c*c);
     -- g = 1 + (deg / 2)
-    return deg;
+    return deg;)
     
     
 
