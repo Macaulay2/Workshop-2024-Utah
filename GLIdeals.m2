@@ -306,22 +306,25 @@ beginDocumentation()
 doc ///
     Key
         numgensILambda
+	(numgensILambda, ZZ, ZZ, List)
 	(numgensILambda, Matrix, List)
     Headline
-        computes the number of generators of the I_Lambda ideal
+        computes the number of generators of the I_Lambda ideal.
     Usage
-	numgensILambda(X, lam)
+	numgensILambda(n,m, lam)
     Inputs
-	X: Matrix
-	    a matrix with dimensions r x c
+	n: ZZ
+	    an integer 
+	m: ZZ
+	    an integer 
 	lam: List
 	    a list of integers representing a partition
     Outputs
 	: ZZ
-	    the number of generators of the I_Lambda ideal
+	    the number of generators of the I_Lambda ideal, 
     Description
         Text
-	    This function computes the number of generators of the I_Lambda ideal associated with the input matrix X and partition lam.
+	    This function computes the number of generators of the I_Lambda ideal in the ring Sym(CC^n,CC^m). Inputting a matrix X  will set n and m to be the number of rows and columns of X.
     Example
     	   S=QQ[x_1..x_5,y_1..y_5];
    	   X=transpose genericMatrix(S,5,2)
