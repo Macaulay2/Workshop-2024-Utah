@@ -37,4 +37,9 @@ ZZ * SheafMap := RingElement * SheafMap := (r, f) -> (
 
 -- SheafMap + RingElement => SheafMap + Complex not defined
 
+H = sheaf truncate(2, K)
+Hp = prune H
+g = Hp.cache.pruningMap
+all(g * g^(-1) == id_(target g), g^(-1) * g == id_(source g))
+
 
