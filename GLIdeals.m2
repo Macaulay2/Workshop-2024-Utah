@@ -16,7 +16,11 @@ newPackage(
 export{"idealILambda","numgensILambda", "idealToChi", "naiveClosure","detLam","randomLam"}
 
 numgensILambda = method() -- TODO: Make it accept Partitions as well
-numgensILambda(Matrix, List) := (X, lam) -> (
+numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
+	-- lam is a parition
+	-- n, m are integers specifying the dimensions for GL_n x GL_m
+	-- return the dimension of I_lam in the |lam|-th degree
+
 	myHookLength := P -> (
 		-- compute prod (P_i - P_j + j - i) / (j - i) for all i < j
 		num := 1;
@@ -32,10 +36,8 @@ numgensILambda(Matrix, List) := (X, lam) -> (
 
 	size := #lam;
 
-	r := numRows X;
-	c := numColumns X;
-	minSize := min(r, c);
-	maxSize := max(r, c);
+	minSize := min(n, m);
+	maxSize := max(n, m);
 
 	if minSize < size then(
 		error "Partition is too large for the matrix";
@@ -45,6 +47,9 @@ numgensILambda(Matrix, List) := (X, lam) -> (
 	dimension := myHookLength(P);
 	P = P | apply(maxSize - minSize, i -> 0); -- make it size maxSize
 	return sub(dimension * myHookLength(P),ZZ);
+);
+numgensILambda(Matrix, List) := (X, lam) -> (
+	return numgensILambda(numRows X, numColumns X, lam);
 );
 
 minimizeChi = method();
