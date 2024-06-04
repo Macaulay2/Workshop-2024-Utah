@@ -170,9 +170,9 @@ idealILambda(Matrix,List) := opts -> (X,lam) -> (
 	return ideal minJ;
 );
 idealILambda(ZZ, ZZ, List) := (n, m, lam) -> (
+	X := symbol X;
 	R := QQ[X_(1,1)..X_(n,m)];
-	X := transpose genericMatrix(R, m, n);
-	return idealILambda(X, lam);
+	return idealILambda(transpose genericMatrix(R, m, n);, lam);
 );
 
 idealIChi = method(Options => {IsMinimal => false});
@@ -189,9 +189,9 @@ idealIChi(Matrix,List) := opts -> (X,chi) -> (
 	return I;
 );
 idealIChi(ZZ, ZZ, List) := (n, m, chi) -> (
+	X := symbol X;
 	R := QQ[X_(1,1)..X_(n,m)];
-	X := transpose genericMatrix(R, m, n);
-	return idealIChi(X, chi);
+	return idealIChi(transpose genericMatrix(R, m, n);, chi);
 );
 
 naiveClosure = method(Options => {MaximalRank => true});
