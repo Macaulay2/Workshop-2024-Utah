@@ -317,9 +317,6 @@ doc ///
     Description
         Text
 	    This function computes the number of generators of the I_Lambda ideal associated with the input matrix X and partition lam.
-	Example
-
-    Caveat 
 
 ///
 
@@ -343,7 +340,6 @@ doc ///
 	Example
 	    chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
 	    minimizeChi(chi)
-    Caveat 
 ///
 
 doc ///
@@ -364,10 +360,7 @@ doc ///
 	    the total number of generators for the I_Chi ideals
     Description
         Text
-	    This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals.
-	Example
-
-    Caveat 
+	    This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals. 
 ///
 
 doc ///
@@ -390,7 +383,6 @@ doc ///
 	Example
 	    chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
 	    minimizeChi(chi)
-    Caveat 
   		  
 ///
 
@@ -413,9 +405,6 @@ doc ///
     Description
         Text
 	    This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals.
-	Example 
-
-    Caveat 
 ///
 
 doc ///
@@ -437,9 +426,7 @@ doc ///
     Description
         Text
 	    This function takes a matrix X and a list of integers lam.
-	Example 
 
-    Caveat 
 ///
 
 doc ///
@@ -463,7 +450,6 @@ doc ///
 	    This function generates a random partition of the integer k into at most n parts.
 	Example
 	    randomLam(4, 10)
-    Caveat 
 
 ///
 	
@@ -486,9 +472,6 @@ doc ///
     Description
         Text
 	    This function constructs the I_Lambda ideal for a given matrix X and a partition lam.
-	Example
-
-    Caveat 
 
 ///
 
@@ -511,9 +494,6 @@ doc ///
     Description
         Text
 	    This function constructs the sum of I_Lambda ideals for a given matrix X and a list of partitions chi.
-	Example
-
-    Caveat 
 ///
 
 doc ///
@@ -538,7 +518,6 @@ doc ///
 	    The process involves repeatedly applying random maximal rank matrices to transform the ideal until it stabilizes.
         Example
             naiveClosure(Y, I)
-    Caveat
 
 ///
 
@@ -591,7 +570,6 @@ doc ///
             This function constructs an isomorphic ring R with a specific grading for a given matrix Y over a ring S.
         Example
             correctSymmetricAlgebraHelper(Y)
-    Caveat
 
 ///
 
@@ -645,7 +623,6 @@ doc ///
 	    B = {4, 2, 1}
 	    partitionsLeq(A, B)
 	    partitionsLeq(B, A)
-    Caveat 
   
 ///
 
@@ -677,7 +654,6 @@ doc ///
 	    C = {3, 3, 1}
 	    D = {3, 2, 2}
 	    C ? D
-    Caveat 
 ///
 
 doc ///
@@ -705,7 +681,6 @@ doc ///
 	    C = {4, 2, 1}
 	    A == B
 	    A == C
-    Caveat 
  
 ///
 
