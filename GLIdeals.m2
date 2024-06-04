@@ -207,7 +207,7 @@ correctSymmetricAlgebraHelper(Matrix) := Y -> (
 	-- assuming that S = k[Y]
 	-- we will construct an isomorphic ring R = k[X]
 	-- with a specific grading where deg(x_(i, j)) = (e_i, f_j) \in Z^n x Z^m = Z^{n+m}
-	-- define phi : S -> R, where the entries of Y are mapped to the entries of X (correspondingly...)
+	-- define phi : R -> S, where the entries of Y are mapped to the entries of X (correspondingly...)
 	-- return (R, X, phi)
 	
 	x := symbol x;
