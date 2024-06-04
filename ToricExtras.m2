@@ -134,6 +134,7 @@ TEST ///
 
 load "./ToricExtras/ToricLinearSeriesTests.m2"
 load "./ToricExtras/BatyrevTests.m2"
+load "./ToricExtras/ProjectiveBundlesDivisorsTests.m2"
 
 end---------------------------------------------------------------------------
 
