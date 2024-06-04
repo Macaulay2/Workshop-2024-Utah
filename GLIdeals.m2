@@ -13,7 +13,7 @@ newPackage(
 	Reload=>true
     	)
     
-export{"idealILambda","numgensILambda", "idealToChi", "naiveClosure","detLam","randomLam"}
+export{"idealILambda","numgensILambda", "idealToChi", "naiveClosure","detLam","randomLam","IsMinimal"}
 
 numgensILambda = method() -- TODO: Make it accept Partitions as well
 numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
