@@ -1,35 +1,18 @@
 needsPackage "Complexes"
 
 orlovTruncateLess = method()
-orlovTruncateLess(Complex, ZZ) := (F, i) -> (
-    m := min F;
-    M := max F;
-    mapList := for j from m+1 to M list submatrixByDegrees(F.dd_j, (, i-1), (, i-1));
-    complex(mapList, Base => m)
-    )
-
---orlovTruncateLess = method()
-orlovTruncateLess(ComplexMap, ZZ) := (f, i) -> (
-    m := min{min source f, min target f};
-    M := max{max source f, max target f};
-    mapList := for j from m to M list submatrixByDegrees(f_j, (, i-1), (, i-1));
-    map(orlovTruncateLess(target f, i), orlovTruncateLess(source f, i), mapList)
-    )
+orlovTruncateLess(Complex,    ZZ) := (F,   i) -> complex applyValues(F.dd.map, f -> submatrixByDegrees(f, (, i-1), (, i-1)))
+orlovTruncateLess(ComplexMap, ZZ) := (psi, i) -> map(
+    orlovTruncateLess(target psi, i), -- target
+    orlovTruncateLess(source psi, i), -- source
+    applyValues(psi.map, f -> submatrixByDegrees(f, (, i-1), (, i-1))))
 
 orlovTruncateGeq = method()
-orlovTruncateGeq(Complex, ZZ) := (F, i) -> (
-    m := min F;
-    M := max F;
-    mapList := for j from m+1 to M list submatrixByDegrees(F.dd_j, (i,), (i,));
-    complex(mapList, Base => m)
-    )
-
-orlovTruncateGeq(ComplexMap, ZZ) := (f, i) -> (
-    m := min{min source f, min target f};
-    M := max{max source f, max target f};
-    mapList := for j from m to M list submatrixByDegrees(f_j, (i, ), (i,));
-    map(orlovTruncateGeq(target f, i), orlovTruncateGeq(source f, i), mapList)
-    )
+orlovTruncateGeq(Complex,    ZZ) := (F,   i) -> complex applyValues(F.dd.map, f -> submatrixByDegrees(f, (i, ), (i, )))
+orlovTruncateGeq(ComplexMap, ZZ) := (psi, i) -> map(
+    orlovTruncateGeq(target psi, i), -- target
+    orlovTruncateGeq(source psi, i), -- source
+    applyValues(psi.map, f -> submatrixByDegrees(f, (i, ), (i, ))))
 
 -- Input: a complex F which is already minimal resolution, a number i
 -- Output: a number, which is the upper bound
