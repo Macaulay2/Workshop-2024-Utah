@@ -70,31 +70,31 @@ numberField(RingElement) := opts -> f1 -> (
 
     -- Verifies that the resulting quotient is a field.
     if f1 == 0 then error("Expected nonzero polynomial.");
-    print(f1);
-    if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
+    --if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-    new NumberField from { 
-        ring => toField remakeField(R1/ideal(f1), Variable=>opts.Variable), 
-        cache => new CacheTable from {}
-    }
+    numberField(R1/ideal(f1))
 )
 
 
 
 numberField(Ring) := opts -> R1 -> (
-    if R1===QQ then return new NumberField from {ring => R1};
+    if R1===QQ then return new NumberField from {
+            ring => R1, 
+            pushFwd => pushFwd(map(QQ,QQ)),
+            cache => new CacheTable from {}
+        };
     
     if not isPrime (ideal 0_R1) then error("Expected a field.");
     if not dim R1 == 0 then error("Expected a field.");
     
     if char R1 != 0 then error("Expected characteristic 0.");
-
-    flattenedR1 := (flattenRing(R1))#0;
-    iota := map(flattenedR1,QQ);
-    try pushFwd(iota) else error("Not finite dimensional over QQ");
+    outputRing := remakeField(R1);
+    iota := map(outputRing,QQ);
+    try myPushFwd := pushFwd(iota) else error("Not finite dimensional over QQ");
 
     new NumberField from {
-        ring => toField (remakeField(flattenedR1,Variable=>opts.Variable)), 
+        ring => toField outputRing, 
+        pushFwd => myPushFwd,
         cache => new CacheTable from {}
     }
 )
