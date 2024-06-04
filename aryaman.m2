@@ -132,3 +132,194 @@ R = QQ[x_(1,1)..x_(2,3)];X = transpose genericMatrix (R, 3, 2);I = (minors(2, X)
 idealToChi(X, I)
 J = annihilator Ext^3(R^1/I, R)
 idealToChi(X, J)
+
+restart
+load "GLIdeals.m2";
+
+correctSymmetricAlgebraHelper = method();
+correctSymmetricAlgebraHelper(Matrix) := Y -> (
+	-- take in a matrix Y
+	-- S is the ring that Y is defined over
+	-- assuming that S = k[Y]
+	-- we will construct an isomorphic ring R = k[X]
+	-- with a specific grading where deg(x_(i, j)) = (e_i, f_j) \in Z^n x Z^m = Z^{n+m}
+	-- define phi : S -> R, where the entries of Y are mapped to the entries of X (correspondingly...)
+	-- return (R, X, phi)
+	
+	x := symbol x;
+	n := numRows Y;
+	m := numColumns Y;
+	S := ring Y;
+	k := baseRing S;
+
+	indices := toList((1, 1)..(n, m));
+    myVars := apply(indices, ind -> x_(ind));
+    edegree := i -> toList(insert(i-1, 1, ((n-1) : 0)));    -- e(i) = (0, ..., 0, 1, 0, ..., 0) \in Z^n
+    fdegree := j -> toList(insert(j-1, 1, ((m-1) : 0)));    -- f(j) = (0, ..., 0, 1, 0, ..., 0) \in Z^m
+    myDegrees := apply(indices, ind -> edegree(ind#0) | fdegree(ind#1));
+    R := k[myVars, Degrees => myDegrees];
+    X := transpose genericMatrix(R, m, n);
+
+	phi := map(S, R, flatten entries Y);
+
+	return (R, X, phi);
+)
+
+idealILambda2 = method()
+idealILambda2(Matrix,List) := (X,lam) -> (
+     n:=rank target X;
+     m:=rank source X;
+     kk:=baseRing ring X; 
+     if char kk !=0 then(
+		error "Base ring is not characteristic 0";
+	);
+     d:=numgensILambda(X,lam);
+     (R,Y,phi):=correctSymmetricAlgebraHelper(X);
+     gen:=detLam(Y,lam);
+     lis := for i from 0 to d-1 list
+     (
+    A:=random(kk^n,kk^n);
+    B:=random(kk^m,kk^m);
+    act:=map(R,R,flatten entries(A*Y*B));
+    act(gen));
+    J := ideal lis;
+    minJ:=mingens J;
+    	while rank source minJ != d do(
+		A = random(kk^n,kk^n);
+		B = random(kk^m,kk^m);
+		act=map(R,R,flatten entries(A*Y*B));
+		lis = append(lis,act(gen));
+		J = ideal lis;
+		minJ = mingens J;		
+	);
+	return phi(ideal minJ);
+);
+
+idealILambda3 = method();
+idealILambda3(Matrix,List) := (X,lam) -> (
+    n:=rank target X;
+    m:=rank source X;
+    kk:=baseRing ring X; 
+    if char kk !=0 then(
+		error "Base ring is not characteristic 0";
+	);
+    d:=numgensILambda(X,lam);
+    (R,Y,phi):=correctSymmetricAlgebraHelper(X);
+
+    RAB := R[a_(1,1)..a_(n,n),b_(1,1)..b_(m,m)];
+    AMatrix := genericMatrix(RAB, a_(1, 1), n, n);      -- not transposing because doesn't really matter
+    BMatrix := genericMatrix(RAB, b_(1,1), m, m);
+    gen:=detLam(AMatrix * Y * BMatrix, lam);
+    lis := {};
+    while true do (
+        A:=random(kk^n,kk^n);
+        B:=random(kk^m,kk^m);
+        subBack := map(R, RAB, (flatten A) | (flatten B));
+        lis = append(lis, subBack(gen));
+
+        if (#lis >= d and (numgens ideal lis) >= d) then break;
+    );
+    J := trim ideal lis;
+    return phi(J);
+)
+
+idealILambda4 = method();
+idealILambda4(Matrix,List) := (X,lam) -> (
+    n:=rank target X;
+    m:=rank source X;
+    kk:=baseRing ring X; 
+    if char kk !=0 then(
+		error "Base ring is not characteristic 0";
+	);
+    d:=numgensILambda(X,lam);
+    (R,Y,phi):=correctSymmetricAlgebraHelper(X);
+
+    RAB := R[a_(1,1)..a_(n,n),b_(1,1)..b_(m,m)];
+    AMatrix := genericMatrix(RAB, a_(1, 1), n, n);      -- not transposing because doesn't really matter
+    BMatrix := genericMatrix(RAB, b_(1,1), m, m);
+    gen:=detLam(AMatrix * Y * BMatrix, lam);
+    lis := {};
+
+    subBack := (A, B) -> (
+        mat := ind -> (ind#0 - 1, ind#1 - 1);
+        substitutions := (for ind in (1, 1)..(n, n) list (a_ind => A_(mat(ind)))) | (for ind in (1, 1)..(m, m) list (b_ind => B_(mat(ind))));
+        return sub(gen, substitutions);
+    );
+
+    while true do (
+        A:=random(kk^n,kk^n);
+        B:=random(kk^m,kk^m);
+        lis = append(lis, subBack(A, B));
+
+        if (#lis >= d and (numgens ideal lis) >= d) then break;
+    );
+    J := trim ideal lis;
+    return phi(J);
+)
+
+idealILambda5 = method();
+idealILambda5(Matrix,List) := (X,lam) -> (
+    n:=rank target X;
+    m:=rank source X;
+    kk:=baseRing ring X; 
+    if char kk !=0 then(
+		error "Base ring is not characteristic 0";
+	);
+    d:=numgensILambda(X,lam);
+    (R,Y,phi):=correctSymmetricAlgebraHelper(X);
+
+    RAB := R[a_(1,1)..a_(n,n),b_(1,1)..b_(m,m)];
+    AMatrix := genericMatrix(RAB, a_(1, 1), n, n);      -- not transposing because doesn't really matter
+    BMatrix := genericMatrix(RAB, b_(1,1), m, m);
+    gen:=detLam(AMatrix * Y * BMatrix, lam);
+    lis := {};
+
+    subBack := (A, B) -> (
+        mat := ind -> (ind#0 - 1, ind#1 - 1);
+        substitutions := (for ind in (1, 1)..(n, n) list (a_ind => A_(mat(ind)))) | (for ind in (1, 1)..(m, m) list (b_ind => B_(mat(ind))));
+        return sub(gen, substitutions);
+    );
+
+    while true do (
+        A:=random(kk^n,kk^n, MaximalRank => true);
+        B:=random(kk^m,kk^m, MaximalRank => true);
+        lis = append(lis, subBack(A, B));
+
+        if (#lis >= d and (numgens ideal lis) >= d) then break;
+    );
+    J := trim ideal lis;
+    return phi(J);
+)
+
+S=QQ[x_1..x_9];
+Y=genericMatrix(S,3,3);
+
+for p in apply(partitions(4), toList) do(
+    print (p,numgensILambda(Y,p));
+    elapsedTime(idealILambda(Y,p));
+    -- elapsedTime(idealILambda2(Y,p));
+    -- elapsedTime(idealILambda3(Y,p));
+    elapsedTime(idealILambda4(Y,p));
+    -- elapsedTime(idealILambda5(Y,p));
+)
+
+for i from 1 to 10 do(
+    p=randomLam(3,2);
+    print (p,numgensILambda(Y,p));
+    I1 = (idealILambda(Y,p));
+    I2 = (idealILambda2(Y,p));
+    I3 = (idealILambda3(Y,p));
+    I4 = (idealILambda4(Y,p));
+    I5 = (idealILambda5(Y,p));
+    print(I1 == I2, I1 == I3, I1 == I4, I1 == I5);
+)
+
+for i from 1 to 10 do(
+    p=randomLam(3,3);
+    print (p,numgensILambda(Y,p));
+    elapsedTime(idealILambda(Y,p));
+    elapsedTime(idealILambda2(Y,p));
+    elapsedTime(idealILambda3(Y,p));
+    elapsedTime(idealILambda4(Y,p));
+    elapsedTime(idealILambda5(Y,p));
+)
