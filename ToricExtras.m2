@@ -47,7 +47,8 @@ newPackage(
             Email => "torre680@umn.edu"},
         {
             Name => "Sean Grate",
-            Email => "sean.grate@auburn.edu"},
+            Email => "sean.grate@auburn.edu",
+            HomePage => "https://seangrate.com/"},
         {
             Name => "Thiago Holleben",
             Email => "hollebenthiago@dal.ca"
@@ -104,6 +105,8 @@ doc ///
 	        Work in progress implementation of linear series on a toric variety
 ///
 
+load "./ToricExtras/BatyrevDocs.m2"
+
 ------------------------------------------------------------------------------
 -- TESTS
 ------------------------------------------------------------------------------
@@ -115,6 +118,7 @@ TEST ///
 ///
 
 load "./ToricExtras/ToricLinearSeriesTests.m2"
+-- load "./ToricExtras/BatyrevTests.m2"
 
 end---------------------------------------------------------------------------
 
