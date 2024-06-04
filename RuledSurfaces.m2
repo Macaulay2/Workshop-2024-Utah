@@ -29,6 +29,7 @@ export {
     "lineBundleToDivisor",
     "divisorToLineBundle",
     "imageOfLinearSeries",
+    "sectionFromLineBundleQuotient"
 }
 
 needsPackage "Varieties"
@@ -56,8 +57,11 @@ projectiveBundle(ProjectiveVariety, CoherentSheaf) := (X, E) -> (
 
 variety ProjectiveBundle := PE -> PE.variety
 sheaf   ProjectiveBundle := PE -> PE.CoherentSheaf
+
 generatingDegree = method()
 generatingDegree ProjectiveBundle := PE -> first PE.generators
+generatingSurjection = method()
+generatingSurjection ProjectiveBundle := PE -> last PE.generators
 
 findGlobalGeneratorsOfTwist = method()
 findGlobalGeneratorsOfTwist(ProjectiveBundle) := PE -> if not PE.?generators then PE.generators = findGlobalGeneratorsOfTwist(sheaf PE)
@@ -97,12 +101,12 @@ imageOfLinearSeries = method()
 imageOfLinearSeries(ProjectiveBundle, CoherentSheaf, ZZ) := (PE, L, m) -> imageOfLinearSeries(PE, lineBundleToDivisor L, m)
 
 imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
-    --TODO: check that D lives on variety PE
     if ring D =!= ring variety PE then error "expected a divisor on base variety of bundle";
     --first do the map phi_D x id_P^r:
     --if OO_X(-a) -> E is our surjection, global sections of E(a) live in degree {1,a}; i.e., linear series p^*OO_X(n) ** OO_PE(m) should live in degree {m, ?}.
     findGlobalGeneratorsOfTwist PE;
     a := generatingDegree PE;
+    --TODO: if a is divisible by OO(D) then we can use basis{m,n} below to be faster
     Da := a*divisor( (ring variety PE)_0);
     E := sheaf PE;
     T := multiProjEmbedding(E);
@@ -114,8 +118,22 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
     preimDa := preimage_phi sub(ideal Da, T);
     T' := prune quotient ker phi;
     preimDa' := sub(preimDa, T');
-    --the line below corresponds to "basis({m,1/a + m},T')
+    --the line below corresponds to "basis({m,1/deg D *a + m},T')
     Proj quotient ker mapToProjectiveSpace(-divisor preimDa' + m * divisor(T'_0) + divisor last gens T') 
+)
+
+
+sectionFromLineBundleQuotient = method()
+sectionFromLineBundleQuotient(SheafMap) := beta -> sectionFromLineBundleQuotient(projectiveBundle source beta, beta)
+sectionFromLineBundleQuotient(ProjectiveBundle, SheafMap) := (PE, beta) -> (
+    if not isSurjective beta then error "expected a surjection";
+    E := source beta;
+    L := target beta;
+    if not E == sheaf PE then error "expected source to be bundle on PE";
+    if not (isLocallyFree L and rank L == 1) then error "expected a line bundle";
+    findGlobalGeneratorsOfTwist PE;
+    qtilde := beta * generatingSurjection PE;
+    ker map(quotient ker symmetricAlgebra matrix qtilde, multiProjEmbedding E)
 )
 
 
