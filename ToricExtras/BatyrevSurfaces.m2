@@ -5,21 +5,24 @@
 -- The paper describes such varieties up to isomorphism by giving two sequences of integers {b_i} and {c_i}. Batyrev does not state that all sequences of integers correspond to a *smooth* projective toric variety of Picard rank 3
 -- But there is a variety associated to any sequences {b_i} and {c_i}
 
--- In the case of surfaces, there is just one element b and one element c in the sequences
+-- In the case of surfaces, there is just one element b=b_1 and no c_i elements
 -- Explicitly, the surface associated to b and c is given by the following function
 
 loadPackage "NormalToricVarieties"
 
+rayListGenerator = method();
+rayListGenerator := b -> {{1,0}, {0,1}, {-1,b+1}, {-1,b}, {0,-1}};
+coneList := {{0,1},{1,2},{2,3},{3,4},{0,4}};
 
-rayListGenerator = (b, c) -> {{1,0}, {0,1}, {-1,b+1-c}, {-1,b-c}, {0,-1}}
-coneList = {{0,1},{1,2},{2,3},{3,4},{0,4}}
-batyrevSurface = (b, c) -> normalToricVariety(rayListGenerator(b, c), coneList) 
+batyrevSurface = method();
+batyrevSurface := b -> normalToricVariety(rayListGenerator(b), coneList); 
 
 -- This is a *particular* solution to the "primitive relations" in Batyrev's paper
 -- A convenient feature is the first two rays are [1,0] and [0,1]
 
--- It is easy to see that this surface is smooth for any b and c
--- For b = c = 0, we obtain the toric surface Bl_1(P^1 x P^1) (isomorphically, Bl_2 P^2) of Picard number 3
+-- It is easy to see that this surface is smooth for any b
+-- For b = 0, we obtain the (Fano) toric surface Bl_1(P^1 x P^1) (isomorphically, Bl_2 P^2) of Picard number 3
+-- For b = 1, we obtain the (weak Fano) toric surface which is the blowup of Bl_1(P^2) at a point on the exceptional divisor
 
 -- Further notes:
 -- In the case of surfaces, the sets X_0 ... X_4 (in Theorem 6.6) are singleton sets.
