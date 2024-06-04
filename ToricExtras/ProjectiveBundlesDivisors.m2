@@ -70,9 +70,18 @@ for j from 0 to (#extendedInputRayList - 1) do(
     
     );
 
+-- make e_0 and add to new ray list
+
+eZero := entries((-extendedStandardBasisMatrix)*vector(toList (extendingDimension : 1)));
+
+newRayList = append(newRayList , eZero);
+
 --add padded standard basis vectors to new ray list
 
+for i from 0 to (extendingDimension - 1) do(
+        newRayList = append(newRayList , entries(extendedStandardBasisMatrix_i));
 
+    );
 
 
 --    );
@@ -98,6 +107,13 @@ X = normalToricVariety (rayList, coneList)
 D0 = toricDivisor ( { 0 , 0}, X)
 D1 = toricDivisor ( {0 , 7} , X)
 L = divisorsToVariety({D0, D1})
+
+rayListY = {{1 , 0}, {0 , 1}, {-1, -1}}
+coneListY = {{0, 1}, {1, 2}, {2 , 0}}
+Y = normalToricVariety (rayListY, coneListY)
+D0Y = toricDivisor ( { 9, 3 , 2}, Y)
+D1Y = toricDivisor ( {1 , 4, 7} , Y)
+L = divisorsToVariety({D0Y, D1Y})
 
 dim X
 rays X
