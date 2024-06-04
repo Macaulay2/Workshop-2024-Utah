@@ -414,11 +414,11 @@ doc ///
     Description
         Text
 	    This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals.
-    Example
-	S=QQ[x_(1,1)..x_(3,5)]
-	X=transpose genericMatrix(S,3,5)
-	L=apply(partitions(3), toList)
-	numgensIChi(X,L)
+        Example
+	    S=QQ[x_(1,1)..x_(3,5)]
+	    X=transpose genericMatrix(S,3,5)
+	    L=apply(partitions(3), toList)
+	    numgensIChi(X,L)
 ///
 
 
