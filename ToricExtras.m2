@@ -47,6 +47,10 @@ newPackage(
             Name => "Eduardo Torres Dávila",
             Email => "torre680@umn.edu"},
         {
+            Name => "Nate Gallup",
+            Email => "npgallup@gmail.com",
+	    HomePage => "https://sites.google.com/view/nathanielgallup/home"},
+        {
             Name => "Sean Grate",
             Email => "sean.grate@auburn.edu",
             HomePage => "https://seangrate.com/"},
@@ -73,7 +77,8 @@ export {
     "baseLocusIdeal",
     "isBasepointFree",
     "batyrevConstructor",
-    "toricMap"
+    "toricMap", 
+    "projectivizationOfBundle"
     }
 
 
@@ -84,6 +89,8 @@ export {
 load "./ToricExtras/ToricLinearSeries.m2"
 
 load "./ToricExtras/BatyrevConstructions.m2"
+
+load "./ToricExtras/ProjectiveBundlesDivisors.m2"
 
 ------------------------------------------------------------------------------
 -- DOCUMENTATION

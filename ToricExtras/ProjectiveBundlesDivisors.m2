@@ -1,10 +1,10 @@
 needsPackage "NormalToricVarieties"
 
-divisorsToVariety = method()
+projectivizationOfBundle = method()
 
 --check that underlying varieties of given divisors are same
 
-divisorsToVariety List := (listOfDivisors) -> (
+projectivizationOfBundle List := (listOfDivisors) -> (
 
 inputVariety := variety(listOfDivisors#0);
 
@@ -119,14 +119,14 @@ coneList = {{1}, {0}}
 X = normalToricVariety (rayList, coneList)
 D0 = toricDivisor ( { 0 , 0}, X)
 D1 = toricDivisor ( {0 , 7} , X)
-L = divisorsToVariety({D0, D1})
+L = projectivizationOfBundle({D0, D1})
 
 rayListY = {{1 , 0}, {0 , 1}, {-1, -1}}
 coneListY = {{0, 1}, {1, 2}, {2 , 0}}
 Y = normalToricVariety (rayListY, coneListY)
 D0Y = toricDivisor ( { 9, 3 , 2}, Y)
 D1Y = toricDivisor ( {1 , 4, 7} , Y)
-L = divisorsToVariety({D0Y, D1Y})
+L = projectivizationOfBundle({D0Y, D1Y})
 
 dim X
 rays X
