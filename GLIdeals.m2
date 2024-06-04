@@ -357,7 +357,7 @@ doc ///
         Text
 	    This function takes a list of partitions and returns the minimal elements of that list.
 	Example
-	    chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
+	    Chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
 	    minimizeChi(chi)
 ///
 
