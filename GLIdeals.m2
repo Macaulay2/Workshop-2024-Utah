@@ -298,7 +298,6 @@ Partition == Partition := (A, B) -> (
 ------------------------------------------------------------------------------
 beginDocumentation()
 
-
 doc ///
     Key
         numgensILambda
@@ -317,16 +316,12 @@ doc ///
 	    the number of generators of the I_Lambda ideal
     Description
         Text
-	    The `numgensILambda` function computes the number of generators of the I_Lambda ideal
-	    associated with the input matrix `X` and partition `lam`. It uses the hook length formula
-	    to compute the dimension of the space. The partition `lam` should be compatible with the 
-	    dimensions of the matrix `X`.
+	    This function computes the number of generators of the I_Lambda ideal associated with the input matrix X and partition lam.
 	Example
 
     Caveat 
 
 ///
-
 
 doc ///
     Key
@@ -344,15 +339,12 @@ doc ///
 	    a list of partitions, which are the minimal elements of the input list
     Description
         Text
-	    The `minimizeChi` function takes a list of partitions and returns the minimal elements
-	    of that list. A partition is minimal if it is not greater than any other partition
-	    in the list according to the dominance order.
+	    This function takes a list of partitions and returns the minimal elements of that list.
 	Example
 	    chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
 	    minimizeChi(chi)
     Caveat 
 ///
-
 
 doc ///
     Key
@@ -372,15 +364,11 @@ doc ///
 	    the total number of generators for the I_Chi ideals
     Description
         Text
-	    The `numgensIChi` function takes a matrix `X` and a list of partitions `chi` and computes the
-	    total number of generators for the I_Chi ideals. It first minimizes the list of partitions using
-	    `minimizeChi`, and then computes the sum of the number of generators for each minimal partition
-	    using the `numgensILambda` function.
+	    This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals.
 	Example
 
     Caveat 
 ///
-
 
 doc ///
     Key
@@ -398,17 +386,13 @@ doc ///
 	    a list of partitions, which are the minimal elements of the input list
     Description
         Text
-	    The `minimizeChi` function takes a list of partitions and returns the minimal elements
-	    of that list. A partition is minimal if it is not greater than any other partition
-	    in the list according to the dominance order. The function uses the hook length formula
-	    to determine the dominance order among partitions.
+	    This function takes a list of partitions and returns the minimal elements of that list.
 	Example
 	    chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
 	    minimizeChi(chi)
     Caveat 
   		  
 ///
-
 
 doc ///
     Key
@@ -428,15 +412,11 @@ doc ///
 	    the total number of generators for the I_Chi ideals
     Description
         Text
-	    The `numgensIChi` function takes a matrix `X` and a list of partitions `chi` and computes the
-	    total number of generators for the I_Chi ideals. It first minimizes the list of partitions using
-	    `minimizeChi`, and then computes the sum of the number of generators for each minimal partition
-	    using the `numgensILambda` function.
+	    This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals.
 	Example 
 
     Caveat 
 ///
-
 
 doc ///
     Key
@@ -456,14 +436,11 @@ doc ///
 	    the product of the determinants of the specified submatrices
     Description
         Text
-	    The `detLam` function takes a matrix `X` and a list of integers `lam`. For each integer in `lam`,
-	    it computes the determinant of the submatrix of `X` formed by the first i rows and columns, where i
-	    is an element of `lam`. It then returns the product of these determinants.
+	    This function takes a matrix X and a list of integers lam.
 	Example 
 
     Caveat 
 ///
-
 
 doc ///
     Key
@@ -483,9 +460,7 @@ doc ///
 	    a list representing a partition of the integer k into at most n parts
     Description
         Text
-	    The `randomLam` function generates a random partition of the integer `k` into at most `n` parts. 
-	    It constructs a list of `n` non-negative integers that sum to `k`, then sorts the list 
-	    in non-increasing order and removes any zero entries.
+	    This function generates a random partition of the integer k into at most n parts.
 	Example
 	    randomLam(4, 10)
     Caveat 
@@ -510,11 +485,7 @@ doc ///
 	    the I_Lambda ideal generated from the matrix and partition
     Description
         Text
-	    The `idealILambda` function constructs the I_Lambda ideal for a given matrix `X` and a partition `lam`.
-	    It first checks that the base ring of `X` has characteristic 0. Then, it generates random matrices `A` and `B`
-	    to compute the matrix `N = A * X * B`. It calculates the determinants of submatrices of `N` based on the
-	    conjugate of the partition `lam` and constructs the ideal from these determinants. The process ensures that
-	    the rank of the source of the minimal generators of the ideal matches the required number of generators.
+	    This function constructs the I_Lambda ideal for a given matrix X and a partition lam.
 	Example
 
     Caveat 
@@ -539,14 +510,116 @@ doc ///
 	    the sum of the I_Lambda ideals for the given partitions
     Description
         Text
-	    The `idealIChi` function constructs the sum of I_Lambda ideals for a given matrix `X` and a list of partitions `chi`.
-	    It first minimizes the list of partitions using `minimizeChi`. If the list of partitions is empty, it returns the zero ideal.
-	    For each minimal partition, it computes the corresponding I_Lambda ideal using `idealILambda` and sums these ideals to form the final result.
+	    This function constructs the sum of I_Lambda ideals for a given matrix X and a list of partitions chi.
 	Example
 
     Caveat 
 ///
 
+doc ///
+    Key
+        naiveClosure
+        (naiveClosure, Matrix, Ideal)
+    Headline
+        computes the naive closure of an ideal under a matrix action
+    Usage
+        naiveClosure(Y, I)
+    Inputs
+         Y: Matrix
+            a matrix representing the mapping
+         I: Ideal
+            the ideal to be closed
+    Outputs
+         : Ideal
+            the ideal representing the naive closure
+    Description
+        Text
+            This function computes the naive closure of the given ideal I under the action of the matrix Y.
+	    The process involves repeatedly applying random maximal rank matrices to transform the ideal until it stabilizes.
+        Example
+            naiveClosure(Y, I)
+    Caveat
+
+///
+
+doc ///
+    Key
+        goodDegree
+        (goodDegree, ZZ, ZZ, List)
+    Headline
+        checks if a list of integers is a good degree for given dimensions
+    Usage
+        goodDegree(n, m, L)
+    Inputs
+         n: ZZ
+            the length of the first part of the list
+         m: ZZ
+            the length of the second part of the list
+         L: List
+            a list of integers of length n + m
+    Outputs
+         : Boolean
+            true if the list represents a good degree, false otherwise
+    Description
+        Text
+            This function checks if a given list of integers L is a good degree for dimensions n and m.
+	    A list is considered a good degree if it can be split into two parts, each forming a weakly decreasing sequence, and these sequences are equal after removing trailing zeros.
+        Example
+            goodDegree(3, 3, {3, 2, 1, 3, 2, 1}) 
+            goodDegree(3, 3, {3, 2, 1, 3, 2, 0})
+    Caveat
+        The input list L must have a length equal to n + m.
+
+///
+
+doc ///
+    Key
+        correctSymmetricAlgebraHelper
+        (correctSymmetricAlgebraHelper, Matrix)
+    Headline
+        constructs an isomorphic ring with a specific grading
+    Usage
+        correctSymmetricAlgebraHelper(Y)
+    Inputs
+         Y: Matrix
+            a matrix over a ring S = k[Y]
+    Outputs
+         : Sequence
+            a sequence (R, X, phi) where R is the isomorphic ring, X is a matrix over R, and phi is the map from S to R
+    Description
+        Text
+            This function constructs an isomorphic ring R with a specific grading for a given matrix Y over a ring S.
+        Example
+            correctSymmetricAlgebraHelper(Y)
+    Caveat
+
+///
+
+doc ///
+    Key
+        idealToChi
+        (idealToChi, Matrix, Ideal)
+    Headline
+        finds partitions corresponding to an ideal
+    Usage
+        idealToChi(Y, J)
+    Inputs
+         Y: Matrix
+            a matrix over a ring
+         J: Ideal
+            the ideal to be analyzed
+    Outputs
+         : List
+            a list of partitions chi such that J = idealIChi(Y, chi)
+    Description
+        Text
+            This function finds the list of partitions chi such that the given ideal J is equal to idealIChi(Y, chi).
+        Example
+            idealToChi(Y, J)
+    Caveat
+        The function assumes that the input matrix Y and ideal J are defined over compatible rings.
+
+///
 
 doc ///
     Key
@@ -566,10 +639,7 @@ doc ///
 	    true if partition A is less than or equal to partition B, false otherwise
     Description
         Text
-	    The `partitionsLeq` function checks if one partition `A` is less than or equal to another partition `B`
-	    in the dominance order. It assumes that both partitions are represented as lists of integers in weakly
-	    decreasing order. The function iterates through the parts of `A` and `B` and returns false if any part
-	    of `A` is greater than the corresponding part of `B`.
+	    This function checks if one partition A is less than or equal to another partition B in the dominance order.
 	Example
 	    A = {3, 2, 1}
 	    B = {4, 2, 1}
@@ -598,11 +668,7 @@ doc ///
 	    `<` if A is less than B, `>` if A is greater than B, `==` if A equals B, and `incomparable` if they are incomparable
     Description
         Text
-	    The `Partition ? Partition` function compares two partitions `A` and `B` and returns a symbol
-	    representing their relationship. It first checks if `A` is less than or equal to `B` and if `B` is
-	    less than or equal to `A` using the `partitionsLeq` function. Depending on the results of these checks,
-	    it returns `<` if `A` is less than `B`, `>` if `A` is greater than `B`, `==` if `A` equals `B`, and 
-	    `incomparable` if neither partition is less than or equal to the other.
+	    This function compares two partitions A and B and returns a symbol representing their relationship.
         Example
 	    A = {3, 2, 1}
 	    B = {4, 2, 1}
@@ -632,9 +698,7 @@ doc ///
 	    true if partition A is equal to partition B, false otherwise
     Description
         Text
-	    The `Partition == Partition` function checks if two partitions `A` and `B` are equal. 
-	    It uses the comparison function `A ? B` and returns true if the result is the symbol `==`,
-	    indicating that the partitions are equal.
+	    This function checks if two partitions A and B are equal.
         Example
             A = {3, 2, 1}
 	    B = {3, 2, 1}
@@ -644,8 +708,6 @@ doc ///
     Caveat 
  
 ///
-
-
 
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
