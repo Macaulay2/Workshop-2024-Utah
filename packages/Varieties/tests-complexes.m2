@@ -99,7 +99,7 @@ TEST ///
     sK = sheaf K
     assert(isWellDefined sK)
     f = id_sK
-    assert(isWellDefined id_{sK})
+    assert(isWellDefined id_sK)
     f | f
     f_1
     f^10
@@ -139,7 +139,7 @@ TEST ///
     H = sheaf truncate(2, K)
     Hp = prune H
     g = Hp.cache.pruningMap
-    assert(g * g^(-1) == id_(target g)) and (g^(-1) * g == id_(source g)))
+    assert((g * g^(-1) == id_(target g)) and (g^(-1) * g == id_(source g)))
     naiveTruncation(g, (1,2), (2,3))
     -- CanonicalTruncation does not work
     -- canonicalMap does not work
@@ -147,7 +147,7 @@ TEST ///
     -- cylinder doesn't work, because it is constructing maps between modules instead of sheaves
     phi = idssK^[0]
     indpsi = inducedMap(source phi, ker phi)
-    assert(isWellDefined indphi)
+    assert(isWellDefined indpsi)
     nu = idssK_[0]
     indnu = inducedMap(coker nu, target nu)
     -- above induced maps produce errors upon pruning
