@@ -53,7 +53,11 @@ newPackage(
         {
             Name => "Thiago Holleben",
             Email => "hollebenthiago@dal.ca"
-        }
+        },
+	{
+            Name => "Will Gilroy",
+            Email => "wlg38@cornell.edu"
+	}
         },
 
     Headline => "new routines for working with normal toric varieties",
