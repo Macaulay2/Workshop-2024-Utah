@@ -48,14 +48,14 @@ numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
 	P = P | apply(maxSize - minSize, i -> 0); -- make it size maxSize
 	return sub(dimension * myHookLength(P),ZZ);
 );
-numgensILambda(ZZ,ZZ,Partition):(n,m,P)->(
+numgensILambda(ZZ,ZZ,Partition) := (n,m,P)->(
     return numgensILambda(n,m,toList P);
     )
     
 numgensILambda(Matrix, List) := (X, lam) -> (
 	return numgensILambda(numRows X, numColumns X, lam);
 );
-numgensILambda(Matrix,Partition):(X,P)->(
+numgensILambda(Matrix,Partition):=(X,P)->(
     return numgensILambda(X,toList P);
     )
 
@@ -357,7 +357,7 @@ doc ///
     Description
         Text
 	    This function computes the number of generators of the I_Lambda ideal in the ring Sym(CC^n,CC^m). Inputting a matrix X  will set n and m to be the number of rows and columns of X.
-    Example
+    	Example
     	   S=QQ[x_1..x_5,y_1..y_5];
    	   X=transpose genericMatrix(S,5,2)
     	   L={2,1}
