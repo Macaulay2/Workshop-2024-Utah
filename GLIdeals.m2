@@ -86,8 +86,7 @@ numgensIChi(Matrix, List) := opts -> (X, chi) -> (
  	-- chi is a list of partitions
  	-- return sum numgensILambda(chi_i) for all i
 	c := chi;
-	if not (opts#IsMinimal) then		-- if IsMinimal is true, we assume that chi is already minimal
-		c = minimizeChi(chi);
+	if not (opts#IsMinimal) then c = minimizeChi(chi);
 	s := 0;
 	for lam in c do(
 		s = s + numgensILambda(X, lam);
@@ -155,12 +154,13 @@ idealILambda(ZZ, ZZ, List) := (n, m, lam) -> (
 	return idealILambda(X, lam);
 );
 
-idealIChi = method()
-idealIChi(Matrix,List) := (X,chi) -> (
+idealIChi = method(Options => {IsMinimal => false});
+idealIChi(Matrix,List) := opts -> (X,chi) -> (
 	-- chi is a list of partitions
 	-- return sum of ideals idealILambda(X, chi_i) for all i
 	if #chi == 0 then return ideal(0_(ring X));
-	c := minimizeChi(chi);
+	c := chi;
+	if not (opts#IsMinimal) then c = minimizeChi(chi);
 	I := idealILambda(X, c#0);
 	for i in 1..#c-1 do(
 		I = I + idealILambda(X, c#i);
