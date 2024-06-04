@@ -81,11 +81,13 @@ minimizeChi(List) := (chi) -> (
     return apply(minimals, P -> toList(P));
 )
 
-numgensIChi = method();
-numgensIChi(Matrix, List) := (X, chi) -> (
+numgensIChi = method(Options => {IsMinimal => false});
+numgensIChi(Matrix, List) := opts -> (X, chi) -> (
  	-- chi is a list of partitions
  	-- return sum numgensILambda(chi_i) for all i
-	c := minimizeChi(chi);
+	c := chi;
+	if not (opts#IsMinimal) then		-- if IsMinimal is true, we assume that chi is already minimal
+		c = minimizeChi(chi);
 	s := 0;
 	for lam in c do(
 		s = s + numgensILambda(X, lam);
