@@ -173,14 +173,13 @@ idealIChi(ZZ, ZZ, List) := (n, m, chi) -> (
 	return idealIChi(X, chi);
 );
 
-naiveClosure = method();---
-naiveClosure (Matrix, Ideal) := (Y,I) ->( 
+naiveClosure = method(Optional => {MaximalRank => true});
+naiveClosure (Matrix, Ideal) := opts -> (Y,I) ->( 
     (R,X,phi):=correctSymmetricAlgebraHelper(Y);
     kk:=baseRing ring Y;
 	p := char kk;		-- could be 0 or positive
 
-	myRand := n -> random(kk^n,kk^n);
-	if p > 0 then (myRand := n -> random(kk^n,kk^n,MaximalRank=>true););
+	myRand := n -> random(kk^n,kk^n,MaximalRank=>opts#MaximalRank);
 
     n:=rank target X;
     m:=rank source X;
