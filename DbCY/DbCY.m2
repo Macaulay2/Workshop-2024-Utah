@@ -1,4 +1,5 @@
 needsPackage "Complexes"
+needsPackage "Depth"
 
 orlovTruncateLess = method()
 -- Input: a complex F of graded free modules and an integer i.
@@ -40,10 +41,10 @@ truncateGeqDualize = method();
 -- Output: a smart truncation of the dual of orlovTruncationGeq(F, i) that is quasi-isomorphic to
 --         the complex orlovTruncationGeq(F, i), where F is the (typically infinite) minimal free resolution of M.
 truncateGeqDualize(Module, ZZ) := (M, i) -> (
-    F := freeResolution(M, LengthLimit => supTruncate(M, i));
+    F := freeResolution(M, LengthLimit => supTruncate(M, i) + 2);
     Fi := orlovTruncateGeq(F, i);
     Fidual := dual Fi;
-    canonicalTruncation(Fidual, -supTruncate(M, i) + 1, )
+    canonicalTruncation(Fidual, -supTruncate(M, i) -1, )
 )
 -- THIS FUNCTION DOESN'T WORK YET! We need the canonicalTruncation function for maps of complexes. See comment in code.
 -- Input: a morphism f of graded modules and an integer i.
@@ -65,9 +66,14 @@ singularityToModules = method();
 --Output: Let D^{sing}(R) denote the singularity category of R, i.e. the quotient of the bounded derived category
 --	  of graded R-modules by the subcategory perfect complexes. As in Orlov's paper "Derived categories
 --	  of coherent sheaves and triangulated categories of singularities", we denote by \Phi_i the fully
---	  faithful functor D^{sing}(R) --> D^b(Proj(R)) constructed in that paper (see Theorem 2.5). This
---	  method outputs \Phi_i(M) (thought of as a complex of graded modules, rather than sheaves). This complex
---        is unbounded in negative homological degrees; we brutally truncate its tail so that it has length j. 
+--	  faithful functor D^{sing}(R) --> D^b(Proj(R)) constructed in that paper (see Theorem 2.5).
+--	  View M as an object in D^b(R) concentrated in homological degree 0, and hence also an object in D^{sing}(R).
+--	  This method outputs \Phi_i(M) (thought of as a complex of graded modules, rather than sheaves). This complex
+--        is unbounded in negative homological degrees; we brutally truncate its tail so that it has length j.
+--CAVEAT: Any object in D^{sing}(R) is isomorphic to a (maximal Cohen-Macaulay) module, but concentrated in some
+--	  (possibly nonzero) homological degree. This method assumes the module is concentrated in homological degree
+--	  zero. Should allow for more generality.
+
 singularityToModules(Module, ZZ, ZZ) := (M, i, j) -> (
     R := ring M;
     d := dim R;
@@ -80,13 +86,18 @@ singularityToModules(Module, ZZ, ZZ) := (M, i, j) -> (
 -- THIS FUNCTION DOESN'T WORK YET! We need two things:
 --    (1) need truncateGeqDualize to work for a matrix.
 --    (2) given a map of complexes, need to be able to compute the induced map on minimal free resolutions of the complexes.
--- Input: a morphism f of graded modules and integers i and j.
--- Output: the induced map on singularityToModules applied to the source and target of f (and also i and j).
-singularityToModules(Matrix, ZZ, ZZ) := (M, i, j) -> (
-    R := ring M;
+-- Input: a morphism f of graded maximal Cohen-Macaulay modules and integers i and j.
+-- Output: the induced map on singularityToModules applied to the source and target of f (and also i and j). Note:
+--         the space of morphisms between MCM modules in the singularity category is given by "stable" R-linear maps;
+--         see Proposition 1.11 in Orlov's paper  "Derived categories of coherent sheaves and triangulated categories
+--	   of singularities". In particular, every morphism between these objects in the singularity category can
+--	   be represented by an honest map of modules.
+singularityToModules(Matrix, ZZ, ZZ) := (f, i, j) -> (
+    R := ring f;
     d := dim R;
     kk := coker vars R;
     if (flatten degrees prune Ext^d(kk, R^1))_0 > 0 then error "The Gorenstein parameter is negative.";
+    if depth(target f) < d or depth(source f) < d then error "Not a map of MCM modules.";
     g := resolution(truncateGeqDualize(f, i), LengthLimit => j);
     gdual := dual g;
     orlovTruncateLess(gdual, i)
@@ -106,5 +117,23 @@ load "DbCY.m2"
 R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
 M = coker matrix{{x_0*x_2}}
 singularityToModules(M, 3, 7)
-f = id_oo
-canonicalTruncation(f, 0)
+
+restart
+load "DbCY.m2"
+S = ZZ/101[x_0..x_4]
+f = sum for i from 0 to 4 list x_i^5
+R = S / ideal(f)
+M = coker vars R
+i = 0;
+j = 7;
+F = singularityToModules(M, i, j)
+dual((res M)[4]) -- this is RHom(k, R)[4], which is isomorphic to k(a) = k by the Gorenstein property
+--This implies that \widetilde{F} = O_X[-4].
+G = res M
+K = coker G.dd_5
+singularityToModules(K, 0, 10)
+prune ker oo.dd_(-1)
+
+
+
+
