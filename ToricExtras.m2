@@ -118,7 +118,7 @@ TEST ///
 ///
 
 load "./ToricExtras/ToricLinearSeriesTests.m2"
--- load "./ToricExtras/BatyrevTests.m2"
+load "./ToricExtras/BatyrevTests.m2"
 
 end---------------------------------------------------------------------------
 
@@ -134,3 +134,19 @@ check ToricExtras
 check (ToricExtras, Verbose => true)
 
 needsPackage "ToricExtras";
+
+-----------------------------------------
+--------- ANNA'S SCRATCH SPACE ----------
+-----------------------------------------
+
+restart
+needsPackage "NormalToricVarieties";
+load "Desktop/Projects/Workshop-2024-Utah/ToricExtras/BatyrevConstructions.m2";
+
+allGood = (V) -> (
+    i := isWellDefined V;
+    j := isSmooth V;
+    k := isProjective V;
+    l := rank picardGroup V == 3;
+    i and j and k and l
+    )
