@@ -83,10 +83,17 @@ batyrevMaxCones(List, List) := (bRays, primitiveCollections) -> (
 
 batyrevConstructor = method();
 batyrevConstructor(List, List, List) := (P, B, C) -> (
+    if #P != 5 then (
+        error "P has " | toString(#P) | " elements, but should have 5 elements";
+    );
+    if #B != P#3 then (
+        error "B has " | toString(#B) | " elements, but should have " | toString(P#3) | " elements";
+    );
+    if #C != P#2 - 1 then (
+        error "C has " | toString(#C) | " elements, but should have " | toString(P#2 - 1) | " elements";
+    );
     A := makeBatyrevMatrix(P, B, C);
     (bRays, primitiveCollections) := batyrevRays(A, P);
     maxCones := batyrevMaxCones(bRays, primitiveCollections);
     return normalToricVariety(bRays, maxCones);
 )
-
-

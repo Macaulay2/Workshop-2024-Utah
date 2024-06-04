@@ -51,8 +51,8 @@ newPackage(
             HomePage => "https://seangrate.com/"},
         {
             Name => "Thiago Holleben",
-            Email => "hollebenthiago@dal.ca"
-        }
+            Email => "hollebenthiago@dal.ca",
+            HomePage => "https://hollebenthiago.github.io/"}
         },
 
     Headline => "new routines for working with normal toric varieties",
