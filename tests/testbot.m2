@@ -22,10 +22,7 @@ path = join( { currentDirectory() | "packages/" }, path )
 --load "tests/example.m2"
 --capture get "tests/example.m2"
 
-loadPackage("Truncations",  FileName => currentDirectory() | "packages/Truncations.m2", Reload => true)
-installPackage("Complexes", FileName => currentDirectory() | "packages/Complexes.m2")
-installPackage("Varieties", FileName => currentDirectory() | "packages/Varieties.m2")
-check Varieties
+check installPackage("Varieties", FileName => currentDirectory() | "packages/Varieties.m2")
 
 -- The following lines automatically run every file in the "tests" directory.
 -- If you wish, you can change testDir to any other directory.
