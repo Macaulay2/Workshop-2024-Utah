@@ -24,6 +24,7 @@ export{
    "isGalois",
    "splittingField",
    "compositums",
+   "simpleExt",
    "remakeField"--this probably shouldn't be exposed to the user long term
 };
 
@@ -161,6 +162,13 @@ degree(NumberFieldExtension) := nfe -> (
 --*************************
 
 isGalois = method(Options =>{})
+isGalois(NumberField) := opts -> K -> {
+    mapList := compositums(K,K);
+    degs := apply(mapList, x -> x#3);
+    L := all(degs, d -> d == degs#0);
+    L
+}
+
 isGalois(NumberFieldExtension) := opts -> iota -> (
      myMapList := {}; --replace with Jack's function when ready
     --assuming iota : K -> L, myMapList is a list of maps L -> L_i where 
@@ -207,7 +215,27 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     numberFieldExtension (map(K1, K2))
 )
-
+simpleExt = method(Options => {});
+simpleExt(NumberField) := opts -> nf ->(
+    --We first get the degree of K as a field extension over Q and store it as D. 
+    K := ring nf;
+    D := degree K;
+    --We find an element that produces a degree D field extension.
+    d := 0;
+    while d < D do 
+    (
+        r := random(1, K);
+        xx := local xx;
+        R := QQ[xx];
+        phi := map( K, R, {r});
+        if  isPrime (kernel phi) then (
+            I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), R);
+            simpleExt := numberField(R / I);
+            d = degree simpleExt;
+        );
+    );
+    return simpleExt;
+)
 
 --*****************************
 --Documentation
@@ -261,7 +289,7 @@ compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
     K1maps := apply(sorted, nf -> map(ring(nf),ring(K1)));
     K2maps := apply(sorted, nf -> map(ring(nf),ring(K2)));
 
-    degs = apply(sorted, degree);
+    degs := apply(sorted, degree);
 
     -- a slight hack to package the data
     inds := toList(0..(length(sorted)-1));
