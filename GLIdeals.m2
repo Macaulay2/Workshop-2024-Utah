@@ -177,8 +177,6 @@ naiveClosure = method(Optional => {MaximalRank => true});
 naiveClosure (Matrix, Ideal) := opts -> (Y,I) ->( 
     (R,X,phi):=correctSymmetricAlgebraHelper(Y);
     kk:=baseRing ring Y;
-	p := char kk;		-- could be 0 or positive
-
 	myRand := n -> random(kk^n,kk^n,MaximalRank=>opts#MaximalRank);
 
     n:=rank target X;
