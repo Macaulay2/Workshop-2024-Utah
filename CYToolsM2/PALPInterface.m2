@@ -58,13 +58,48 @@ getVerticesFromWS String := Matrix => w -> (
 --oo/class
 
 
+stringToList = method()
+stringToList String := List => stemp -> (
+    L0 := separate(" +", stemp);
+    (for x in L0 list if x!="" then value x else continue)
+)
+testwm8x5dw = stringToList("8 5")
+
+
+linesToMatrix = method()
+linesToMatrix String := Matrix => stemp -> (
+--    << stemp;
+    L := lines stemp;
+    M := for ell in L list (
+--	<< "line " << ell << "\n";
+	if ell == "" then continue;
+        stringToList(ell)
+        );
+    matrix M
+)
+
+testwm8x5 = linesToMatrix(
+"
+-1 0 0 0 0
+0 -1 0 0 0
+0 0 -1 0 0
+0 0 0 -1 0
+0 0 0 0 1
+0 0 0 0 -1
+0 0 0 1 -1
+1 1 1 0 -3
+"
+)
 
 
 
+--getNOfPartitions = method()
 
+--getNOfPartitions := w -> (
+    
+--)
 
-
-
+--getNOfPartitions(2, testwm8x5dw, testwm8x5)
 
 
 
