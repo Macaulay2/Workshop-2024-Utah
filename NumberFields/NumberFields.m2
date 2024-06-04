@@ -24,6 +24,8 @@ export{
    "isGalois",
    "splittingField",
    "compositums",
+   "simpleExt",
+   "remakField"--this probably shouldn't be exposed to the user long term
 };
 
 NumberField = new Type of HashTable
@@ -38,7 +40,25 @@ NumberField = new Type of HashTable
 --NumberField constructors
 --****************************
 
-numberField = method(Options => {})
+--The following function takes a ring and renames the variables
+--in the future, it might also try to clean up relations (prune, trim, our own combination of prune/trim)
+remakeField = method(Options => {Variable=>null});
+remakeField(Ring) := opts -> R1 -> (
+    local var;
+    local amb;
+    local myIdeal;
+    a := local a;
+    if instance(R1, QuotientRing) then (amb = ambient R1; myIdeal = ideal R1) else (amb = R1; myIdeal = ideal(sub(0,R1)));
+    numVars := #(gens amb);
+
+    if opts.Variable === null then (var = local symbol a) else (var = opts.Variable);
+    newRing1 := QQ(monoid[(var_1..var_numVars)]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
+    phi := map(R1, newRing1, gens amb);
+
+    newRing1/phi(myIdeal)
+)
+
+numberField = method(Options => {Variable=>null})
 numberField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
@@ -95,10 +115,12 @@ ring(NumberField) := R1 -> (
 --degreeNF = method(Options => {})
 degree(NumberField) := nf -> (
     if (nf#cache#?degree) then return nf#cache#degree;
-    iota := map(ring(nf),QQ);
+    -*iota := map(ring(nf),QQ);
     rk := rank((pushFwd(iota))#0);
     nf#cache#degree = rk;
-    rk
+    rk*-
+    --Karl:  something is wrong with pushFwd in this context, I rewrote this function for now.  The old version is above.
+    degree ((ring nf)^1)
 )
 
 
@@ -119,6 +141,7 @@ numberFieldExtension(RingElement) := opts -> f1 -> (
     if not (gens ring f1 == 1) then error "Expected a polynomial in a single variable";
     baseField := numberField coefficientRing ring f1;
     
+
 );
 
 source(NumberFieldExtension) := phi1 -> (phi1#source);
@@ -190,7 +213,56 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     numberFieldExtension (map(K1, K2))
 )
+simpleExt = method(Options => {});
+simpleExt(NumberField) := opts -> nf ->(
+    --We first get the degree of K as a field extension over Q and store it as D. 
+    K := ring nf;
+    D := degree K;
+    --We find an element that produces a degree D field extension.
+    d := 0;
+    while d < D do 
+    (
+        r := random(1, K);
+        xx := local xx;
+        R := QQ[xx];
+        phi := map( K, R, {r});
+        if  isPrime (kernel phi) then (
+            I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), QQ);
+            simpleExt := numberField(R / I);
+            d := degree simpleExt;
+        );
+    );
+    return simpleExt;
+)
 
+--*****************************
+--Documentation
+--*****************************
+beginDocumentation()
+
+doc ///
+    Node
+        Key
+            NumberFields
+        Headline
+            an example Macaulay2 package
+        Description
+            Text
+                {\em FirstPackage} is a basic package to be used as an example.
+///
+
+--*****************************
+--Tests
+--*****************************
+
+TEST /// --Test #0
+    K = QQ[x]/ideal(x^3-2)
+    L = K[y]/ideal(y^2 + y + 1)
+    assert(degree numberField K == 3)
+    assert(degree numberField L == 6)
+///
+
+end
 
 
 --loadPackage ("NumberFields", Reload=>true)
