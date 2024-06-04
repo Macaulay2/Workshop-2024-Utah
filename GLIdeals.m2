@@ -169,29 +169,29 @@ idealILambda(Matrix,List) := opts -> (X,lam) -> (
 	);
 	return ideal minJ;
 );
-idealILambda(ZZ, ZZ, List) := (n, m, lam) -> (
+idealILambda(ZZ, ZZ, List) := opts -> (n, m, lam) -> (
 	X := symbol X;
 	R := QQ[X_(1,1)..X_(n,m)];
-	return idealILambda(transpose genericMatrix(R, m, n);, lam);
+	return idealILambda(transpose genericMatrix(R, m, n), lam, opts);
 );
 
-idealIChi = method(Options => {IsMinimal => false});
+idealIChi = method(Options => {IsMinimal => false, MaximalRank => true});
 idealIChi(Matrix,List) := opts -> (X,chi) -> (
 	-- chi is a list of partitions
 	-- return sum of ideals idealILambda(X, chi_i) for all i
 	if #chi == 0 then return ideal(0_(ring X));
 	c := chi;
 	if not (opts#IsMinimal) then c = minimizeChi(chi);
-	I := idealILambda(X, c#0);
+	I := idealILambda(X, c#0, MaximalRank => opts#MaximalRank);
 	for i in 1..#c-1 do(
-		I = I + idealILambda(X, c#i);
+		I = I + idealILambda(X, c#i, MaximalRank => opts#MaximalRank);
 	);
 	return I;
 );
-idealIChi(ZZ, ZZ, List) := (n, m, chi) -> (
+idealIChi(ZZ, ZZ, List) := opts -> (n, m, chi) -> (
 	X := symbol X;
 	R := QQ[X_(1,1)..X_(n,m)];
-	return idealIChi(transpose genericMatrix(R, m, n);, chi);
+	return idealIChi(transpose genericMatrix(R, m, n), chi, opts);
 );
 
 naiveClosure = method(Options => {MaximalRank => true, Limit => false});
@@ -300,6 +300,26 @@ idealToChi(Matrix, Ideal) := (Y, J) -> (
 
 	return select(possiblePartitions, P -> (detLam(X, P) % I == 0));
 );
+
+IsPartition = method();
+IsPartition(List) := (L) -> (
+	-- L is a list
+	-- return if L is a partition (either as a List or a Partition) or a list of partitions
+	-- {} returns false
+	-- (new Partition from {}) returns true
+	if class(L) === Partition then return true;
+	if #L == 0 then return false;
+	return class(L#0) === ZZ;
+);
+
+GLIdeal = method(Options => {IsMinimal => false}); -- call the appropriate idealILambda or idealIChi
+GLIdeal(ZZ, ZZ, List) := opts -> (n, m, L) -> (
+	if IsPartition(L) then return idealILambda(n, m, L);
+	return idealIChi(n, m, L, IsMinimal => opts#IsMinimal);
+)
+GLIdeal(ZZ, ZZ, Partition) := (n, m, P) -> (
+	return idealILambda(n, m, P);
+)
 
 partitionsLeq = method();
 partitionsLeq(Partition, Partition) := (A, B) -> (
@@ -441,11 +461,7 @@ doc ///
     Description
         Text
 	    This function takes a matrix X and a list of integers lam.
-	Example
-	    S=QQ[x_(1,1)..x_(3,5)];
-	    X=transpose genericMatrix(S,5,3)
-	    L={1,2,3}
-	    detLam(X,L)
+
 ///
 
 doc ///
