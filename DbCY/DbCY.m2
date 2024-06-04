@@ -35,17 +35,30 @@ supTruncate(Module, ZZ) := (M, i) -> (
     if i >= t then d+i-t else d
 )
 
+truncateGeqDualize = method();
 -- Input: a graded module M and an integer i
 -- Output: a smart truncation of the dual of orlovTruncationGeq(F, i) that is quasi-isomorphic to
 --         the complex orlovTruncationGeq(F, i), where F is the (typically infinite) minimal free resolution of M.
-truncateGeqDualize = method();
 truncateGeqDualize(Module, ZZ) := (M, i) -> (
     F := freeResolution(M, LengthLimit => supTruncate(M, i));
     Fi := orlovTruncateGeq(F, i);
     Fidual := dual Fi;
     canonicalTruncation(Fidual, -supTruncate(M, i) + 1, )
 )
+-- THIS FUNCTION DOESN'T WORK YET! We need the canonicalTruncation function for maps of complexes. See comment in code.
+-- Input: a morphism f of graded modules and an integer i.
+-- Output: the induced map on truncateGeqDualize applied to the source and target of f (and i).
+truncateGeqDualize(Matrix, ZZ) := (f, i) -> (
+    M := source f;
+    N := target f;
+    s := max{supTruncate(M), supTruncate(N)};
+    g := freeResolution(f, LengthLimit => s);
+    gi := orlovTruncateGeq(ftilde, i);
+    gidual := dual gi;
+    canonicalTruncation(gidual, -s + 1)--this function doesn't exist for ComplexMaps yet.
+)
 
+singularityToModules = method();
 --Input: a finitely generated module M over a graded Gorenstein ring with nonnegative Gorenstein parameter, and integers i and j.
 --       We recall that the Gorenstein parameter is the integer a such that Ext^d_R(k, R) = k(-a) (up to a homological
 --       shift), where R is the ring of M, d is the dimension of R, and k is the residue field of R.
@@ -53,19 +66,34 @@ truncateGeqDualize(Module, ZZ) := (M, i) -> (
 --	  of graded R-modules by the subcategory perfect complexes. As in Orlov's paper "Derived categories
 --	  of coherent sheaves and triangulated categories of singularities", we denote by \Phi_i the fully
 --	  faithful functor D^{sing}(R) --> D^b(Proj(R)) constructed in that paper (see Theorem 2.5). This
---	  method outputs \Phi_i(M) (thought of as a complex of gradd modules, rather than sheaves), brutally
---	  truncated so that it has length j. 
-singularityToModules = method();
+--	  method outputs \Phi_i(M) (thought of as a complex of graded modules, rather than sheaves). This complex
+--        is unbounded in negative homological degrees; we brutally truncate its tail so that it has length j. 
 singularityToModules(Module, ZZ, ZZ) := (M, i, j) -> (
     R := ring M;
     d := dim R;
     kk := coker vars R;
     if (flatten degrees prune Ext^d(kk, R^1))_0 > 0 then error "The Gorenstein parameter is negative.";
     G := resolution(truncateGeqDualize(M, i), LengthLimit => j);
-    D := dual G;
-    orlovTruncateLess(D, i)
+    Gdual := dual G;
+    orlovTruncateLess(Gdual, i)
+)
+-- THIS FUNCTION DOESN'T WORK YET! We need two things:
+--    (1) need truncateGeqDualize to work for a matrix.
+--    (2) given a map of complexes, need to be able to compute the induced map on minimal free resolutions of the complexes.
+-- Input: a morphism f of graded modules and integers i and j.
+-- Output: the induced map on singularityToModules applied to the source and target of f (and also i and j).
+singularityToModules(Matrix, ZZ, ZZ) := (M, i, j) -> (
+    R := ring M;
+    d := dim R;
+    kk := coker vars R;
+    if (flatten degrees prune Ext^d(kk, R^1))_0 > 0 then error "The Gorenstein parameter is negative.";
+    g := resolution(truncateGeqDualize(f, i), LengthLimit => j);
+    gdual := dual g;
+    orlovTruncateLess(gdual, i)
 )
 end;
+
+
 
 restart
 load "DbCY.m2"
@@ -78,3 +106,5 @@ load "DbCY.m2"
 R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
 M = coker matrix{{x_0*x_2}}
 singularityToModules(M, 3, 7)
+f = id_oo
+canonicalTruncation(f, 0)
