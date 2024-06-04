@@ -72,7 +72,7 @@ orlovTruncateGeqDualize(Complex, ZZ) := (C, i) -> (
 -- THIS FUNCTION DOESN'T WORK YET! We need the canonicalTruncation function for maps of complexes. See comment in code.
 -- Input: a morphism f of graded modules and an integer i.
 -- Output: the induced map on truncateGeqDualize applied to the source and target of f (and i).
-truncateGeqDualize(Matrix, ZZ) := (f, i) -> (
+orlovTruncateGeqDualize(Matrix, ZZ) := (f, i) -> (
     M := source f;
     N := target f;
     s := max{supTruncate(M) + 2, supTruncate(N) + 2};
@@ -150,21 +150,29 @@ singularityToModules(Matrix, ZZ, ZZ) := (f, i, j) -> (
 end;
 
 
-
 restart
 load "DbCY.m2"
 R = ZZ/101[x_0] / ideal(x_0^3)
 M = coker vars R
-singularityToModules(M, 1, 1)
+assert try ( singularityToModules(M, 1, 1); false ) else true
 
 restart
 load "DbCY.m2"
 R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
 X = Proj R
 M = coker matrix{{x_0*x_2}}
-C = minimize singularityToModules(M, 3, 7)
-C = sheaf C
-C.dd
+D = minimize singularityToModules(M, 3, 7)
+D = sheaf D
+errorDepth=2
+debugLevel=2
+RHom(OO_X^1, D)
+
+prune HH D
+D.dd
+elapsedTime prune HH RHom(D, OO_X^1) -- 22s -> 16s, ranks 113 103 69 7
+elapsedTime RHom(OO_X^1, D)
+debug Varieties
+
 
 restart
 load "DbCY.m2"
