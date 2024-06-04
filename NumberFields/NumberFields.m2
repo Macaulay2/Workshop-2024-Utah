@@ -137,6 +137,13 @@ degree(NumberFieldExtension) := nfe -> (
 --*************************
 
 isGalois = method(Options =>{})
+isGalois(NumberField) := opts -> K -> {
+    mapList := compositums(K,K);
+    degs := apply(mapList, x -> x#3);
+    L := all(degs, d -> d == degs#0);
+    L
+}
+
 isGalois(NumberFieldExtension) := opts -> iota -> (
      myMapList := {}; --replace with Jack's function when ready
     --assuming iota : K -> L, myMapList is a list of maps L -> L_i where 
@@ -208,7 +215,7 @@ compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
     K1maps := apply(sorted, nf -> map(ring(nf),ring(K1)));
     K2maps := apply(sorted, nf -> map(ring(nf),ring(K2)));
 
-    degs = apply(sorted, degree);
+    degs := apply(sorted, degree);
 
     -- a slight hack to package the data
     inds := toList(0..(length(sorted)-1));
