@@ -73,13 +73,17 @@ L1 = decompose ideal f1
 polynomialSplits f1
 
 S = splittingField f1
-T = (flattenRing ring S)#0[y]
+T = (ring target S)[y]
+--T = (flattenRing ring S)#0[y]
 f11 = (map(T, R, {y})) f1
 L2 = decompose ideal f11
 polynomialSplits f11
 
 --TODO for Nicholas: make splittingField return a NumberField and then make it work when the parameter polynomial comes from 
 --something like QQ[x]/(x^2-2). Actually, make splittingField return a NumberFieldExtension.
+--TODO: make a test to assert that the degrees of some field 
+--x^5+x+1 over QQ[x]
+--TODO: instead of calling decompose ideal f every time, instead use synthetic division to divide f by the roots we already have.
 
 loadPackage ("NumberFields", Reload=>true)
 R = QQ[w]/(w^2+1)[x] -- R = QQ[i][x]
@@ -88,7 +92,20 @@ L1 = decompose ideal f1
 polynomialSplits f1
 
 S = splittingField f1
-T = (flattenRing ring S)#0[y]
+T = (ring target S)[y]
+f11 = (map(T, R, {y})) f1
+L2 = decompose ideal f11
+polynomialSplits f11
+
+--x^5-4*x+2 over QQ[x]
+loadPackage ("NumberFields", Reload=>true)
+R = QQ[x]
+f1 = x^5-4*x+2
+L1 = decompose ideal f1
+polynomialSplits f1
+
+S = splittingField f1
+T = (ring target S)[y]
 f11 = (map(T, R, {y})) f1
 L2 = decompose ideal f11
 polynomialSplits f11

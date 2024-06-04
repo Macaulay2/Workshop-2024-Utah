@@ -3,14 +3,14 @@ newPackage(
     Version => "0.0.0", 
         Date => "June 3, 2024",
         Authors => {
-            {Name=>"Jack Garzella"},
+            {Name=>"Jack J Garzella", Email=>"jgarzell@ucsd.edu", HomePage=>"https://mathweb.ucsd.edu/~jjgarzel"},
             {Name=>"Nicholas Gaubatz", Email=>"nmg0029@auburn.edu", HomePage=>"https://nicholasgaubatz.github.io/"},
             {Name=>"Ethan Toshihiro Mowery"},
             {Name => "Karl Schwede", Email=>"schwede@math.utah.edu", HomePage=>"http://www.math.utah.edu/~schwede"}
         },
         Headline => "number fields",
         Keywords => {"field extension"},
-    PackageImports => {}, 
+    PackageImports => {},
     PackageExports => {"PushForward", "MinimalPrimes"},
     Reload => true,
     DebuggingMode => true
@@ -22,8 +22,8 @@ export{
    "NumberFieldExtension",
    "numberFieldExtension",
    "isGalois",
---   "degreeNF",
-   "splittingField"
+   "splittingField",
+   "compositums",
 };
 
 NumberField = new Type of HashTable
@@ -158,6 +158,7 @@ splittingField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     S1 := R1;
     K1 := coefficientRing R1;
+    K2 := coefficientRing R1;
     variableIndex := 1;
     finished := false;
     while not finished do (
@@ -170,8 +171,8 @@ splittingField(RingElement) := opts -> f1 -> (
                 if not (length(currentEntry)==1 and max(degree(currentEntry#0))==1) then (
                     finished = false;
                     K1 = R1/(L1#i);
-                    S1 = K1[local x_variableIndex];
-                    phi1 := map(S1, R1, {x_variableIndex});
+                    S1 = K1[local a_variableIndex];
+                    phi1 := map(S1, R1, {a_variableIndex});
                     f1 = phi1(f1);
                     R1 = S1;
                     variableIndex += 1;
@@ -180,8 +181,10 @@ splittingField(RingElement) := opts -> f1 -> (
             );
         );
     );
-    numberField K1
-    --R1
+    --K1
+    --numberField K1
+    --numberFieldExtension map((flattenRing K1)#0[local y], R1)
+    numberFieldExtension (map(K1, K2))
 )
 
 
@@ -214,29 +217,39 @@ TEST /// --Test #0
 
 end
 
-loadPackage ("NumberFields", Reload=>true)
 
---compositums = method(Options => {})
---compusitums(NumberField,NumberField) := opts -> (K1,K2) -> (
---    T := K1 ** K2;
---
---    -- compositums correspond to prime ideals
---    II := primaryDecomposition (ideal 0_T);
---
---    -- quotient rings
---    QRs := apply(II, I -> T / I);
---
---    -- make them number field objects?
---    NFs := apply(QRs, qr -> numberField(qr));
---
---    -- calculate degrees
---
---    -- sort by degree
---
---    -- get maps from K1 & K2
---
---)
+--loadPackage ("NumberFields", Reload=>true)
+
+compositums = method(Options => {})
+compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
+    T := ring(K1) ** ring(K2);
+
+    -- compositums correspond to prime ideals
+    II := decompose (ideal 0_T);
+
+    -- quotient rings
+    QRs := apply(II, I -> T / I);
+
+    -- make them number field objects?
+    NFs := apply(QRs, qr -> numberField(qr));
+
+    -- sort by degree
+    sorted := sort(NFs, degree);
+
+    -- get maps from K1 & K2 
+    K1maps := apply(sorted, nf -> map(ring(nf),ring(K1)));
+    K2maps := apply(sorted, nf -> map(ring(nf),ring(K2)));
+
+    degs = apply(sorted, degree);
+
+    -- a slight hack to package the data
+    inds := toList(0..(length(sorted)-1));
+    infoList := apply(inds, i -> (sorted#i,K1maps#i,K2maps#i,degs#i));
+
+    infoList
+)
 
 -*
 This is a comment block.
 *-
+end
