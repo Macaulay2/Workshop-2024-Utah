@@ -82,7 +82,7 @@ orlovTruncateGeqDualize(Matrix, ZZ) := (f, i) -> (
     canonicalTruncation(gidual, -s - 1)--this function doesn't exist for ComplexMaps yet.
 )
 
-singularityToModules = method();
+singularityToDerived = method();
 --Input: a finitely generated module M over a graded Gorenstein ring with nonnegative Gorenstein parameter, and integers i and j.
 --       We recall that the Gorenstein parameter is the integer a such that Ext^d_R(k, R) = k(-a) (up to a homological
 --       shift), where R is the ring of M, d is the dimension of R, and k is the residue field of R.
@@ -97,7 +97,7 @@ singularityToModules = method();
 --	  (possibly nonzero) homological degree. This method assumes the module is concentrated in homological degree
 --	  zero. Should allow for more generality.
 
-singularityToModules(Module, ZZ, ZZ) := (M, i, j) -> (
+singularityToDerived(Module, ZZ, ZZ) := (M, i, j) -> (
     R := ring M;
     d := dim R;
     kk := coker vars R;
@@ -106,7 +106,7 @@ singularityToModules(Module, ZZ, ZZ) := (M, i, j) -> (
     Gdual := dual G;
     orlovTruncateLess(Gdual, i)
 )
-singularityToModules(Complex, ZZ, ZZ) := (C, i, j) -> (
+singularityToDerived(Complex, ZZ, ZZ) := (C, i, j) -> (
     R := ring C;
     d := dim R;
     kk := coker vars R;
@@ -131,12 +131,12 @@ sup(Complex) := (C) -> (
 --    (1) need truncateGeqDualize to work for a matrix.
 --    (2) given a map of complexes, need to be able to compute the induced map on minimal free resolutions of the complexes.
 -- Input: a morphism f of graded maximal Cohen-Macaulay modules and integers i and j.
--- Output: the induced map on singularityToModules applied to the source and target of f (and also i and j). Note:
+-- Output: the induced map on singularityToDerived applied to the source and target of f (and also i and j). Note:
 --         the space of morphisms between MCM modules in the singularity category is given by "stable" R-linear maps;
 --         see Proposition 1.11 in Orlov's paper  "Derived categories of coherent sheaves and triangulated categories
 --	   of singularities". In particular, every morphism between these objects in the singularity category can
 --	   be represented by an honest map of modules.
-singularityToModules(Matrix, ZZ, ZZ) := (f, i, j) -> (
+singularityToDerived(Matrix, ZZ, ZZ) := (f, i, j) -> (
     R := ring f;
     d := dim R;
     kk := coker vars R;
@@ -154,14 +154,14 @@ restart
 load "DbCY.m2"
 R = ZZ/101[x_0] / ideal(x_0^3)
 M = coker vars R
-assert try ( singularityToModules(M, 1, 1); false ) else true
+assert try ( singularityToDerived(M, 1, 1); false ) else true
 
 restart
 load "DbCY.m2"
 R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
 X = Proj R
 M = coker matrix{{x_0*x_2}}
-D = minimize singularityToModules(M, 3, 7)
+D = minimize singularityToDerived(M, 3, 7)
 D = sheaf D
 errorDepth=2
 debugLevel=2
@@ -182,15 +182,15 @@ R = S / ideal(f)
 M = coker vars R
 i = 0;
 j = 7;
-F = singularityToModules(M, i, j)
+F = singularityToDerived(M, i, j)
 dual((res M)[4]) -- this is RHom(k, R)[4], which is isomorphic to k(a) = k by the Gorenstein property
 --This implies that \widetilde{F} = O_X[-3].
 G = res M
 K = coker G.dd_5
-singularityToModules(K, 0, 9)
+singularityToDerived(K, 0, 9)
 prune ker oo.dd_(-1)
-F = singularityToModules(M, i, 6)
-G = singularityToModules(K, 0, 10)
+F = singularityToDerived(M, i, 6)
+G = singularityToDerived(K, 0, 10)
 G[-4] == F
 F.dd_3
 (G[-4]).dd_3
@@ -210,5 +210,5 @@ R = S / ideal(f)
 C = freeResolution(coker vars R, LengthLimit => 2)
 i = 0;
 j = 7;
-singularityToModules(C, 0, 7)
-singularityToModules(coker vars R, 0, 7)
+singularityToDerived(C, 0, 7)
+singularityToDerived(coker vars R, 0, 7)
