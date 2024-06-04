@@ -323,12 +323,10 @@ doc ///
         Text
 	    This function computes the number of generators of the I_Lambda ideal associated with the input matrix X and partition lam.
     Example
-	S=QQ[x_1..x_5,y_1..y_5];
-	X=transpose genericMatrix(S,5,2)
-	L={2,1}
-	numgensILambda(X,L)
-     Caveat
-	 The length of L has to be the minimum of the rows/columns of X.
+    	   S=QQ[x_1..x_5,y_1..y_5];
+   	   X=transpose genericMatrix(S,5,2)
+    	   L={2,1}
+    	   numgensILambda(X,L)
 ///
 
 doc ///
