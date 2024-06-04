@@ -70,7 +70,7 @@ newPackage(
     Headline => "new routines for working with normal toric varieties",
     Keywords => {"Toric Geometry"},
     PackageExports => {"NormalToricVarieties"},
-    PackageImports => {"PrimaryDecomposition"},
+    PackageImports => {"PrimaryDecomposition", "LLLBases"},
     DebuggingMode => true
     )
 
@@ -80,10 +80,13 @@ export {
     "baseLocusIdeal",
     "isBasepointFree",
     "batyrevConstructor",
-    "toricMap", 
+    "toricMap",
+    "idealOfImage",
+    "TargetRing", 
     "projectivizationOfBundle"
     }
 
+protect TargetRing
 
 ------------------------------------------------------------------------------
 -- CODE
@@ -110,17 +113,9 @@ doc ///
 	    be incorporated into the existing NormalToricVarieties package.
 ///
 
-doc ///
-    Key
-        ToricLinearSeries
-    Headline
-        Linear series on a toric variety
-    Description
-    	Text
-	        Work in progress implementation of linear series on a toric variety
-///
 
 load "./ToricExtras/BatyrevDocs.m2"
+load "./ToricExtras/ToricLinearSeriesDocs.m2"
 
 ------------------------------------------------------------------------------
 -- TESTS
@@ -146,6 +141,7 @@ end---------------------------------------------------------------------------
 uninstallPackage "ToricExtras";
 restart
 installPackage "ToricExtras"
+viewHelp ToricExtras
 check ToricExtras
 check (ToricExtras, Verbose => true)
 
