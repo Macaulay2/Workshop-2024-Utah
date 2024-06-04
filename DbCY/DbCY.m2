@@ -1,6 +1,4 @@
 needsPackage "Complexes"
-needsPackage "TorAlgebra"
-
 
 orlovTruncateLess = method()
 -- Input: a complex F of graded free modules and an integer i.
@@ -33,12 +31,13 @@ supTruncate = method();
 supTruncate(Module, ZZ) := (M, i) -> (
     R := ring M;
     d := dim R;
-    t := min flatten degrees M;
-    -- get the min degree of all gens of the module
+    t := min flatten degrees M;-- this is the minimum generating degree of M
     if i >= t then d+i-t else d
 )
 
-
+-- Input: a graded module M and an integer i
+-- Output: a smart truncation of the dual of orlovTruncationGeq(F, i) that is quasi-isomorphic to
+--         the complex orlovTruncationGeq(F, i), where F is the (typically infinite) minimal free resolution of M.
 truncateGeqDualize = method();
 truncateGeqDualize(Module, ZZ) := (M, i) -> (
     F := freeResolution(M, LengthLimit => supTruncate(M, i));
@@ -47,8 +46,17 @@ truncateGeqDualize(Module, ZZ) := (M, i) -> (
     canonicalTruncation(Fidual, -supTruncate(M, i) + 1, )
 )
 
-singularityToSheaves = method();
-singularityToSheaves(Module, ZZ, ZZ) := (M, i, j) -> (
+--Input: a finitely generated module M over a graded Gorenstein ring with nonnegative Gorenstein parameter, and integers i and j.
+--       We recall that the Gorenstein parameter is the integer a such that Ext^d_R(k, R) = k(-a) (up to a homological
+--       shift), where R is the ring of M, d is the dimension of R, and k is the residue field of R.
+--Output: Let D^{sing}(R) denote the singularity category of R, i.e. the quotient of the bounded derived category
+--	  of graded R-modules by the subcategory perfect complexes. As in Orlov's paper "Derived categories
+--	  of coherent sheaves and triangulated categories of singularities", we denote by \Phi_i the fully
+--	  faithful functor D^{sing}(R) --> D^b(Proj(R)) constructed in that paper (see Theorem 2.5). This
+--	  method outputs \Phi_i(M) (thought of as a complex of gradd modules, rather than sheaves), brutally
+--	  truncated so that it has length j. 
+singularityToModules = method();
+singularityToModules(Module, ZZ, ZZ) := (M, i, j) -> (
     R := ring M;
     d := dim R;
     kk := coker vars R;
@@ -63,19 +71,10 @@ restart
 load "DbCY.m2"
 R = ZZ/101[x_0] / ideal(x_0^3)
 M = coker vars R
-singularityToSheaves(M, 1, 1)
+singularityToModules(M, 1, 1)
+
 restart
 load "DbCY.m2"
 R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
-d = dim(R)
-kk = coker vars R
-degrees Ext^d(kk, R^1)
-
 M = coker matrix{{x_0*x_2}}
-singularityToSheaves(M, 3, 7)
-F = freeResolution (M, LengthLimit => 3)
-i = 3
-f = id_F
-orlovTruncateGeq(id_F, i)
-dual id_F
-flatten degrees Ext^d(kk, R^1)
+singularityToModules(M, 3, 7)
