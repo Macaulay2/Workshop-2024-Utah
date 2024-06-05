@@ -4,6 +4,8 @@ installPackage "ToricExtras"
 check "ToricExtras"
 restart
 
+
+
 -- demooooooooooooooo
 needsPackage "ToricExtras"
 
@@ -31,6 +33,8 @@ rays Y
 max Y
 
 -- Batyrev classification for smooth, projective toric varieties of Picard rank 3
+-- This constructs the unique smooth toric del Pezzo surface of Picard rank 3, 
+-- which is the Bl_1(P^1 x P^1) = Bl_2(P^2)
 V = batyrevConstructor({1,1,1,1,1}, {0}, {})
 isWellDefined V
 dim V
@@ -38,14 +42,15 @@ isSmooth V
 isProjective V
 picardGroup V
 
-
+-- This constructs a smooth toric Fano of Picard rank 3 which is 3-29 on Fanography. 
+-- It can be described as the blowup of Bl_1 P^3 along a line in the exceptional divisor
 V = batyrevConstructor({2,1,1,1,1}, {1}, {})
 isWellDefined V
 dim V
 isSmooth V
 isProjective V
 picardGroup V
-isFano(V)
+isFano V
 
 degreeOfThreefold = X -> (
     K := toricDivisor X;
