@@ -25,7 +25,7 @@ export{
    "splittingField",
    "compositums",
    "simpleExt",
-   "asExtensionOfBase"--this probably shouldn't be exposed to the user long term
+   "asExtensionOfBase",--this probably shouldn't be exposed to the user long term
    "remakeField",--this probably shouldn't be exposed to the user long term
    "minimalPolynomial"
 };
