@@ -202,13 +202,26 @@ prune HH_1(o8) == 0
 prune HH_2(o8) == 0
 prune HH_3(o8) == 0
 
+
+--DEMO
 restart
 load "DbCY.m2"
 S = ZZ/101[x_0..x_4]
 f = sum for i from 0 to 4 list x_i^5
-R = S / ideal(f)
-C = freeResolution(coker vars R, LengthLimit => 2)
-i = 0;
-j = 7;
-singularityToDerived(C, 0, 7)
-singularityToDerived(coker vars R, 0, 7)
+R = S / ideal(f) --affine cone of the quintic
+kk = coker vars R --the residue field of R
+F = singularityToDerived(kk, 0, 7)
+--This computes \Phi_0(kk) (up to sheafification).
+--We will eventually interface with "Varieties" package to implement the associated complex of sheaves.
+--The complex \Phi_0(kk) has infinite length; it is unbounded on the right. We take a length 7 approximation here.
+--The tail is a matrix factorization.
+
+--What is the homology of this complex?
+homologies = for i from 0 to 3 list prune HH_i F
+--Let's sheafify these:
+sheaf HH_0 F == 0
+sheaf prune HH_3 F
+--Thus, \Phi_0(kk) = O_X[-3].
+
+
+
