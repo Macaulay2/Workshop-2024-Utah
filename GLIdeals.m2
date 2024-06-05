@@ -8,7 +8,7 @@ newPackage(
 		 {Name => "Aryaman Maithani", Email => "maithani@math.utah.edu", HomePage => "https://aryamanmaithani.github.io/math/"}
 	     },
     	Headline => "Template for gl ideals package",
-	PackageExports => {"SchurRings","SimpleDoc"},
+	PackageExports => {"SimpleDoc"},
     	DebuggingMode => false,
 	Reload=>true
     	)
