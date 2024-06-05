@@ -348,6 +348,15 @@ numgensGLIdeal(Matrix, Partition) := opts -> (X, P) -> (
 	return numgensILambda(X, P);
 );
 
+isMatrixOfCorrectFormat = method();
+isMatrixOfCorrectFormat(Matrix) := (X) -> (
+	-- X is a matrix
+	S := ring X;
+	if not (class(S) === PolynomialRing) then error "Matrix is not over a polynomial ring";
+	kk := baseRing S;
+	if not isField(kk) then error "Matrix is not over a polynomial ring over a field";
+);
+
 partitionsLeq = method();
 partitionsLeq(Partition, Partition) := (A, B) -> (
     -- A and B are partitions
