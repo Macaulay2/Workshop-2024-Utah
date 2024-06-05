@@ -25,7 +25,8 @@ export{
    "splittingField",
    "compositums",
    "simpleExt",
-   "remakField"--this probably shouldn't be exposed to the user long term
+   "remakField",--this probably shouldn't be exposed to the user long term
+   "asExtensionOfBase"--this probably shouldn't be exposed to the user long term
 };
 
 NumberField = new Type of HashTable
@@ -262,39 +263,60 @@ TEST /// --Test #0
     assert(degree numberField L == 6)
 ///
 
-end
-
+asExtensionOfBase = method(Options => {})
+asExtensionOfBase(NumberFieldExtension) := opts -> iota -> (
+--
+--    -- get source and target
+--    s := ring(source iota);
+--    t := ring(target iota);
+--    -- get ideal from target
+--    --I := ideal target; 
+--    -- calculate numgens of ideal
+--    n := numgens t;
+--    -- create polynomial ring in numbgens variables
+--    polyring := s[b_1..b_n];
+--    -- create map by assigning generators to other generators
+--    extensionMap := map(iota);
+--    images := (entries  (matrix extensionMap))#0;
+--    m := map(t,polyring,join(images, gens(t)));
+--    -- take the kernel
+--    k := kernel m;
+--    -- return quotient by kernel
+--    polyring / k
+)
 
 --loadPackage ("NumberFields", Reload=>true)
 
 compositums = method(Options => {})
 compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
     T := ring(K1) ** ring(K2);
-
     -- compositums correspond to prime ideals
     II := decompose (ideal 0_T);
-
     -- quotient rings
     QRs := apply(II, I -> T / I);
-
     -- make them number field objects?
     NFs := apply(QRs, qr -> numberField(qr));
-
     -- sort by degree
     sorted := sort(NFs, degree);
-
     -- get maps from K1 & K2 
     K1maps := apply(sorted, nf -> map(ring(nf),ring(K1)));
     K2maps := apply(sorted, nf -> map(ring(nf),ring(K2)));
 
     degs := apply(sorted, degree);
-
     -- a slight hack to package the data
     inds := toList(0..(length(sorted)-1));
     infoList := apply(inds, i -> (sorted#i,K1maps#i,K2maps#i,degs#i));
 
     infoList
 )
+
+--compositums(NumberFieldExtenison,NumberFieldExtension) := opts -> (iota,kappa) -> (
+--    -- check for common base
+--    -- write iota and kappa as entensions of common base
+--    -- take tensor product wrt common base
+--    -- do all the same things as compositums over QQ
+--
+--)
 
 -*
 This is a comment block.
