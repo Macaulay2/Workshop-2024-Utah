@@ -172,6 +172,14 @@ degree(NumberFieldExtension) := nfe -> (
     rk
 )
 
+norm(RingElement) := (elt) ->(
+    S := ring elt;
+    return det pushFwd(map(S^1, S^1, {{elt}}));
+);
+trace(RingElement) := (elt) -> (
+    S := ring elt;
+    return trace pushFwd(map(S^1, S^1, {{elt}}));
+);
 --*************************
 --Methods
 --*************************
@@ -238,6 +246,7 @@ simpleExt(NumberField) := opts -> nf ->(
     D := degree K;
     --We find an element that produces a degree D field extension.
     d := 0;
+    c := 0;
     while d < D do 
     (
         r := random(1, K);
