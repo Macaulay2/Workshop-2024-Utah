@@ -117,7 +117,9 @@ singularityToDerived(Module, ZZ, ZZ) := (M, i, j) -> (
 --Input: a bounded Complex C of finitely generated modules as in the above function, and i and j as in the above function.
 --Output: \Phi_i(C), where \Phi_i(C) is as described in the previous function, with tail brutally truncated so that
 --	  it has length j.
---WARNING: This function needs more testing. It may not work. 
+--WARNING: This function needs more testing. It may not work.
+--CAVEAT: this function is not functorial. Modeling maps between objects in the singularity category
+--	  is only feasible when the objects are MCM modules concentrated in the same homological degree.
 singularityToDerived(Complex, ZZ, ZZ) := (C, i, j) -> (
     R := ring C;
     d := dim R;
@@ -217,9 +219,9 @@ f = sum for i from 0 to 4 list x_i^5
 R = S / ideal(f) --affine cone of the quintic
 kk = coker vars R --the residue field of R
 F = singularityToDerived(kk, 0, 7)
---This computes \Phi_0(kk) (up to sheafification).
+--This computes \Phi(kk) (up to sheafification).
 --We will eventually interface with "Varieties" package to implement the associated complex of sheaves.
---The complex \Phi_0(kk) has infinite length; it is unbounded on the right. We take a length 7 approximation here.
+--The complex \Phi(kk) has infinite length; it is unbounded on the right. We take a length 7 approximation here.
 --The tail is a matrix factorization.
 
 --What is the homology of this complex?
@@ -229,5 +231,5 @@ sheaf HH_0 F == 0
 sheaf prune HH_3 F
 --Thus, \Phi_0(kk) = O_X[-3].
 
-
+--Future work: implement the functor going the opposite direction.
 
