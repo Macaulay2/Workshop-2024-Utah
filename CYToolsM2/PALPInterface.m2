@@ -10,10 +10,8 @@ newPackage(
     )
 
 export {
-    "palpVertices","getVerticesFromWS", "Drange"
+    "palpVertices","getVerticesFromWS", "Drange", "getWSFromDim"
     }
-
-executableDir = "/Users/frenly/Desktop/palp-2.21/";
 
 -- str = get "!poly.x -v -r << FOO
 -- 10 1 2 3 4
