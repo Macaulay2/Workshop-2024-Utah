@@ -38,6 +38,10 @@ Y = projectivizationOfBundle({D0PP2, D1PP2})
 rays Y
 max Y
 
+assert(isWellDefined Y)
+assert(isSmooth Y)
+assert(isProjective Y)
+
 -- Batyrev classification for smooth, projective toric varieties of Picard rank 3
 V = batyrevConstructor({1,1,1,1,1}, {0}, {})
 isWellDefined V
