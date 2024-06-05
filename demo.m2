@@ -17,9 +17,13 @@ coneListPP1 = {{1}, {0}}
 PP1 = normalToricVariety (rayListPP1, coneListPP1)
 D0PP1 = toricDivisor ( { 0 , 0}, PP1)
 D1PP1 = toricDivisor ( {0 , 7} , PP1)
-H7 = projectivizationOfBundle({D0PP1, D1PP1})
-rays H7
-max H7
+testH7 = projectivizationOfBundle({D0PP1, D1PP1})
+rays testH7
+max testH7
+
+assert(isWellDefined testH7)
+assert(isSmooth testH7)
+assert(isProjective testH7)
 
 rayListPP2 = {{1 , 0}, {0 , 1}, {-1, -1}}
 coneListPP2 = {{0, 1}, {1, 2}, {2 , 0}}

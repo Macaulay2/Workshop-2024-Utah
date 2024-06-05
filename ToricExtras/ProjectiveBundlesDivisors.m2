@@ -129,6 +129,10 @@ H7 = projectivizationOfBundle({D0PP1, D1PP1})
 rays H7
 max H7
 
+assert(isWellDefined H7)
+assert(isSmooth H7)
+assert(isProjective H7)
+
 rayListPP2 = {{1 , 0}, {0 , 1}, {-1, -1}}
 coneListPP2 = {{0, 1}, {1, 2}, {2 , 0}}
 PP2 = normalToricVariety (rayListPP2, coneListPP2)
@@ -137,6 +141,8 @@ D1PP2 = toricDivisor ( {1 , 4, 7} , PP2)
 Y = projectivizationOfBundle({D0PP2, D1PP2})
 rays Y
 max Y
+
+
 
 
 dim X
