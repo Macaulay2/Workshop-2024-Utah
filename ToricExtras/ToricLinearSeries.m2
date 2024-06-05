@@ -2,6 +2,7 @@ ToricLinearSeries = new Type of HashTable
 ToricLinearSeries.synonym = "toric linear series"
 
 toricLinearSeries = method(TypicalValue => ToricLinearSeries)
+toricLinearSeries ToricDivisor := d -> toricLinearSeries monomials d
 toricLinearSeries List := ToricLinearSeries => m -> (
     if #m == 0 then error "toricLinearSeries expects a nonempty list";
     d := degree m#0;
