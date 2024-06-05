@@ -10,7 +10,7 @@ newPackage(
     )
 
 export {
-    "palpVertices","getVerticesFromWS", "Degrees", "getWSFromDim"
+    "palpVertices","getVerticesFromWS", "getWSFromDim"
     }
 
 -- str = get "!poly.x -v -r << FOO
