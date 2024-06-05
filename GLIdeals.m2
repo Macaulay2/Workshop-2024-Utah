@@ -87,7 +87,7 @@ minimizeChi(List) := (chi) -> (
         i = i + 1;
     );
     return apply(minimals, P -> toList(P));
-)
+);
 
 
 numgensIChi = method(Options => {IsMinimal => false});
@@ -115,7 +115,7 @@ detLamda (Matrix, List) := (X,lam) -> (
 	C = C*determinant(submatrix(X,{0..conjlam_i - 1},{0..conjlam_i - 1}));
     );
     return C;
-)
+);
 detLamda (Matrix, Partition) := (X, P) -> (
 	return detLamda(X, toList P);
 );
@@ -226,7 +226,7 @@ naiveClosure (Matrix, Ideal) := opts -> (Y,I) ->(
 	if opts#Limit === false then
 		return (ideal mingens phi(II));
 	return (ideal mingens phi(II), success);
-)
+);
 
 
 
@@ -275,7 +275,7 @@ correctSymmetricAlgebraHelper(Matrix) := Y -> (
 	phi := map(S, R, flatten entries Y);
 
 	return (R, X, phi);
-)
+);
 
 idealToChi = method();
 idealToChi(Matrix, Ideal) := (Y, J) -> (
@@ -372,7 +372,7 @@ partitionsLeq(Partition, Partition) := (A, B) -> (
         if A#i > B#i then return false;
     );
     return true;
-)
+);
 
 Partition ? Partition := (A, B) -> (
     AleB := partitionsLeq(A, B);
@@ -381,11 +381,11 @@ Partition ? Partition := (A, B) -> (
     if AleB then return symbol <;
     if BleA then return symbol >;
     return symbol incomparable;
-)
+);
 
 Partition == Partition := (A, B) -> (
     return (A ? B) == (symbol ==);
-)
+);
 
 
 
