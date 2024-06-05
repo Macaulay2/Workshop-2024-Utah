@@ -18,8 +18,12 @@ PP1 = normalToricVariety (rayListPP1, coneListPP1)
 D0PP1 = toricDivisor ( { 0 , 0}, PP1)
 D1PP1 = toricDivisor ( {0 , 7} , PP1)
 testH7 = projectivizationOfBundle({D0PP1, D1PP1})
+H7 = hirzebruchSurface 7
+
 rays testH7
+rays H7
 max testH7
+max H7
 
 assert(isWellDefined testH7)
 assert(isSmooth testH7)
