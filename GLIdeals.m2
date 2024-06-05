@@ -13,7 +13,7 @@ newPackage(
 	Reload=>true
     	)
     
-export{"idealToChi", "naiveClosure","detLamda","randomLam","IsMinimal", "GLIdeal", "numgensGLIdeal"}
+export{"idealToChi", "naiveClosure","detLamda","randomLamda","IsMinimal", "GLIdeal", "numgensGLIdeal"}
 
 numgensILambda = method()
 numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
@@ -120,8 +120,8 @@ detLamda (Matrix, Partition) := (X, P) -> (
 	return detLamda(X, toList P);
 );
 
-randomLam = method();
-randomLam(ZZ, ZZ) := (n,k) -> (
+randomLamda = method();
+randomLamda(ZZ, ZZ) := (n,k) -> (
     L:=new MutableList from {};
     sumsofar := 0;
     for i from 0 to (n-2) do(
@@ -509,12 +509,12 @@ doc ///
 
 doc ///
     Key
-        randomLam
-        (randomLam, ZZ, ZZ)
+        randomLamda
+        (randomLamda, ZZ, ZZ)
     Headline
         generates a random partition of an integer
     Usage
-	randomLam(n, k)
+	randomLamda(n, k)
     Inputs
 	 n: ZZ
 	    the number of parts in the partition
@@ -527,7 +527,7 @@ doc ///
         Text
             This function generates a random partition of the integer k into at most n parts.
         Example
-            randomLam(4, 10)
+            randomLamda(4, 10)
 
 ///
 	
