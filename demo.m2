@@ -10,6 +10,26 @@ restart
 needsPackage "ToricExtras"
 
 -- linear series
+P2 = toricProjectiveSpace 2;
+D = 3 * P2_0; -- 3th Veronese Divisor of P2
+linSeries = toricLinearSeries D;
+monomials linSeries
+isComplete linSeries
+isBasepointFree linSeries
+f = toricMap linSeries;
+matrix f
+isWellDefined f
+ideal f == idealOfImage(linSeries, TargetRing => ring target f)
+
+P1 = toricProjectiveSpace 1;
+X = P1 ** P1;
+T = ring X;
+mons1 = {T_{0,2,2,0},T_{0,2,0,2},T_{2,0,0,2},T_{2,0,2,0}}
+linSeries1 = toricLinearSeries mons1;
+isComplete linSeries2
+isBasepointFree linSeries2
+g = toricMap linSeries2
+isWellDefined g
 
 
 -- projectivization of line bundles
