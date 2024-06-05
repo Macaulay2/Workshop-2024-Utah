@@ -64,7 +64,10 @@ newPackage(
 	},
         {
 	    Name => "Rohan Joshi",
-	    Email => "rohansjoshi@math.ucla.edu"}
+	    Email => "rohansjoshi@math.ucla.edu"},
+        {
+            Name => "Samikshaya Ananthakrishnan",
+            Email => "samikshaya@berkeley.edu"}
         },
 
     Headline => "new routines for working with normal toric varieties",
