@@ -12,13 +12,12 @@ needsPackage "ToricExtras"
 -- linear series
 
 
--- projectivation of line bundles
-
-rayListPP1 = {{1} , {-1}}
+-- projectivization of line bundles
+rayListPP1 = {{1}, {-1}}
 coneListPP1 = {{1}, {0}}
 PP1 = normalToricVariety (rayListPP1, coneListPP1)
-D0PP1 = toricDivisor ( { 0 , 0}, PP1)
-D1PP1 = toricDivisor ( {0 , 7} , PP1)
+D0PP1 = toricDivisor ({0, 0}, PP1)
+D1PP1 = toricDivisor ({0, 7} , PP1)
 testH7 = projectivizationOfBundle({D0PP1, D1PP1})
 isWellDefined testH7
 H7 = hirzebruchSurface 7
@@ -31,11 +30,11 @@ max H7
 isSmooth testH7
 isProjective testH7
 
-rayListPP2 = {{1 , 0}, {0 , 1}, {-1, -1}}
-coneListPP2 = {{0, 1}, {1, 2}, {2 , 0}}
+rayListPP2 = {{1, 0}, {0, 1}, {-1, -1}}
+coneListPP2 = {{0, 1}, {1, 2}, {2, 0}}
 PP2 = normalToricVariety (rayListPP2, coneListPP2)
-D0PP2 = toricDivisor ( { 9, 3 , 2}, PP2)
-D1PP2 = toricDivisor ( {1 , 4, 7} , PP2)
+D0PP2 = toricDivisor ({9, 3, 2}, PP2)
+D1PP2 = toricDivisor ({1, 4, 7}, PP2)
 Y = projectivizationOfBundle({D0PP2, D1PP2})
 isWellDefined Y
 rays Y
