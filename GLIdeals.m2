@@ -342,12 +342,12 @@ numgensGLIdeal(ZZ, ZZ, Partition) := opts -> (n, m, P) -> (
 	return numgensILambda(n, m, P);
 );
 numgensGLIdeal(Matrix, List) := opts -> (X, L) -> (
-	if char(ring X) != 0 then print "Matrix over positive characterstic -- answer might not be correct!"
+	if char(ring X) != 0 then print "Matrix over positive characterstic -- answer might not be correct!";
 	if IsPartition(L) then return numgensILambda(X, L);
 	return numgensIChi(X, L, opts);
 );
 numgensGLIdeal(Matrix, Partition) := opts -> (X, P) -> (
-	if char(ring X) != 0 then print "Matrix over positive characterstic -- answer might not be correct!"
+	if char(ring X) != 0 then print "Matrix over positive characterstic -- answer might not be correct!";
 	return numgensILambda(X, P);
 );
 
