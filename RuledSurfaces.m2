@@ -82,7 +82,7 @@ findGlobalGeneratorsOfTwist(CoherentSheaf) := E -> (
 )
 
 checkSurjectivityOnH0 = method()
-checkSurjectivityOnH0(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> checkSurjectivityOnH0(PE, divisorToLineBundle L, m)
+checkSurjectivityOnH0(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> checkSurjectivityOnH0(PE, divisorToLineBundle D, m)
 checkSurjectivityOnH0(ProjectiveBundle, CoherentSheaf, ZZ) := (PE, L, m) -> (
     q := last findGlobalGeneratorsOfTwist sheaf PE;
     --TODO: erase the first line below once symmetric powers work better
