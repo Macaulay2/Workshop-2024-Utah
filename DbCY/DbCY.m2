@@ -63,6 +63,10 @@ orlovTruncateGeqDualize(Module, ZZ) := (M, i) -> (
     Fidual := dual Fi;
     canonicalTruncation(Fidual, -supTruncate(M, i) -1, )
 )
+
+-- Input: a Complex C given by a finitely generated module concentrated in a single homological degree, and an integer i
+-- Output: a smart truncation of the dual of orlovTruncationGeq(F, i) that is quasi-isomorphic to
+--         the complex orlovTruncationGeq(F, i), where F is the (typically infinite) minimal free resolution of M.
 orlovTruncateGeqDualize(Complex, ZZ) := (C, i) -> (
     F := resolution(C, LengthLimit => supTruncate(C, i) + 2);
     Fi := orlovTruncateGeq(F, i);
@@ -149,7 +153,7 @@ singularityToDerived(Matrix, ZZ, ZZ) := (f, i, j) -> (
     d := dim R;
     kk := coker vars R;
     if (flatten degrees prune Ext^d(kk, R^1))_0 > 0 then error "The Gorenstein parameter is negative.";
-    if depth(target f) < d or depth(source f) < d then error "Not a map of MCM modules.";
+    if depth(target f) < d or depth(source f) < d then error "Either source or target is not MCM.";
     g := resolution(orlovTruncateGeqDualize(f, i), LengthLimit => j);
     gdual := dual g;
     sheaf orlovTruncateLess(gdual, i)
@@ -212,7 +216,8 @@ prune HH_3(o8) == 0
 
 
 --DEMO
---Joint with Souvik Dey, Geoffrey Fatin, Alicia Lamarche, Guanyu Li, Mahrud Sayrafi, Tim Tribone, and Rachel Webb
+--Michael Brown, Souvik Dey, Geoffrey Fatin, Alicia Lamarche,
+--Guanyu Li, Mahrud Sayrafi, Tim Tribone, and Rachel Webb
 restart
 load "DbCY.m2"
 S = ZZ/101[x_0..x_4]
@@ -220,14 +225,16 @@ f = sum for i from 0 to 4 list x_i^5
 R = S / ideal(f) --affine cone of the quintic
 kk = coker vars R --the residue field of R
 F = singularityToDerived(kk, 0, 7)
---This is \Phi(kk) before sheafifying. The complex has infinite length; it is unbounded on the right.
+--This is \Phi(kk) before sheafifying.
+--The complex has infinite length; it is unbounded on the right.
 --The tail is a matrix factorization.
 X = Proj(R)
 Ftilde = sheaf F
 --This is \Phi(kk).
 --What is the homology of this complex?
-prune HH Ftilde
+naiveTruncation(prune HH Ftilde, -1, 3)
 --Thus, \Phi(kk) = O_X[-3].
+--(We're getting the shift by -3 because dim X = 3.)
 
---Future work: implement the functor going the opposite direction.
+--Future work: implement the functor going the other direction.
 
