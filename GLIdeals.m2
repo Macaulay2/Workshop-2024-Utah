@@ -13,7 +13,7 @@ newPackage(
 	Reload=>true
     	)
     
-export{"idealToChi", "naiveClosure","detLam","randomLam","IsMinimal", "GLIdeal", "numgensGLIdeal"}
+export{"idealToChi", "naiveClosure","detLamda","randomLam","IsMinimal", "GLIdeal", "numgensGLIdeal"}
 
 numgensILambda = method()
 numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
@@ -107,8 +107,8 @@ numgensIChi(Matrix, List) := opts->(X, chi) -> (
 );
 
 
-detLam = method()
-detLam (Matrix, List) := (X,lam) -> (
+detLamda = method()
+detLamda (Matrix, List) := (X,lam) -> (
 	conjlam := toList conjugate( new Partition from (rsort lam));
     C := 1;
     for i from 0 to #conjlam-1 do(
@@ -116,8 +116,8 @@ detLam (Matrix, List) := (X,lam) -> (
     );
     return C;
 )
-detLam (Matrix, Partition) := (X, P) -> (
-	return detLam(X, toList P);
+detLamda (Matrix, Partition) := (X, P) -> (
+	return detLamda(X, toList P);
 );
 
 randomLam = method();
@@ -139,7 +139,7 @@ idealILambda = method(Options => {MaximalRank => true});
 idealILambda(Matrix,List) := opts -> (X,lam) -> (
     kk:=baseRing ring X; 
     if char kk !=0 then(
-		I := ideal(detLam(X,lam));
+		I := ideal(detLamda(X,lam));
 		return naiveClosure(X,I,MaximalRank => opts#MaximalRank);
 	);
 
@@ -300,7 +300,7 @@ idealToChi(Matrix, Ideal) := (Y, J) -> (
 	possiblePartitions := apply(goodDegrees, deg -> take(deg, n));
 	possiblePartitions = apply(possiblePartitions, P -> delete(0, P));
 
-	return select(possiblePartitions, P -> (detLam(X, P) % I == 0));
+	return select(possiblePartitions, P -> (detLamda(X, P) % I == 0));
 );
 
 IsPartition = method();
@@ -483,12 +483,12 @@ doc ///
 
 doc ///
     Key
-        detLam
-        (detLam, Matrix, List)
+        detLamda
+        (detLamda, Matrix, List)
     Headline
         computes the product of determinants of specific submatrices
     Usage
-	detLam(X, lam)
+	detLamda(X, lam)
     Inputs
 	 X: Matrix
 	    a matrix with dimensions r x c
@@ -504,7 +504,7 @@ doc ///
             S=QQ[x_(1,1)..x_(3,5)];
             X=transpose genericMatrix(S,5,3)
             L={3,2}
-            detLam(X,L)
+            detLamda(X,L)
 ///
 
 doc ///
