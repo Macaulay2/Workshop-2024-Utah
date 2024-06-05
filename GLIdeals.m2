@@ -197,6 +197,7 @@ idealIChi(ZZ, ZZ, List) := opts -> (n, m, chi) -> (
 
 naiveClosure = method(Options => {MaximalRank => true, Limit => false});
 naiveClosure (Matrix, Ideal) := opts -> (Y,I) ->( 
+	isMatrixOfCorrectFormat(Y);
     (R,X,phi):=correctSymmetricAlgebraHelper(Y);
     kk:=baseRing ring Y;
 	myRand := n -> random(kk^n,kk^n,MaximalRank=>opts#MaximalRank);
@@ -280,7 +281,7 @@ idealToChi = method();
 idealToChi(Matrix, Ideal) := (Y, J) -> (
 	-- J is an ideal
 	-- return the list of partitions chi such that J = idealIChi(Y, chi)
-
+	isMatrixOfCorrectFormat(Y);
 	n := numRows Y;
 	m := numColumns Y;
 	(R, X, phi) := correctSymmetricAlgebraHelper(Y);
@@ -323,10 +324,12 @@ GLIdeal(ZZ, ZZ, Partition) := opts -> (n, m, P) -> (
 	return idealILambda(n, m, P, MaximalRank => opts#MaximalRank);
 );
 GLIdeal(Matrix, List) := opts -> (X, L) -> (
+	isMatrixOfCorrectFormat(X);
 	if IsPartition(L) then return idealILambda(X, L, MaximalRank => opts#MaximalRank);
 	return idealIChi(X, L, opts);
 );
 GLIdeal(Matrix, Partition) := opts -> (X, P) -> (
+	isMatrixOfCorrectFormat(X);
 	return idealILambda(X, P, MaximalRank => opts#MaximalRank);
 );
 
