@@ -431,10 +431,10 @@ doc ///
 	    a list of partitions, which are the minimal elements of the input list
     Description
         Text
-	    This function takes a list of partitions and returns the minimal elements of that list.
-	Example
-	    Chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
-	    minimizeChi(chi)
+            This function takes a list of partitions and returns the minimal elements of that list.
+        Example
+            Chi = {{3,2,1}, {3,1,1}, {2,2,2}, {1,1,1}}
+            minimizeChi(Chi)
 ///
 
 doc ///
@@ -455,12 +455,12 @@ doc ///
 	    the total number of generators for the I_Chi ideals
     Description
         Text
-	    This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals.
+            This function takes a matrix X and a list of partitions chi and computes the total number of generators for the I_Chi ideals.
         Example
-	    S=QQ[x_(1,1)..x_(3,5)];
-	    X=transpose genericMatrix(S,5,3)
-	    L=apply(partitions(3), toList)
-	    numgensIChi(X,L)
+            S=QQ[x_(1,1)..x_(3,5)];
+            X=transpose genericMatrix(S,5,3)
+            L=apply(partitions(3), toList)
+            numgensIChi(X,L)
 ///
 
 
@@ -482,7 +482,7 @@ doc ///
 	    the product of the determinants of the specified submatrices
     Description
         Text
-	    This function takes a matrix X and a list of integers lam.
+            This function takes a matrix X and a list of integers lam.
 
 ///
 
@@ -504,9 +504,9 @@ doc ///
 	    a list representing a partition of the integer k into at most n parts
     Description
         Text
-	    This function generates a random partition of the integer k into at most n parts.
-	Example
-	    randomLam(4, 10)
+            This function generates a random partition of the integer k into at most n parts.
+        Example
+            randomLam(4, 10)
 
 ///
 	
@@ -550,7 +550,7 @@ doc ///
 	    the sum of the I_Lambda ideals for the given partitions
     Description
         Text
-	    This function constructs the sum of I_Lambda ideals for a given matrix X and a list of partitions chi.
+            This function constructs the sum of I_Lambda ideals for a given matrix X and a list of partitions chi.
 ///
 
 doc ///
@@ -572,7 +572,7 @@ doc ///
     Description
         Text
             This function computes the naive closure of the given ideal I under the action of the matrix Y.
-	    The process involves repeatedly applying random maximal rank matrices to transform the ideal until it stabilizes.
+            The process involves repeatedly applying random maximal rank matrices to transform the ideal until it stabilizes.
         Example
             naiveClosure(Y, I)
 
@@ -599,7 +599,7 @@ doc ///
     Description
         Text
             This function checks if a given list of integers L is a good degree for dimensions n and m.
-	    A list is considered a good degree if it can be split into two parts, each forming a weakly decreasing sequence, and these sequences are equal after removing trailing zeros.
+            A list is considered a good degree if it can be split into two parts, each forming a weakly decreasing sequence, and these sequences are equal after removing trailing zeros.
         Example
             goodDegree(3, 3, {3, 2, 1, 3, 2, 1}) 
             goodDegree(3, 3, {3, 2, 1, 3, 2, 0})
@@ -674,12 +674,12 @@ doc ///
 	    true if partition A is less than or equal to partition B, false otherwise
     Description
         Text
-	    This function checks if one partition A is less than or equal to another partition B in the dominance order.
-	Example
-	    A = {3, 2, 1}
-	    B = {4, 2, 1}
-	    partitionsLeq(A, B)
-	    partitionsLeq(B, A)
+            This function checks if one partition A is less than or equal to another partition B in the dominance order.
+        Example
+            A = {3, 2, 1}
+            B = {4, 2, 1}
+            partitionsLeq(A, B)
+            partitionsLeq(B, A)
   
 ///
 
