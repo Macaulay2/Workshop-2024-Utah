@@ -13,7 +13,7 @@ newPackage(
 	Reload=>true
     	)
     
-export{"idealILambda","numgensILambda", "idealToChi", "naiveClosure","detLam","randomLam","IsMinimal", "GLIdeal", "numgensGLIdeal"}
+export{"idealToChi", "naiveClosure","detLam","randomLam","IsMinimal", "GLIdeal", "numgensGLIdeal"}
 
 numgensILambda = method()
 numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
