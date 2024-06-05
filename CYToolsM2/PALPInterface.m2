@@ -10,7 +10,7 @@ newPackage(
     )
 
 export {
-    "palpVertices","getVerticesFromWS", "Drange", "getWSFromDim"
+    "palpVertices","getVerticesFromWS", "Degrees", "getWSFromDim"
     }
 
 -- str = get "!poly.x -v -r << FOO
@@ -53,17 +53,17 @@ getVerticesFromWS List := Matrix => wlist ->(
 
 getVerticesFromWS({10,1,2,3,4})
 
-getWSFromDim = method(Options => {Drange => null})
+getWSFromDim = method(Options => {Degrees => null})
 
 getWSFromDim ZZ := List => opts -> d -> (
-    drange := opts.Drange;
+    drange := opts.Degrees;
     str0 := toString(d);
-    str1 := if opts.Drange === null then "!cws.x -w"|str0
+    str1 := if opts.Degrees === null then "!cws.x -w"|str0
     else "!cws.x -w"|str0|" "|toString(drange_0)|" "|toString(drange_1);
 
     PALPOutput := get str1;
     L := lines PALPOutput;
-    L1 := if opts.Drange === null then L else drop(L,-1);
+    L1 := if opts.Degrees === null then L else drop(L,-1);
     M := for ell in L1 list(
 	L0 := separate(" +",ell);
 	L0Mod := take(L0, {0,d+1});
