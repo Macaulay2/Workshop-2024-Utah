@@ -532,7 +532,7 @@ doc ///
 	    the I_Lambda ideal generated from the matrix and partition
     Description
         Text
-	    This function constructs the I_Lambda ideal for a given matrix X and a partition lam.
+            This function constructs the I_Lambda ideal for a given matrix X and a partition lam.
 
 ///
 
