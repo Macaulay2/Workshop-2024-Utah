@@ -152,7 +152,7 @@ singularityToDerived(Matrix, ZZ, ZZ) := (f, i, j) -> (
     if depth(target f) < d or depth(source f) < d then error "Not a map of MCM modules.";
     g := resolution(orlovTruncateGeqDualize(f, i), LengthLimit => j);
     gdual := dual g;
-    orlovTruncateLess(gdual, i)
+    sheaf orlovTruncateLess(gdual, i)
 )
 
 end;
@@ -220,16 +220,13 @@ f = sum for i from 0 to 4 list x_i^5
 R = S / ideal(f) --affine cone of the quintic
 kk = coker vars R --the residue field of R
 F = singularityToDerived(kk, 0, 7)
---This computes \Phi(kk) (up to sheafification).
---We will eventually interface with "Varieties" package to implement the associated complex of sheaves.
---The complex \Phi(kk) has infinite length; it is unbounded on the right. We take a length 7 approximation here.
+--This is \Phi(kk) before sheafifying. The complex has infinite length; it is unbounded on the right.
 --The tail is a matrix factorization.
-
+X = Proj(R)
+Ftilde = sheaf F
+--This is \Phi(kk).
 --What is the homology of this complex?
-homologies = for i from 0 to 3 list prune HH_i F
---Let's sheafify these:
-sheaf HH_0 F == 0
-sheaf prune HH_3 F
+prune HH Ftilde
 --Thus, \Phi(kk) = O_X[-3].
 
 --Future work: implement the functor going the opposite direction.
