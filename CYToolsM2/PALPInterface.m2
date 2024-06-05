@@ -6,7 +6,7 @@ newPackage(
     Authors => {{ Name => "", Email => "", HomePage => ""}},
     AuxiliaryFiles => false,
     DebuggingMode => true,
-    PackageImports => {"ReflexivePolytopesDB"}
+    PackageImports => {"ReflexivePolytopesDB", "Polyhedra"}
     )
 
 export {
