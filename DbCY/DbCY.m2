@@ -212,7 +212,7 @@ prune HH_3(o8) == 0
 
 
 --DEMO
---Joint with Souvik Dey, Geoffrey Fatin, Alicia Lamarche, Guanyu Li, Mahrud Sayrafi, Tim Tribone, Rachel Webb
+--Joint with Souvik Dey, Geoffrey Fatin, Alicia Lamarche, Guanyu Li, Mahrud Sayrafi, Tim Tribone, and Rachel Webb
 restart
 load "DbCY.m2"
 S = ZZ/101[x_0..x_4]
