@@ -75,6 +75,7 @@ findGlobalGeneratorsOfTwist = method()
 findGlobalGeneratorsOfTwist(ProjectiveBundle) := PE -> if not PE.?generators then PE.generators = findGlobalGeneratorsOfTwist(sheaf PE)
 findGlobalGeneratorsOfTwist(CoherentSheaf) := E -> (
     i := regularity module E;
+    --TODO: should we also check that this map induces a surjection on H^0?
     while sheaf coker basis(i, module E) == 0 do i = i - 1;
     (i + 1, sheaf basis(i + 1, module E))
 )
@@ -137,7 +138,7 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
         preimD := divisor sub(preimage_phi sub(ideal D, T), T');
         --the mapping divisor below corresponds to "basis({m,m/deg D *a + m},T')
         --the if statement is a kludge to handle the case where no monomials for D should appear
-        mappingDivisor := -a * preimDa + preimD + m * divisor(T'_0);
+        mappingDivisor := -preimDa + preimD + m * divisor(T'_0);
         Proj quotient ker mapToProjectiveSpace mappingDivisor)
 )
 
