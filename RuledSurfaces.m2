@@ -32,7 +32,8 @@ export {
     "imageOfLinearSeries",
     "sectionFromLineBundleQuotient",
     "isMultipleOf",
-    "minimalEmbedding"
+    "minimalEmbedding",
+    "checkSurjectivityOnH0",
 }
 
 protect symbol Bound
@@ -80,6 +81,16 @@ findGlobalGeneratorsOfTwist(CoherentSheaf) := E -> (
     (i + 1, sheaf basis(i + 1, module E))
 )
 
+checkSurjectivityOnH0 = method()
+checkSurjectivityOnH0(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> checkSurjectivityOnH0(PE, divisorToLineBundle L, m)
+checkSurjectivityOnH0(ProjectiveBundle, CoherentSheaf, ZZ) := (PE, L, m) -> (
+    q := last findGlobalGeneratorsOfTwist sheaf PE;
+    --TODO: erase the first line below once symmetric powers work better
+    if m == 1 then isSurjective HH^0(q ** L) else 
+    isSurjective HH^0(symmetricPower(m, q) ** L)
+)
+
+
 multiProjEmbedding = method()
 multiProjEmbedding(ProjectiveBundle) := PE -> multiProjEmbedding(sheaf PE)
 multiProjEmbedding(CoherentSheaf) := E -> (
@@ -117,6 +128,7 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
     a := generatingDegree PE;
     X := variety PE;
     xx := (ring X)_0;
+    --if D divides OO_X(ma), returns OO_X(ma)/D
     multipleFlag := isMultipleOf(OO_X(m * a), divisorToLineBundle(D));
     E := sheaf PE;
     T := multiProjEmbedding(E);
@@ -125,8 +137,9 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
     --phi is phiD x id_P^r
     phi := map(T, SD monoid T, vars T | matrix phiD);
     T' := prune quotient ker phi;
-    if instance(multipleFlag, ZZ) then (
-        --I think the below line is a bit wrong... try it with E = nonsplit rank 2 on elliptic curve
+    --if instance(multipleFlag, ZZ) then (
+    if false then (
+        --I think the below line is wrong... 
         B := basis({m, 1 - multipleFlag}, T');
         b := rank source B;
         t := symbol t;
@@ -148,7 +161,7 @@ minimalEmbedding(CoherentSheaf)    := E -> minimalEmbedding projectiveBundle E
 minimalEmbedding(ProjectiveBundle) := PE -> (
     findGlobalGeneratorsOfTwist PE;
     a := generatingDegree PE;
-    imageOfLinearSeries(PE,OO_(variety PE)(a+1),1)
+    imageOfLinearSeries(PE, OO_(variety PE)(a + 1), 1)
 )
 
 --checks whether L2 divides L1, i.e., if L1 is L2^n for some n

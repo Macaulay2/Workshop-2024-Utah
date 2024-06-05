@@ -12,7 +12,7 @@ TEST ///
     loadPackage "Divisor"
     loadPackage "RuledSurfaces"
 
-    S = (ZZ/2)[x,y,z]
+    S = (ZZ/7)[x,y,z]
     I = ideal(x^3+y^3+z^3)
     R = S/I
     X = Proj R
@@ -40,11 +40,17 @@ TEST ///
     P1 = Proj ZZ/17[x,y]
     E = OO_P1^2
     E' = E(-1)
+    E'' = E(-2)
     PE = projectiveBundle E
     PE' = projectiveBundle E'
+    PE'' = projectiveBundle E''
+    imageOfLinearSeries(PE'', OO_P1(2),1)
+    imageOfLinearSeries(PE'', OO_P1(1),1)
     assert instance(try imageOfLinearSeries(PE, OO_P2(1), 1), Nothing)
-    imageOfLinearSeries(PE,OO_P1(1),1)
-    imageOfLinearSeries(PE',OO_P1(2),1)
+    imageOfLinearSeries(PE, OO_P1(1),1)
+    imageOfLinearSeries(PE', OO_P1(2),1)
+    imageOfLinearSeries(PE', OO_P1(1),1)
+    imageOfLinearSeries(PE'', OO_P1(2),1)
     q0=E^{0}
     q1=E^{1}
     
