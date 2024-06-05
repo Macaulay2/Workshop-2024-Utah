@@ -80,8 +80,9 @@ numberField(RingElement) := opts -> f1 -> (
 numberField(Ring) := opts -> R1 -> (
     if R1===QQ then return new NumberField from {
             ring => R1, 
-            pushFwd => pushFwd(map(QQ,QQ)),
-            cache => new CacheTable from {}
+            pushFwd => pushFwd(map(QQ[],QQ)),
+            cache => new CacheTable from {},
+            String => "QQ, rational numbers"
         };
     
     if not isPrime (ideal 0_R1) then error("Expected a field.");
