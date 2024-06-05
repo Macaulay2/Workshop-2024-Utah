@@ -21,6 +21,7 @@ numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
 	-- n, m are integers specifying the dimensions for GL_n x GL_m
 	-- return the dimension of I_lam in the |lam|-th degree
 
+	lam = rsort lam; -- make it weakly decreasing
 	myHookLength := P -> (
 		-- compute prod (P_i - P_j + j - i) / (j - i) for all i < j
 		num := 1;
@@ -91,10 +92,9 @@ minimizeChi(List) := (chi) -> (
 
 numgensIChi = method(Options => {IsMinimal => false});
 numgensIChi(ZZ,ZZ, List) := opts->(n,m, chi) -> (
-
  	-- chi is a list of partitions
  	-- return sum numgensILambda(chi_i) for all i
-	c := chi;
+	c := apply(chi, rsort); -- make each element weakly decreasing
 	if not (opts#IsMinimal) then c = minimizeChi(chi);
 	s := 0;
 	for lam in c do(
@@ -109,12 +109,12 @@ numgensIChi(Matrix, List) := opts->(X, chi) -> (
 
 detLam = method()
 detLam (Matrix, List) := (X,lam) -> (
-	conjlam := toList conjugate( new Partition from lam);
+	conjlam := toList conjugate( new Partition from (rsort lam));
     C := 1;
     for i from 0 to #conjlam-1 do(
 	C = C*determinant(submatrix(X,{0..conjlam_i - 1},{0..conjlam_i - 1}));
     );
-    return C 
+    return C;
 )
 detLam (Matrix, Partition) := (X, P) -> (
 	return detLam(X, toList P);
@@ -132,18 +132,18 @@ randomLam(ZZ, ZZ) := (n,k) -> (
     L#(n-1) = k - sumsofar;
     L=toList L;
     L=rsort L;
-    return delete(0,L)
-    )
+    return delete(0,L);
+);
 
 idealILambda = method(Options => {MaximalRank => true});
 idealILambda(Matrix,List) := opts -> (X,lam) -> (
     kk:=baseRing ring X; 
     if char kk !=0 then(
-		I := ideal(detLam(X,lam);
+		I := ideal(detLam(X,lam));
 		return naiveClosure(X,I,MaximalRank => opts#MaximalRank);
-		);
 	);
 
+	lam = rsort lam; -- make it weakly decreasing
     n:=rank target X;
     m:=rank source X;
     conjlam := toList conjugate( new Partition from lam);
@@ -181,7 +181,7 @@ idealIChi(Matrix,List) := opts -> (X,chi) -> (
 	-- chi is a list of partitions
 	-- return sum of ideals idealILambda(X, chi_i) for all i
 	if #chi == 0 then return ideal(0_(ring X));
-	c := chi;
+	c := apply(chi, rsort); -- make each element weakly decreasing
 	if not (opts#IsMinimal) then c = minimizeChi(chi);
 	I := idealILambda(X, c#0, MaximalRank => opts#MaximalRank);
 	for i in 1..#c-1 do(
@@ -308,6 +308,7 @@ IsPartition(List) := (L) -> (
 	-- return if L is a partition (either as a List or a Partition) or a list of partitions
 	-- {} returns false
 	-- (new Partition from {}) returns true
+	-- DOESN'T CHECK IF THE PARTITION IS WEAKLY DECREASING
 	if class(L) === Partition then return true;
 	if #L == 0 then return false;
 	return class(L#0) === ZZ;
