@@ -26,9 +26,9 @@ X = P1 ** P1;
 T = ring X;
 mons1 = {T_{0,2,2,0},T_{0,2,0,2},T_{2,0,0,2},T_{2,0,2,0}}
 linSeries1 = toricLinearSeries mons1;
-isComplete linSeries2
-isBasepointFree linSeries2
-g = toricMap linSeries2
+isComplete linSeries1
+isBasepointFree linSeries1
+g = toricMap linSeries1
 isWellDefined g
 
 
