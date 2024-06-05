@@ -212,6 +212,7 @@ prune HH_3(o8) == 0
 
 
 --DEMO
+--Joint with Souvik Dey, Geoffrey Fatin, Alicia Lamarche, Guanyu Li, Mahrud Sayrafi, Tim Tribone, Rachel Webb
 restart
 load "DbCY.m2"
 S = ZZ/101[x_0..x_4]
@@ -229,7 +230,7 @@ homologies = for i from 0 to 3 list prune HH_i F
 --Let's sheafify these:
 sheaf HH_0 F == 0
 sheaf prune HH_3 F
---Thus, \Phi_0(kk) = O_X[-3].
+--Thus, \Phi(kk) = O_X[-3].
 
 --Future work: implement the functor going the opposite direction.
 
