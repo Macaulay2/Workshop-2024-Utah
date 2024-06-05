@@ -15,7 +15,7 @@ newPackage(
     
 export{"idealILambda","numgensILambda", "idealToChi", "naiveClosure","detLam","randomLam","IsMinimal", "GLIdeal", "numgensGLIdeal"}
 
-numgensILambda = method() -- TODO: Make it accept Partitions as well
+numgensILambda = method()
 numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
 	-- lam is a parition
 	-- n, m are integers specifying the dimensions for GL_n x GL_m
@@ -50,14 +50,14 @@ numgensILambda(ZZ, ZZ, List) := (n, m, lam) -> (
 );
 numgensILambda(ZZ,ZZ,Partition) := (n,m,P)->(
     return numgensILambda(n,m,toList P);
-    )
+);
     
 numgensILambda(Matrix, List) := (X, lam) -> (
 	return numgensILambda(numRows X, numColumns X, lam);
 );
 numgensILambda(Matrix,Partition):=(X,P)->(
     return numgensILambda(X,toList P);
-    )
+);
 
 minimizeChi = method();
 minimizeChi(List) := (chi) -> (
@@ -116,7 +116,9 @@ detLam (Matrix, List) := (X,lam) -> (
     );
     return C 
 )
-
+detLam (Matrix, Partition) := (X, P) -> (
+	return detLam(X, toList P);
+);
 
 randomLam = method();
 randomLam(ZZ, ZZ) := (n,k) -> (
