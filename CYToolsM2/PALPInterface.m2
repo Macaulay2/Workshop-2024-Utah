@@ -6,11 +6,13 @@ newPackage(
     Authors => {{ Name => "", Email => "", HomePage => ""}},
     AuxiliaryFiles => false,
     DebuggingMode => true,
-    PackageImports => {"ReflexivePolytopesDB", "Polyhedra"}
+    PackageImports => {"ReflexivePolytopesDB", "Polyhedra", "NormalToricVarieties"}
     )
 
 export {
-    "palpVertices","getVerticesFromWS", "getWSFromDim"
+    "palpVertices","getVerticesFromWS", "getWSFromDim",
+    "stringToList", "linesToMatrix", "matrixToLines", 
+    "getPartitionInfo", "readPartitions", "formDivisor"
     }
 
 -- str = get "!poly.x -v -r << FOO
@@ -86,7 +88,7 @@ stringToList String := List => stemp -> (
     L0 := separate(" +", stemp);
     (for x in L0 list if x!="" then value x else continue)
 )
-testwm8x5dw = stringToList("8 5")
+-- testwm8x5dw = stringToList("8 5")
 
 
 linesToMatrix = method()
@@ -101,30 +103,109 @@ linesToMatrix String := Matrix => stemp -> (
     matrix M
 )
 
-testwm8x5 = linesToMatrix(
-"
--1 0 0 0 0
-0 -1 0 0 0
-0 0 -1 0 0
-0 0 0 -1 0
-0 0 0 0 1
-0 0 0 0 -1
-0 0 0 1 -1
-1 1 1 0 -3
-"
+
+
+
+matrixToLines = method()
+matrixToLines List := String => ll -> (
+-- matrixToLines := ll -> (
+    res := "";
+    for ell in ll do (
+        respart := "\n";
+        for x in ell do respart = respart|toString(x)|" ";
+        -- << "eachline: " << respart << " \n";
+        res = res|respart;
+    );
+    res
+);
+
+
+
+getPartitionInfo = method()
+getPartitionInfo (ZZ, ZZ, ZZ) := String => (dimen, indexing, cod) -> (
+    V := smoothFanoToricVariety(dimen, indexing);
+    -- << rays V;
+    -- << # (rays V);
+    -- << dim V;
+    nrowcol := toString(# (rays V))|" "|toString(dim V);
+    -- << cod << " \n";
+    entrylines := matrixToLines(rays V);
+
+
+    -- cod, nrowcol, entrylines
+    commp1 := "!nef.x -N -c"|cod|" -p << FOO\n";
+    commp3 := "\nFOO\n";
+    -- << commp1|nrowcol|entrylines|commp3;
+    test := get (commp1|nrowcol|entrylines|commp3);
+    -- << "result: ";
+    -- << test;
+
+    test
 )
 
+readPartitions = (output1) -> (
+    reg1 := "P:[0-9 ]+V:([0-9 ]+ {1})";
+    for thisline in (lines output1) list(
+        -- reg1 = "M:(.*)N(.*)codim(.*)part*";
+        
+        -- (for x in L0 list if x!="" then value x else continue)
+        regres := regex(reg1, thisline);
+        -- << "start: " << thisline;
+        -- << "reg: ";
+        -- << thisline;
+        -- << "\n";
+        -- -- if not (regres === null) then << regres;
+        -- << regex(reg1, thisline);
+        -- << "\n";
+        -- << "\n";
+        -- << output1_(219, 4);
+        if not (regres === null) then (
+            << thisline << " " << thisline_(regres_1) <<"\n";
+            -- for eachparti in thisline_(regres_1) list (regex("^[0-9]$", eachparti))
+            stringToList(thisline_(regres_1))
+        )
+        else continue
+    )
+)
 
+formDivisor = (V, partlist) -> (
+    raylist := rays V;
+    -- << # raylist;
+    -- -- << raylist_0;
+    -- << raylist;
+    -- << "\n";
+    -- << partlist;
+    -- << "\n";
+    fulllist := toList (0..(# raylist - 1));
+    partlist = reverse partlist;
+    complist := fulllist;
 
---getNOfPartitions = method()
-
---getNOfPartitions := w -> (
+    for thispart in partlist do complist = drop(complist, {thispart, thispart});
+    -- << complist;
+    D1list := for thispart in partlist list (V_thispart);
+    -- << "D1list: " << for thispart in partlist list ("V_"|toString(thispart));
+    D1 := sum(D1list);
+    -- << D1;
     
---)
+    D2list := for thispart in complist list (V_thispart);
+    -- << "D2list: " << for thispart in complist list ("V_"|toString(thispart));
+    D2 := sum(D2list);
+    -- << D2;
 
---getNOfPartitions(2, testwm8x5dw, testwm8x5)
+    -- << isNef(D1);
+    -- << isNef(D2);
+    if not isNef(D1) then (<< "D1 false");
+    if not isNef(D2) then (<< "D2 false");
+    (D1, D2)
+    -- completeIntersection(V, {D1, D2})
+
+    -- test5 = (for thispart in partlist list drop(fulllist, {thispart, thispart}));
+    -- test5
+    -- complist = 
+    -- for thispart in partlist do << thispart;
 
 
+)
 
 
 
@@ -436,3 +517,23 @@ integral(h^3)
 integral((chern_2 tangentBundle Xa) * h)
 
 
+
+
+
+---------- nef-partitions ---------
+restart
+needsPackage "PALPInterface"
+needsPackage "StringTorics"
+needsPackage "NormalToricVarieties"
+
+testinfo = getPartitionInfo(5, 6, 2)
+Y = smoothFanoToricVariety(5, 6)
+testPartitionList = readPartitions(testinfo)
+-- (testD1, testD2) = formDivisor(smoothFanoToricVariety(5, 6), {4, 6, 7})
+divisorsList = for thispartcomb in testPartitionList list (
+    (testD1, testD2) = formDivisor(Y, thispartcomb)
+)
+
+-- X = completeIntersection(testV, {D1, D2});
+X = completeIntersection(Y, toList divisorsList_0);
+hodgeDiamond X
