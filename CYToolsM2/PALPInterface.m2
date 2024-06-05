@@ -37,7 +37,10 @@ executableDir = "/Users/frenly/Desktop/palp-2.21/";
 
 getVerticesFromWS = method()
 
-getVerticesFromWS String := Matrix => w -> (
+getVerticesFromWS List := Matrix => wlist ->(
+    w1 := for i in wlist list(toString(i)|" ");
+    w := concatenate(drop(w1,-1),toString(wlist_(-1)));
+    
     str1 := "!poly.x -v -r << FOO\n";
     str2 := "\nFOO\n";
     str3 := str1|w|str2;
@@ -50,28 +53,29 @@ getVerticesFromWS String := Matrix => w -> (
         );
     matrix M)
 
+getVerticesFromWS({10,1,2,3,4})
+
 getWSFromDim = method(Options => {Drange => null})
 
 getWSFromDim ZZ := List => opts -> d -> (
     drange := opts.Drange;
     str0 := toString(d);
-    str1 := toString(drange_0);
-    str2 := toString(drange_1);
-    str3 := if opts.Drange === null then "!cws.x -w"|str0
-    else "!cws.x -w"|str0|" "|str1|" "|str2;
+    str1 := if opts.Drange === null then "!cws.x -w"|str0
+    else "!cws.x -w"|str0|" "|toString(drange_0)|" "|toString(drange_1);
 
-    PALPOutput := get str3;
+    PALPOutput := get str1;
     L := lines PALPOutput;
-    M := for ell in L list(
+    L1 := if opts.Drange === null then L else drop(L,-1);
+    M := for ell in L1 list(
 	L0 := separate(" +",ell);
 	L0Mod := take(L0, {0,d+1});
 	for x in L0Mod list value x
 	)
     )
-///
-getWSFromDim(3,Drange => {5,8})
-///
 
+///
+getWSFromDim(3)
+///
 
 --matrix oo
 --getVerticesFromWS "10 1 2 3 4"
