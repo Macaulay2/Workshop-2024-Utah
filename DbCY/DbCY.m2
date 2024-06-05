@@ -82,6 +82,13 @@ orlovTruncateGeqDualize(Matrix, ZZ) := (f, i) -> (
     canonicalTruncation(gidual, -s - 1)--this function doesn't exist for ComplexMaps yet.
 )
 
+sup = method();
+sup(Complex) := (C) -> (
+    for i from -max C to -min C -1 do (
+	if prune HH_(-i)(C) != 0 then return -i
+	);
+    )
+
 singularityToDerived = method();
 --Input: a finitely generated module M over a graded Gorenstein ring with nonnegative Gorenstein parameter, and integers i and j.
 --       We recall that the Gorenstein parameter is the integer a such that Ext^d_R(k, R) = k(-a) (up to a homological
@@ -106,6 +113,11 @@ singularityToDerived(Module, ZZ, ZZ) := (M, i, j) -> (
     Gdual := dual G;
     orlovTruncateLess(Gdual, i)
 )
+
+--Input: a bounded Complex C of finitely generated modules as in the above function, and i and j as in the above function.
+--Output: \Phi_i(C), where \Phi_i(C) is as described in the previous function, with tail brutally truncated so that
+--	  it has length j.
+--WARNING: This function needs more testing. It may not work. 
 singularityToDerived(Complex, ZZ, ZZ) := (C, i, j) -> (
     R := ring C;
     d := dim R;
@@ -121,12 +133,6 @@ singularityToDerived(Complex, ZZ, ZZ) := (C, i, j) -> (
     orlovTruncateLess(Gdual, i)
 )
 
-sup = method();
-sup(Complex) := (C) -> (
-    for i from -max C to -min C -1 do (
-	if prune HH_(-i)(C) != 0 then return -i
-	);
-    )
 -- THIS FUNCTION DOESN'T WORK YET! We need two things:
 --    (1) need truncateGeqDualize to work for a matrix.
 --    (2) given a map of complexes, need to be able to compute the induced map on minimal free resolutions of the complexes.
