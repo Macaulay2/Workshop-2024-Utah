@@ -9,7 +9,10 @@ TEST ///
 ///
 
 TEST ///
-    S = (ZZ/101)[x,y,z]
+    loadPackage "Divisor"
+    loadPackage "RuledSurfaces"
+
+    S = (ZZ/2)[x,y,z]
     I = ideal(x^3+y^3+z^3)
     R = S/I
     X = Proj R

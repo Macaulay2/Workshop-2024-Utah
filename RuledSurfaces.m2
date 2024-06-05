@@ -16,7 +16,8 @@ newPackage(
 	    HomePage => "" }
         },
     AuxiliaryFiles => true,
-    Reload => true
+    Reload => true,
+    DebuggingMode => true
 )
 export {
     -- Types
@@ -29,8 +30,12 @@ export {
     "lineBundleToDivisor",
     "divisorToLineBundle",
     "imageOfLinearSeries",
-    "sectionFromLineBundleQuotient"
+    "sectionFromLineBundleQuotient",
+    "isMultipleOf",
+    "minimalEmbedding"
 }
+
+protect symbol Bound
 
 needsPackage "Varieties"
 needsPackage "Divisor"
@@ -49,8 +54,8 @@ projectiveBundle(ProjectiveVariety, CoherentSheaf) := (X, E) -> (
 --TODO: add option to bypass local freeness check and pruning
     if not isLocallyFree E then error "expected a locally free sheaf";
     new ProjectiveBundle from{
-        symbol variety => X, 
-        symbol CoherentSheaf => E, 
+        symbol variety => X,
+        symbol CoherentSheaf => E,
         symbol rank => rank E,
     }
 )
@@ -62,6 +67,9 @@ generatingDegree = method()
 generatingDegree ProjectiveBundle := PE -> first PE.generators
 generatingSurjection = method()
 generatingSurjection ProjectiveBundle := PE -> last PE.generators
+
+isLineBundle = method()
+isLineBundle(CoherentSheaf) := L -> isLocallyFree L and rank L == 1
 
 findGlobalGeneratorsOfTwist = method()
 findGlobalGeneratorsOfTwist(ProjectiveBundle) := PE -> if not PE.?generators then PE.generators = findGlobalGeneratorsOfTwist(sheaf PE)
@@ -82,7 +90,7 @@ multiProjEmbedding(CoherentSheaf) := E -> (
 lineBundleToDivisor = method()
 lineBundleToDivisor(CoherentSheaf) := L -> (
     --TODO: add checks that L really is a line bundle
-    if not (isLocallyFree L and rank L == 1) then error "expected a line bundle";
+    if not isLineBundle L then error "expected a line bundle";
     X := variety L;
     H := Hom(OO_X^1,L);
     --if we have OO_X -> L, then get L^-1 -> OO_X, and the image is an ideal representing the divisor
@@ -103,23 +111,59 @@ imageOfLinearSeries(ProjectiveBundle, CoherentSheaf, ZZ) := (PE, L, m) -> imageO
 imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
     if ring D =!= ring variety PE then error "expected a divisor on base variety of bundle";
     --first do the map phi_D x id_P^r:
-    --if OO_X(-a) -> E is our surjection, global sections of E(a) live in degree {1,a}; i.e., linear series p^*OO_X(n) ** OO_PE(m) should live in degree {m, ?}.
+    --if OO_X(-a) -> E is our surjection, global sections of E(a) live in degree {1,a}; i.e., the linear series p^*OO_X(n) ** OO_PE(m) should live in degree {m, n - m * a }.
     findGlobalGeneratorsOfTwist PE;
     a := generatingDegree PE;
-    --TODO: if a is divisible by OO(D) then we can use basis{m,n} below to be faster
-    Da := a*divisor( (ring variety PE)_0);
+    X := variety PE;
+    xx := (ring X)_0;
+    multipleFlag := isMultipleOf(OO_X(m * a), divisorToLineBundle(D));
     E := sheaf PE;
     T := multiProjEmbedding(E);
     phiD := mapToProjectiveSpace(D);
     SD := source phiD;
     --phi is phiD x id_P^r
     phi := map(T, SD monoid T, vars T | matrix phiD);
-    --preimDa is the preimage of the twisting divisor OO_X(a) under phiD x id_P^r
-    preimDa := preimage_phi sub(ideal Da, T);
     T' := prune quotient ker phi;
-    preimDa' := sub(preimDa, T');
-    --the line below corresponds to "basis({m,1/deg D *a + m},T')
-    Proj quotient ker mapToProjectiveSpace(-divisor preimDa' + m * divisor(T'_0) + divisor last gens T') 
+    if instance(multipleFlag, ZZ) then (
+        --I think the below line is a bit wrong... try it with E = nonsplit rank 2 on elliptic curve
+        B := basis({m, 1 - multipleFlag}, T');
+        b := rank source B;
+        t := symbol t;
+        Proj quotient ker map(T', (coefficientRing ring X)[t_0..t_(b-1)], gens image B))
+    else (
+        --preimDa is the preimage of the twisting divisor Da = OO_X(a) under phiD x id_P^r
+        --preimD is the preimage of D
+        preimDa := a * divisor sub(preimage_phi sub(ideal xx, T), T');
+        preimD := divisor sub(preimage_phi sub(ideal D, T), T');
+        --the mapping divisor below corresponds to "basis({m,m/deg D *a + m},T')
+        --the if statement is a kludge to handle the case where no monomials for D should appear
+        mappingDivisor := -a * preimDa + preimD + m * divisor(T'_0);
+        Proj quotient ker mapToProjectiveSpace mappingDivisor)
+)
+
+--only "minimal" relative to the choice of OO_X(1)
+minimalEmbedding = method()
+minimalEmbedding(CoherentSheaf)    := E -> minimalEmbedding projectiveBundle E
+minimalEmbedding(ProjectiveBundle) := PE -> (
+    findGlobalGeneratorsOfTwist PE;
+    a := generatingDegree PE;
+    imageOfLinearSeries(PE,OO_(variety PE)(a+1),1)
+)
+
+--checks whether L2 divides L1, i.e., if L1 is L2^n for some n
+isMultipleOf = method(Options => {Bound => 5})
+isMultipleOf(CoherentSheaf,CoherentSheaf) := opts -> (L1, L2) -> (
+    if not (isLineBundle L1 and isLineBundle L2) then error "expected two line bundles";
+    (M1, M2) := (module prune L1, module prune L2);
+    if not isFreeModule M1 and isFreeModule M2 then return false;
+    if isFreeModule M1 and isFreeModule M2 then(
+        if regularity M1 % regularity M2 == 0 then return regularity M1//regularity M2 else return false
+    );
+    (D1, D2) := (lineBundleToDivisor L1, lineBundleToDivisor L2);
+    b := opts.Bound;
+    for i from -b to b do(
+        if isLinearEquivalent(D1, i*D2, IsGraded => true) then return i
+    )
 )
 
 
@@ -130,7 +174,7 @@ sectionFromLineBundleQuotient(ProjectiveBundle, SheafMap) := (PE, beta) -> (
     E := source beta;
     L := target beta;
     if not E == sheaf PE then error "expected source to be bundle on PE";
-    if not (isLocallyFree L and rank L == 1) then error "expected a line bundle";
+    if not isLineBundle L then error "expected a line bundle";
     findGlobalGeneratorsOfTwist PE;
     qtilde := beta * generatingSurjection PE;
     ker map(quotient ker symmetricAlgebra matrix qtilde, multiProjEmbedding E)
