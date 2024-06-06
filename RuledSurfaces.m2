@@ -34,12 +34,15 @@ export {
     "isMultipleOf",
     "minimalEmbedding",
     "checkSurjectivityOnH0",
+    "planeTangoCurve",
+    "frobeniusSheafMap"
 }
 
 protect symbol Bound
 
 needsPackage "Varieties"
 needsPackage "Divisor"
+needsPackage "DirectSummands"
 
 ProjectiveBundle = new Type of MutableHashTable
 LineBundleOnProjectiveBundle = new Type of HashTable
@@ -196,6 +199,7 @@ sectionFromLineBundleQuotient(ProjectiveBundle, SheafMap) := (PE, beta) -> (
 
 
 --load "./RuledSurfaces/RS-tests.m2"
+load "./RuledSurfaces/TangoCurves.m2"
 
 
 
