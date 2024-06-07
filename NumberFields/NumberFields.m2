@@ -172,6 +172,11 @@ degree(NumberField) := nf -> (
     degree ((ring nf)^1)
 )
 
+--this gives the basis for the numberField over QQ
+basis(NumberField) := opts -> nf -> (
+    first entries (nf#pushFwd#1)
+);
+
 
 
 NumberFieldExtension = new Type of HashTable
