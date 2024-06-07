@@ -50,11 +50,12 @@ remakeField(Ring) := opts -> R1 -> (
     local var;
     local amb;
     local myIdeal;
+    a := local a;
     R2 := (flattenRing R1)#0;
     if instance(R2, QuotientRing) then (amb = ambient R2; myIdeal = ideal R2) else (amb = R2; myIdeal = ideal(sub(0,R2)));
     numVars := #(gens amb);
 
-    if opts.Variable === null then (var = aa) else (var = opts.Variable);
+    if opts.Variable === null then (var = a) else (var = opts.Variable);
     varList := {var_1..var_numVars};
     newRing1 := QQ(monoid[varList]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
     phi := map(newRing1, amb, gens newRing1);
@@ -73,7 +74,7 @@ numberField(RingElement) := opts -> f1 -> (
     if f1 == 0 then error("Expected nonzero polynomial.");
     --if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-    numberField(R1/ideal(f1))
+    numberField(R1/ideal(f1), opts)
 )
 
 
@@ -90,7 +91,7 @@ numberField(Ring) := opts -> R1 -> (
     if not dim R1 == 0 then error("Expected a field.");
     
     if char R1 != 0 then error("Expected characteristic 0.");
-    outputRing := remakeField(R1);
+    outputRing := remakeField(R1, Variable=>opts.Variable);
     iota := map(outputRing,QQ);
     local myPushFwd;
     try myPushFwd = pushFwd(iota) else error("Not finite dimensional over QQ");
