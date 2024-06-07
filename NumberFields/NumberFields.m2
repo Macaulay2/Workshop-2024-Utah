@@ -28,7 +28,7 @@ export{
    "asExtensionOfBase",--this probably shouldn't be exposed to the user long term
    "remakeField",--this probably shouldn't be exposed to the user long term
    "minimalPolynomial",
-   "vectorSpace"
+   "vectorSpace",
 };
 
 NumberField = new Type of HashTable
@@ -50,12 +50,11 @@ remakeField(Ring) := opts -> R1 -> (
     local var;
     local amb;
     local myIdeal;
-    a := local a;
     R2 := (flattenRing R1)#0;
     if instance(R2, QuotientRing) then (amb = ambient R2; myIdeal = ideal R2) else (amb = R2; myIdeal = ideal(sub(0,R2)));
     numVars := #(gens amb);
 
-    if opts.Variable === null then (var = a) else (var = opts.Variable);
+    if opts.Variable === null then (var = aa) else (var = opts.Variable);
     varList := {var_1..var_numVars};
     newRing1 := QQ(monoid[varList]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
     phi := map(newRing1, amb, gens newRing1);
@@ -188,6 +187,9 @@ vector(RingElement, NumberField) := (f1, nf) -> (
     (nf#pushFwd#2)(f1)
 );
 
+gens(NumberField) := opts -> nf -> (
+    gens ring nf
+)
 
 
 NumberFieldExtension = new Type of HashTable
