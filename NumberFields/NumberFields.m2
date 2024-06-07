@@ -27,7 +27,8 @@ export{
    "simpleExt",
    "asExtensionOfBase",--this probably shouldn't be exposed to the user long term
    "remakeField",--this probably shouldn't be exposed to the user long term
-   "minimalPolynomial"
+   "minimalPolynomial",
+   "vectorSpace"
 };
 
 NumberField = new Type of HashTable
@@ -175,6 +176,16 @@ degree(NumberField) := nf -> (
 --this gives the basis for the numberField over QQ
 basis(NumberField) := opts -> nf -> (
     first entries (nf#pushFwd#1)
+);
+
+vectorSpace = method(Options=>{})
+vectorSpace(NumberField) := opts -> nf -> (
+    nf#pushFwd#0
+)
+
+vector(RingElement, NumberField) := (f1, nf) -> (
+    if not (ring f1 === ring nf) then error "Expected an element of the NumberField";
+    (nf#pushFwd#2)(f1)
 );
 
 
