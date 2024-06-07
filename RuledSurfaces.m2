@@ -35,7 +35,8 @@ export {
     "minimalEmbedding",
     "checkSurjectivityOnH0",
     "planeTangoCurve",
-    "frobeniusSheafMap"
+    "frobeniusSheafMap",
+    "minVeryAmpleTwist",
 }
 
 protect symbol Bound
@@ -189,6 +190,26 @@ isMultipleOf(CoherentSheaf,CoherentSheaf) := opts -> (L1, L2) -> (
     for i from -b to b do(
         if isLinearEquivalent(D1, i*D2, IsGraded => true) then return i
     )
+)
+
+
+--alternative to the method below, but seems to be slower
+--minVeryAmpleTwist = method()
+--minVeryAmpleTwist(CoherentSheaf) := (cacheValue symbol min) (D -> (
+--    i := 0;
+--    while not isVeryAmple lineBundleToDivisor D(i) do i = i + 1;
+--    (i, D(i))
+--)
+--)
+
+minVeryAmpleTwist = method()
+minVeryAmpleTwist(CoherentSheaf) := (cacheValue symbol min) (L -> (
+    D := lineBundleToDivisor L;
+    H := divisor (ring D)_0;
+    i := 0;
+    while not isVeryAmple(D + i * H)  do i = i + 1;
+    (i, divisorToLineBundle(D + i * H))
+)
 )
 
 
