@@ -96,9 +96,9 @@ checkSurjectivityOnH0(ProjectiveBundle, CoherentSheaf, ZZ) := (PE, L, m) -> (
 
 multiProjEmbedding = method()
 multiProjEmbedding(ProjectiveBundle) := PE -> multiProjEmbedding(sheaf PE)
-multiProjEmbedding(CoherentSheaf) := E -> (
+multiProjEmbedding(CoherentSheaf) := (cacheValue symbol ideal) (E -> (
     q := matrix last findGlobalGeneratorsOfTwist E;
-    quotient ker symmetricAlgebra q
+    quotient ker symmetricAlgebra q)
 )
 
 
@@ -131,22 +131,30 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
     a := generatingDegree PE;
     X := variety PE;
     xx := (ring X)_0;
-    --if D divides OO_X(ma), returns OO_X(ma)/D
-    multipleFlag := isMultipleOf(OO_X(m * a), divisorToLineBundle(D));
     E := sheaf PE;
     T := multiProjEmbedding(E);
-    phiD := mapToProjectiveSpace(D);
+    T' := prune T;
+    --if the divisor D is a multiple of OO_X(1) then just use basis for T':
+    d := isMultipleOf(divisorToLineBundle D, OO_X(1));
+    if instance(d, ZZ) then(
+        B := basis({m, d}, T');
+        b := rank source B;
+        t := symbol t;
+        return Proj quotient ker map(T', (coefficientRing ring X)[t_0..t_(b-1)], gens image B));
+    --if not, map T using phi_(\pm D), so that 
+    if isEffective D then (phiD := mapToProjectiveSpace(D); negFlag := 1)
+        else(phiD = mapToProjectiveSpace(-D); negFlag = -1);
     SD := source phiD;
     --phi is phiD x id_P^r
     phi := map(T, SD monoid T, vars T | matrix phiD);
-    T' := prune quotient ker phi;
-    --if instance(multipleFlag, ZZ) then (
-    if false then (
-        --I think the below line is wrong... 
-        B := basis({m, 1 - multipleFlag}, T');
-        b := rank source B;
-        t := symbol t;
-        Proj quotient ker map(T', (coefficientRing ring X)[t_0..t_(b-1)], gens image B))
+    T' = prune quotient ker phi;
+    --if D divides OO_X(ma), returns OO_X(ma)/D
+    multipleFlag := isMultipleOf(OO_X(m * a), divisorToLineBundle(D));
+    if instance(multipleFlag, ZZ) then (
+        B = basis({m, negFlag - multipleFlag}, T');
+        b = rank source B;
+        T = symbol T;
+        Proj quotient ker map(T', (coefficientRing ring X)[T_0..T_(b-1)], gens image B))
     else (
         --preimDa is the preimage of the twisting divisor Da = OO_X(a) under phiD x id_P^r
         --preimD is the preimage of D
@@ -154,7 +162,7 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
         preimD := divisor sub(preimage_phi sub(ideal D, T), T');
         --the mapping divisor below corresponds to "basis({m,m/deg D *a + m},T')
         --the if statement is a kludge to handle the case where no monomials for D should appear
-        mappingDivisor := -preimDa + preimD + m * divisor(T'_0);
+        mappingDivisor := -negFlag*preimDa + negFlag*preimD + m * divisor(T'_0);
         Proj quotient ker mapToProjectiveSpace mappingDivisor)
 )
 
