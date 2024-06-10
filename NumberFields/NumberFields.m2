@@ -298,9 +298,22 @@ simpleExt(NumberField) := opts -> nf ->(
     --We find an element that produces a degree D field extension.
     d := 0;
     c := 0;
+    primitiveElement := 0; -- Uncomment along with below chunk to get a simpler primitive element
     while d < D do 
     (
-        r := random(1, K);
+        r := random(1, K); -- Get a random homogeneous RingElement from K1 of degree 1
+
+        -- Uncomment the following along with primitiveElement := 0 above to get a simpler primitive element
+        (if primitiveElement==0 then (
+            primitiveElement = sum gens K;
+         )
+        else (
+            primitiveElement += (random(gens K))#0; -- Randomly shuffles the list of generators of K and then takes the first element
+         )
+        );
+        r = primitiveElement;
+        --
+        
         xx := local xx;
         R := QQ[xx];
         phi := map( K, R, {r});

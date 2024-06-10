@@ -1,7 +1,9 @@
 loadPackage ("NumberFields", Reload=>true)
 
 R1 = QQ[x,z]/(x^2+1,z^2-2)
-minimalPolynomial x
+use R1
+f1 = x
+minimalPolynomial f1
 NF1 = numberField R1
 ring NF1
 SE1 = simpleExt NF1
