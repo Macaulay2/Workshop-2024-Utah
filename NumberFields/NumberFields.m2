@@ -265,8 +265,12 @@ splittingField(RingElement) := opts -> f1 -> (
     K2 := coefficientRing R1;
     variableIndex := 1;
     finished := false;
+    i := 1;
     while not finished do (
         L1 := decompose ideal f1;
+        print i;
+        print L1;
+        i += 1;
         finished = true;
         executeForLoop := true;
         for i from 0 to #L1-1 do (
@@ -313,7 +317,7 @@ simpleExt(NumberField) := opts -> nf ->(
         );
         r = primitiveElement;
         --
-        
+
         xx := local xx;
         R := QQ[xx];
         phi := map( K, R, {r});
