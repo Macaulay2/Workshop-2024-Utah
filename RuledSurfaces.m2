@@ -22,6 +22,7 @@ newPackage(
 export {
     -- Types
     "ProjectiveBundle",
+    "ImageOfProjectiveBundle",
     -- methods
     "projectiveBundle",
     "generatingDegree",
@@ -37,6 +38,7 @@ export {
     "planeTangoCurve",
     "frobeniusSheafMap",
     "minVeryAmpleTwist",
+    "mappingDivisor"
 }
 
 protect symbol Bound
@@ -46,7 +48,7 @@ needsPackage "Divisor"
 needsPackage "DirectSummands"
 
 ProjectiveBundle = new Type of MutableHashTable
-LineBundleOnProjectiveBundle = new Type of HashTable
+ImageOfProjectiveBundle = new Type of HashTable
 
 projectiveBundle = method()
 projectiveBundle(CoherentSheaf) := E -> projectiveBundle(variety E, E)
@@ -72,6 +74,15 @@ generatingDegree = method()
 generatingDegree ProjectiveBundle := PE -> first PE.generators
 generatingSurjection = method()
 generatingSurjection ProjectiveBundle := PE -> last PE.generators
+
+
+variety ImageOfProjectiveBundle := Z -> Z.variety
+ideal ImageOfProjectiveBundle := Z -> Z.ideal
+projectiveBundle ImageOfProjectiveBundle := Z -> Z.projectiveBundle
+mappingDivisor = method()
+mappingDivisor ImageOfProjectiveBundle := Z -> Z.divisor
+
+
 
 isLineBundle = method()
 isLineBundle(CoherentSheaf) := L -> isLocallyFree L and rank L == 1
@@ -138,34 +149,44 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
     --if the divisor D is a multiple of OO_X(1) then just use basis for T':
     d0 := isMultipleOf(divisorToLineBundle D, OO_X(1));
     if instance(d0, ZZ) then(
+        phi := id_T';
         B := basis({m, d0}, T');
         b := rank source B;
         t := symbol t;
-        return Proj quotient ker map(T', (coefficientRing ring X)[t_0..t_(b-1)], gens image B));
-    --if not, map T using D + d H with d minimal
-    (d, LDH) := minVeryAmpleTwist divisorToLineBundle D;
-    DH := lineBundleToDivisor LDH;
-    phiD := mapToProjectiveSpace DH;
-    SD := source phiD;
-    --phi is phiDH x id_P^r
-    phi := map(T, SD monoid T, vars T | matrix phiD);
-    T' = prune quotient ker phi;
-    --if D + dH divides OO_X(ma) (this is rare), returns OO_X(ma)/(D+dH):
-    multipleFlag := isMultipleOf(OO_X(m * a), divisorToLineBundle(DH));
-    if false and instance(multipleFlag, ZZ) then (
-        B = basis({m, 1 + multipleFlag}, T');
-        b = rank source B;
-        T = symbol T;
-        Proj quotient ker map(T', (coefficientRing ring X)[T_0..T_(b-1)], gens image B))
-    else (
-        --pH is the preimage of the twisting divisor H = OO_X(1) under phiD x id_P^r
-        --pDa is the preimage of the twisting divisor Da = OO_X(a) under phiD x id_P^r
-        --pD is the preimage of D+d H
-        pH := divisor sub(preimage_phi sub(ideal xx, T), T');
-        pD := divisor ideal last gens T';
-        --the mapping divisor below corresponds to "basis({m,m/deg D *a + m},T')
-        mappingDivisor := - (m * a + d) * pH + pD + m * divisor(T'_0);
-        Proj quotient ker mapToProjectiveSpace mappingDivisor)
+        Z := Proj quotient ker map(T', (coefficientRing ring X)[t_0..t_(b-1)], gens image B))
+    else(
+        --if not, map T using D + d H with d minimal
+        (d, LDH) := minVeryAmpleTwist divisorToLineBundle D;
+        DH := lineBundleToDivisor LDH;
+        phiD := mapToProjectiveSpace DH;
+        SD := source phiD;
+        --phi is phiDH x id_P^r
+        phi = map(T, SD monoid T, vars T | matrix phiD);
+        T'' := prune quotient ker phi;
+        --if D + dH divides OO_X(ma) (this is rare), returns OO_X(ma)/(D+dH):
+        multipleFlag := isMultipleOf(OO_X(m * a), divisorToLineBundle(DH));
+        if false and instance(multipleFlag, ZZ) then (
+            B = basis({m, 1 + multipleFlag}, T'');
+            b = rank source B;
+            T = symbol T;
+            Z = Proj quotient ker map(T'', (coefficientRing ring X)[T_0..T_(b-1)], gens image B))
+        else (
+            --pH is the preimage of the twisting divisor H = OO_X(1) under phiD x id_P^r
+            --pDa is the preimage of the twisting divisor Da = OO_X(a) under phiD x id_P^r
+            --pD is the preimage of D+d H
+            pH := divisor sub(preimage_phi sub(ideal xx, T), T'');
+            pD := divisor ideal last gens T'';
+            --the mapping divisor below corresponds to "basis({m,m/deg D *a + m},T'')
+            mappingDivisor := - (m * a + d) * pH + pD + m * divisor(T''_0);
+            Z = Proj quotient ker mapToProjectiveSpace mappingDivisor));
+    new ImageOfProjectiveBundle from{
+        symbol variety => Z,
+        symbol divisor => {D, m},
+        symbol ideal => ideal Z,
+        symbol projectiveBundle => PE,
+        symbol ambient => T',
+        symbol map => phi
+        }
 )
 
 --only "minimal" relative to the choice of OO_X(1)
@@ -226,6 +247,9 @@ sectionFromLineBundleQuotient(ProjectiveBundle, SheafMap) := (PE, beta) -> (
     qtilde := beta * generatingSurjection PE;
     ker map(quotient ker symmetricAlgebra matrix qtilde, multiProjEmbedding E)
 )
+
+
+--methods for moving line bundles, sections, etc., from multiProjEmbedding to imageOfLinearSeries
 
 
 --load "./RuledSurfaces/RS-tests.m2"
