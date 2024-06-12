@@ -297,7 +297,9 @@ splittingField(RingElement) := opts -> f1 -> (
     numberFieldExtension (map(K1, K2))
 )
 
-isFieldAutomorphism = (NF1, sigma1) -> (
+isFieldAutomorphism = method(Options=>{})
+
+isFieldAutomorphism(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
     R1 := ring NF1;
     C1 := coefficientRing R1;
     P1 := (pushFwd(map(R1, C1)))#2;
@@ -314,7 +316,9 @@ isFieldAutomorphism = (NF1, sigma1) -> (
 )
 
 -- Helper method for isFieldAutomorphism
-ringMapFromMatrix = (NF1, sigma1) -> (
+ringMapFromMatrix = method(Options=>{})
+
+ringMapFromMatrix(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
     R1 := ring NF1;
     C1 := coefficientRing R1;
     P1 := (pushFwd(map(R1, C1)))#2;
@@ -323,6 +327,12 @@ ringMapFromMatrix = (NF1, sigma1) -> (
     newGensAsMatrices1 := apply(newGensAsBasis1, i -> matrix({basis NF1})*i);
     newGens1 := apply(newGensAsMatrices1, i -> (entries i)#0#0);
     map(R1, R1, newGens1)
+)
+
+matrixFromRingMap = method(Options=>{})
+
+matrixFromRingMap(NumberField, NumberField, RingMap) := opts -> (nf1, nf2, psi) -> (
+    
 )
 
 simpleExt = method(Options => {});
