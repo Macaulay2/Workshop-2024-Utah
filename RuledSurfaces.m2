@@ -23,7 +23,9 @@ export {
     -- Types
     "ProjectiveBundle",
     "ImageOfProjectiveBundle",
+    "LineBundleOnProjectiveBundle",
     -- methods
+    "lineBundleOnProjectiveBundle",
     "projectiveBundle",
     "generatingDegree",
     "findGlobalGeneratorsOfTwist",
@@ -38,16 +40,22 @@ export {
     "planeTangoCurve",
     "frobeniusSheafMap",
     "minVeryAmpleTwist",
-    "mappingDivisor"
+    "mappingDivisor",
+    "embeddedLineBundle"
 }
 
 protect symbol Bound
+protect symbol fiberLB
+protect symbol baseLB
+protect symbol maps
+
 
 needsPackage "Varieties"
 needsPackage "Divisor"
 needsPackage "DirectSummands"
 
 ProjectiveBundle = new Type of MutableHashTable
+LineBundleOnProjectiveBundle = new Type of HashTable
 ImageOfProjectiveBundle = new Type of HashTable
 
 projectiveBundle = method()
@@ -74,6 +82,19 @@ generatingDegree = method()
 generatingDegree ProjectiveBundle := PE -> first PE.generators
 generatingSurjection = method()
 generatingSurjection ProjectiveBundle := PE -> last PE.generators
+
+lineBundleOnProjectiveBundle = method()
+lineBundleOnProjectiveBundle(ProjectiveBundle, Divisor, ZZ) := (PE, D, m) -> 
+    lineBundleOnProjectiveBundle(PE, divisorToLineBundle D, m)
+
+lineBundleOnProjectiveBundle(ProjectiveBundle, CoherentSheaf, ZZ) := (PE, L, m) -> (
+    if variety L =!= variety PE then error "expected a line bundle on the underlying variety of PE";
+    if not isLineBundle L then error "expected a line bundle on X";
+    new LineBundleOnProjectiveBundle from{
+        symbol projectiveBundle => PE,
+        symbol fiberLB => m,
+        symbol baseLB => L
+    })
 
 
 variety ImageOfProjectiveBundle := Z -> Z.variety
@@ -153,7 +174,8 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
         B := basis({m, d0}, T');
         b := rank source B;
         t := symbol t;
-        Z := Proj quotient ker map(T', (coefficientRing ring X)[t_0..t_(b-1)], gens image B))
+        psi := map(T', (coefficientRing ring X)[t_0..t_(b-1)], gens image B);
+        Z := Proj quotient ker psi)
     else(
         --if not, map T using D + d H with d minimal
         (d, LDH) := minVeryAmpleTwist divisorToLineBundle D;
@@ -169,7 +191,8 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
             B = basis({m, 1 + multipleFlag}, T'');
             b = rank source B;
             T = symbol T;
-            Z = Proj quotient ker map(T'', (coefficientRing ring X)[T_0..T_(b-1)], gens image B))
+            psi = map(T'', (coefficientRing ring X)[T_0..T_(b-1)], gens image B);
+            Z = Proj quotient ker psi)
         else (
             --pH is the preimage of the twisting divisor H = OO_X(1) under phiD x id_P^r
             --pDa is the preimage of the twisting divisor Da = OO_X(a) under phiD x id_P^r
@@ -178,14 +201,15 @@ imageOfLinearSeries(ProjectiveBundle, WeilDivisor, ZZ) := (PE, D, m) -> (
             pD := divisor ideal last gens T'';
             --the mapping divisor below corresponds to "basis({m,m/deg D *a + m},T'')
             mappingDivisor := - (m * a + d) * pH + pD + m * divisor(T''_0);
-            Z = Proj quotient ker mapToProjectiveSpace mappingDivisor));
+            psi = mapToProjectiveSpace mappingDivisor;
+            Z = Proj quotient ker psi));
     new ImageOfProjectiveBundle from{
         symbol variety => Z,
         symbol divisor => {D, m},
         symbol ideal => ideal Z,
         symbol projectiveBundle => PE,
         symbol ambient => T',
-        symbol map => phi
+        symbol maps => (phi, psi)
         }
 )
 
@@ -196,6 +220,21 @@ minimalEmbedding(ProjectiveBundle) := PE -> (
     findGlobalGeneratorsOfTwist PE;
     a := generatingDegree PE;
     imageOfLinearSeries(PE, OO_(variety PE)(a + 1), 1)
+)
+
+
+embeddedLineBundle = method()
+embeddedLineBundle(LineBundleOnProjectiveBundle, ImageOfProjectiveBundle) := (A, Z) -> (
+    D := lineBundleToDivisor A.baseLB;
+    m := A.fiberLB;
+    T' := Z.ambient;
+    (phi, psi) := Z.maps;
+    D' := sub(ideal D, T');
+    T'' := source phi;
+    pD' := divisor preimage_phi D';
+    i := map(ring Z.variety, ambient ring Z.variety);
+    psi' := map(target psi, target i, psi);
+    divisorToLineBundle(divisor preimage(psi', ideal(pD' + m * divisor(T''_0))))
 )
 
 --checks whether L2 divides L1, i.e., if L1 is L2^n for some n

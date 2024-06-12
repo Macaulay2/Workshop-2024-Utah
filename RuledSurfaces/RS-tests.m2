@@ -38,9 +38,10 @@ TEST ///
     loadPackage "RuledSurfaces"
     P2 = Proj ZZ/17[x,y,z]
     P1 = Proj ZZ/17[x,y]
-    E0 = OO_P1^2(2)
+    E0 = OO_P1^2(1)
     PE0 = projectiveBundle E0
-    imageOfLinearSeries(PE0, OO_P1(-1),1)
+    Z = minimalEmbedding PE0
+    embeddedLineBundle(lineBundleOnProjectiveBundle(PE0, OO_P1^1, 1), Z)
     E = OO_P1^2
     E' = E(-1)
     E'' = E(-2)
