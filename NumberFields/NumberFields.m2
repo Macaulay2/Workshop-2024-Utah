@@ -382,33 +382,9 @@ minimalPolynomial(List) := opts -> L1 -> (
     apply(L1, i -> minimalPolynomial(i))
 )
 
-
---*****************************
---Documentation
---*****************************
-beginDocumentation()
-
-doc ///
-    Node
-        Key
-            NumberFields
-        Headline
-            an example Macaulay2 package
-        Description
-            Text
-                {\em FirstPackage} is a basic package to be used as an example.
-///
-
---*****************************
---Tests
---*****************************
-
-TEST /// --Test #0
-    K = QQ[x]/ideal(x^3-2)
-    L = K[y]/ideal(y^2 + y + 1)
-    assert(degree numberField K == 3)
-    assert(degree numberField L == 6)
-///
+--********************************
+--******Compositums
+--********************************
 
 asExtensionOfBase = method(Options => {})
 asExtensionOfBase(NumberFieldExtension) := opts -> iota -> (
@@ -456,6 +432,35 @@ compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
 
     infoList
 )
+
+
+--*****************************
+--Documentation
+--*****************************
+beginDocumentation()
+
+doc ///
+    Node
+        Key
+            NumberFields
+        Headline
+            an example Macaulay2 package
+        Description
+            Text
+                {\em FirstPackage} is a basic package to be used as an example.
+///
+
+--*****************************
+--Tests
+--*****************************
+
+TEST /// --Test #0
+    K = QQ[x]/ideal(x^3-2)
+    L = K[y]/ideal(y^2 + y + 1)
+    assert(degree numberField K == 3)
+    assert(degree numberField L == 6)
+///
+
 
 --compositums(NumberFieldExtenison,NumberFieldExtension) := opts -> (iota,kappa) -> (
 --    -- check for common base
