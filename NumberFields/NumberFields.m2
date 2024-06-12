@@ -25,8 +25,12 @@ export{
    "splittingField",
    "compositums",
    "simpleExt",
+   "asExtensionOfBase",--this probably shouldn't be exposed to the user long term
    "remakeField",--this probably shouldn't be exposed to the user long term
-   "minimalPolynomial"
+   "minimalPolynomial",
+   "vectorSpace",
+   "ringMapFromMatrix",
+   "isFieldAutomorphism",
 };
 
 NumberField = new Type of HashTable
@@ -72,7 +76,7 @@ numberField(RingElement) := opts -> f1 -> (
     if f1 == 0 then error("Expected nonzero polynomial.");
     --if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-    numberField(R1/ideal(f1))
+    numberField(R1/ideal(f1), opts)
 )
 
 
@@ -80,15 +84,16 @@ numberField(RingElement) := opts -> f1 -> (
 numberField(Ring) := opts -> R1 -> (
     if R1===QQ then return new NumberField from {
             ring => R1, 
-            pushFwd => pushFwd(map(QQ,QQ)),
-            cache => new CacheTable from {}
+            pushFwd => pushFwd(map(QQ[],QQ)),
+            cache => new CacheTable from {},
+            String => "QQ, rational numbers"
         };
     
     if not isPrime (ideal 0_R1) then error("Expected a field.");
     if not dim R1 == 0 then error("Expected a field.");
     
     if char R1 != 0 then error("Expected characteristic 0.");
-    outputRing := remakeField(R1);
+    outputRing := remakeField(R1, Variable=>opts.Variable);
     iota := map(outputRing,QQ);
     local myPushFwd;
     try myPushFwd = pushFwd(iota) else error("Not finite dimensional over QQ");
@@ -170,6 +175,24 @@ degree(NumberField) := nf -> (
     degree ((ring nf)^1)
 )
 
+--this gives the basis for the numberField over QQ
+basis(NumberField) := opts -> nf -> (
+    first entries (nf#pushFwd#1)
+);
+
+vectorSpace = method(Options=>{})
+vectorSpace(NumberField) := opts -> nf -> (
+    nf#pushFwd#0
+)
+
+vector(RingElement, NumberField) := (f1, nf) -> (
+    if not (ring f1 === ring nf) then error "Expected an element of the NumberField";
+    (nf#pushFwd#2)(f1)
+);
+
+gens(NumberField) := opts -> nf -> (
+    gens ring nf
+)
 
 
 NumberFieldExtension = new Type of HashTable
@@ -202,6 +225,14 @@ degree(NumberFieldExtension) := nfe -> (
     rk
 )
 
+norm(RingElement) := (elt) ->(
+    S := ring elt;
+    return det pushFwd(map(S^1, S^1, {{elt}}));
+);
+trace(RingElement) := (elt) -> (
+    S := ring elt;
+    return trace pushFwd(map(S^1, S^1, {{elt}}));
+);
 --*************************
 --Methods
 --*************************
@@ -236,8 +267,12 @@ splittingField(RingElement) := opts -> f1 -> (
     K2 := coefficientRing R1;
     variableIndex := 1;
     finished := false;
+    i := 1;
     while not finished do (
         L1 := decompose ideal f1;
+        print i;
+        print L1;
+        i += 1;
         finished = true;
         executeForLoop := true;
         for i from 0 to #L1-1 do (
@@ -261,6 +296,33 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     numberFieldExtension (map(K1, K2))
 )
+
+isFieldAutomorphism = (NF1, sigma1) -> (
+    R1 := ring NF1;
+    C1 := coefficientRing R1;
+    P1 := (pushFwd(map(R1, C1)))#2;
+    phi1 := ringMapFromMatrix(NF1, sigma1);
+    newBasis1 := apply(basis NF1, i -> phi1(i));
+    newGensAsBasis1 := apply(newBasis1, P1);
+    A1 := newGensAsBasis1#0;
+    for i from 1 to #newGensAsBasis1-1 do (
+        A1 |= newGensAsBasis1#i;
+    );
+    return (A1-sigma1)==0 -- Test matrix equality only on entry level; A==sigma1 would return false if either sources or target differ
+)
+
+-- Helper method for isFieldAutomorphism
+ringMapFromMatrix = (NF1, sigma1) -> (
+    R1 := ring NF1;
+    C1 := coefficientRing R1;
+    P1 := (pushFwd(map(R1, C1)))#2;
+    gensAsBasis1 := apply(gens R1, P1); -- Expresses each generator of R1 as a vector w.r.t. the basis of NF1
+    newGensAsBasis1 := apply(gensAsBasis1, i -> sigma1*i);
+    newGensAsMatrices1 := apply(newGensAsBasis1, i -> matrix({basis NF1})*i);
+    newGens1 := apply(newGensAsMatrices1, i -> (entries i)#0#0);
+    map(R1, R1, newGens1)
+)
+
 simpleExt = method(Options => {});
 simpleExt(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
@@ -268,9 +330,23 @@ simpleExt(NumberField) := opts -> nf ->(
     D := degree K;
     --We find an element that produces a degree D field extension.
     d := 0;
+    c := 0;
+    primitiveElement := 0; -- Uncomment along with below chunk to get a simpler primitive element
     while d < D do 
     (
-        r := random(1, K);
+        r := random(1, K); -- Get a random homogeneous RingElement from K1 of degree 1
+
+        -- Uncomment the following along with primitiveElement := 0 above to get a simpler primitive element
+        (if primitiveElement==0 then (
+            primitiveElement = sum gens K;
+         )
+        else (
+            primitiveElement += (random(gens K))#0; -- Randomly shuffles the list of generators of K and then takes the first element
+         )
+        );
+        r = primitiveElement;
+        --
+
         xx := local xx;
         R := QQ[xx];
         phi := map( K, R, {r});
@@ -332,39 +408,60 @@ TEST /// --Test #0
     assert(degree numberField L == 6)
 ///
 
-end
-
+asExtensionOfBase = method(Options => {})
+asExtensionOfBase(NumberFieldExtension) := opts -> iota -> (
+--
+--    -- get source and target
+--    s := ring(source iota);
+--    t := ring(target iota);
+--    -- get ideal from target
+--    --I := ideal target; 
+--    -- calculate numgens of ideal
+--    n := numgens t;
+--    -- create polynomial ring in numbgens variables
+--    polyring := s[b_1..b_n];
+--    -- create map by assigning generators to other generators
+--    extensionMap := map(iota);
+--    images := (entries  (matrix extensionMap))#0;
+--    m := map(t,polyring,join(images, gens(t)));
+--    -- take the kernel
+--    k := kernel m;
+--    -- return quotient by kernel
+--    polyring / k
+)
 
 --loadPackage ("NumberFields", Reload=>true)
 
 compositums = method(Options => {})
 compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
     T := ring(K1) ** ring(K2);
-
     -- compositums correspond to prime ideals
     II := decompose (ideal 0_T);
-
     -- quotient rings
     QRs := apply(II, I -> T / I);
-
     -- make them number field objects?
     NFs := apply(QRs, qr -> numberField(qr));
-
     -- sort by degree
     sorted := sort(NFs, degree);
-
     -- get maps from K1 & K2 
     K1maps := apply(sorted, nf -> map(ring(nf),ring(K1)));
     K2maps := apply(sorted, nf -> map(ring(nf),ring(K2)));
 
     degs := apply(sorted, degree);
-
     -- a slight hack to package the data
     inds := toList(0..(length(sorted)-1));
     infoList := apply(inds, i -> (sorted#i,K1maps#i,K2maps#i,degs#i));
 
     infoList
 )
+
+--compositums(NumberFieldExtenison,NumberFieldExtension) := opts -> (iota,kappa) -> (
+--    -- check for common base
+--    -- write iota and kappa as entensions of common base
+--    -- take tensor product wrt common base
+--    -- do all the same things as compositums over QQ
+--
+--)
 
 -*
 This is a comment block.
