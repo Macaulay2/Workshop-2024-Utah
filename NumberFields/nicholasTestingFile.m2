@@ -41,3 +41,105 @@ L2 = decompose ideal f11
 polynomialSplits f11
 
 ring S1
+
+-- Tests field automorphisms
+
+R = QQ[x]/(x^2-2) -- Q(sqrt(2))
+isGalois(numberField R) -- Just to confirm that R is Galois (since degree is 2 and automorphism group has size 2)
+sigma = matrix({{1, 0}, {0, 1}}) -- Identity map
+sigmaTargets = (entries(matrix({prepend(1, gens R)})*sigma))#0 -- Create a list consisting of elements of R that the basis elements of R go to under left multiplcation by sigma
+phi = map(R, R, drop(sigmaTargets, 1)) -- Create a RingMap sending the generators of R to their corresponding sigmaTargets elements. We drop the first element of sigmaTargets because that is where the element 1_R goes
+isWellDefined phi
+isInjective phi
+
+
+phi = map(R, R, {-x}) -- Valid automorphism
+isWellDefined(phi) -- Checks that above is a valid ring map
+isInjective(phi) -- Checks that above is injective
+--isSurjective(phi) -- Warning: can't apply isSurjective to RingMap
+
+isWellDefined(map(R, R, {2*x})) -- Invalid automorphism
+
+-- pushFwd way to test field automorphisms
+
+R = QQ[x,y]/(x^2+1,y^2-2)
+sigma = matrix({{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}})
+phi = map(R, R, {x,y})
+f = pushFwd phi
+g = f#2
+h = pushFwd(phi, sigma)
+
+-- Functions to test field automorphisms
+
+-- Method built from lines above
+--isFieldAutomorphism = (NF1, sigma1) -> (
+--    phi1 = ringMapFromMatrix(NF1, sigma1);
+--    if not isWellDefined phi1 then return false;
+--    if not isInjective phi1 then return false;
+--    return true
+--)
+
+isFieldAutomorphism = (NF1, sigma1) -> (
+    R1 = ring NF1;
+    C1 = coefficientRing R1;
+    P1 = (pushFwd(map(R1, C1)))#2;
+    phi1 = ringMapFromMatrix(NF1, sigma1);
+    newBasis1 = apply(basis NF1, i -> phi1(i));
+    newGensAsBasis1 = apply(newBasis1, P1);
+)
+
+-- Helper method for isFieldAutomorphism
+ringMapFromMatrix = (NF1, sigma1) -> (
+    R1 = ring NF1;
+    C1 = coefficientRing R1;
+    P1 = (pushFwd(map(R1, C1)))#2;
+    gensAsBasis1 = apply(gens R1, P1); -- Expresses each generator of R1 as a vector w.r.t. the basis of NF1
+    newGensAsBasis1 = apply(gensAsBasis1, i -> sigma*i);
+    newGensAsMatrices1 = apply(newGensAsBasis1, i -> matrix({basis NF1})*i);
+    newGens1 = apply(newGensAsMatrices1, i -> (entries i)#0#0);
+    map(R1, R1, newGens1)
+)
+
+loadPackage ("NumberFields", Reload=>true)
+R = QQ[x,y]/(x^2+1,y^2-2)
+NF = numberField R
+
+-- Example 1
+sigma = matrix({{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}) -- Identity matrix corresponds to identity map
+phi = ringMapFromMatrix(NF, sigma)
+for i from 1 to #(gens R1) do (
+    a_i = (gens R1)#(i-1)
+)
+phi(a_1) -- Should return a_1
+phi(a_2) -- Should return a_2
+phi(a_1*a_2) -- Should return a_1*a_2
+isFieldAutomorphism(NF, sigma) -- Should return true
+
+-- Example 2
+sigma = matrix({{1,0,0,0},{0,-1,0,0},{0,0,1,0},{0,0,0,-1}}) -- Identity matrix corresponds to identity map
+phi = ringMapFromMatrix(NF, sigma)
+for i from 1 to #(gens R1) do (
+    a_i = (gens R1)#(i-1)
+)
+phi(a_1) -- Should return -a_1
+phi(a_2) -- Should return -a_2
+phi(a_1*a_2) -- Should return a_1*a_2
+isFieldAutomorphism(NF, sigma)
+
+-- Example 3
+sigma = matrix({{1,0,0,0},{0,-1,0,0},{0,0,-1,0},{0,0,0,-1}}) -- Identity matrix corresponds to identity map
+phi = ringMapFromMatrix(NF, sigma)
+for i from 1 to #(gens R1) do (
+    a_i = (gens R1)#(i-1)
+)
+phi(a_1) -- Should return -a_1
+phi(a_2) -- Should return -a_2
+phi(a_1*a_2) -- Should return -a_1*a_2
+isFieldAutomorphism(NF, sigma)
+
+--ringMapFromMatrix = (NF1, sigma1) -> (
+--    R1 = ring NF1;
+--    sigmaTargets1 = (entries(matrix({basis NF1})*sigma1))#0;
+--    phi1 = map(R1, R1, drop(sigmaTargets1, 1));
+--    phi1
+--)
