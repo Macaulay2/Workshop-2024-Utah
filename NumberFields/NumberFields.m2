@@ -302,6 +302,8 @@ isFieldAutomorphism = (NF1, sigma1) -> (
     C1 := coefficientRing R1;
     P1 := (pushFwd(map(R1, C1)))#2;
     phi1 := ringMapFromMatrix(NF1, sigma1);
+    if not isWellDefined phi1 then (return false;);
+    if not isInjective phi1 then (return false;);
     newBasis1 := apply(basis NF1, i -> phi1(i));
     newGensAsBasis1 := apply(newBasis1, P1);
     A1 := newGensAsBasis1#0;

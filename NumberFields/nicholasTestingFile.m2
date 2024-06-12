@@ -113,10 +113,10 @@ R = QQ[x,y]/(x^2+1,y^2-2)
 NF = numberField R
 
 -- Example 1
-sigma = matrix({{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}) -- Identity matrix corresponds to identity map
+sigma = matrix({{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}})**QQ -- Identity matrix corresponds to identity map
 phi = ringMapFromMatrix(NF, sigma)
-for i from 1 to #(gens R1) do (
-    a_i = (gens R1)#(i-1)
+for i from 1 to #(gens ring NF) do (
+    a_i = (gens ring NF)#(i-1)
 )
 phi(a_1) -- Should return a_1
 phi(a_2) -- Should return a_2
@@ -124,10 +124,10 @@ phi(a_1*a_2) -- Should return a_1*a_2
 isFieldAutomorphism(NF, sigma) -- Should return true
 
 -- Example 2
-sigma = matrix({{1,0,0,0},{0,-1,0,0},{0,0,1,0},{0,0,0,-1}}) -- Identity matrix corresponds to identity map
+sigma = matrix({{1,0,0,0},{0,-1,0,0},{0,0,1,0},{0,0,0,-1}})**QQ -- Matrix corresponds to sending i to -i and sending sqrt(2) to -sqrt(2)
 phi = ringMapFromMatrix(NF, sigma)
-for i from 1 to #(gens R1) do (
-    a_i = (gens R1)#(i-1)
+for i from 1 to #(gens ring NF) do (
+    a_i = (gens ring NF)#(i-1)
 )
 phi(a_1) -- Should return -a_1
 phi(a_2) -- Should return -a_2
@@ -135,10 +135,10 @@ phi(a_1*a_2) -- Should return a_1*a_2
 isFieldAutomorphism(NF, sigma) -- Should return true
 
 -- Example 3
-sigma = matrix({{1,0,0,0},{0,-1,0,0},{0,0,-1,0},{0,0,0,-1}}) -- Identity matrix corresponds to identity map
+sigma = matrix({{1,0,0,0},{0,-1,0,0},{0,0,-1,0},{0,0,0,-1}})**QQ -- Invalid map
 phi = ringMapFromMatrix(NF, sigma)
-for i from 1 to #(gens R1) do (
-    a_i = (gens R1)#(i-1)
+for i from 1 to #(gens ring NF) do (
+    a_i = (gens ring NF)#(i-1)
 )
 phi(a_1) -- Should return -a_1
 phi(a_2) -- Should return -a_2
@@ -149,10 +149,10 @@ isFieldAutomorphism(NF, sigma) -- Should return false
 R = QQ[x]/(x^2+1)
 NF = numberField R
 
-sigma = matrix({{1,0},{0,1}}) -- Identity matrix corresponds to identity map
+sigma = matrix({{1,0},{0,1}})**QQ -- Identity matrix corresponds to identity map
 phi = ringMapFromMatrix(NF, sigma)
-for i from 1 to #(gens R1) do (
-    a_i = (gens R1)#(i-1)
+for i from 1 to #(gens ring NF) do (
+    a_i = (gens ring NF)#(i-1)
 )
 phi(a_1) -- Should return a_1
 isFieldAutomorphism(NF, sigma) -- Should return true
@@ -160,8 +160,8 @@ isFieldAutomorphism(NF, sigma) -- Should return true
 -- Example 5
 sigma = matrix({{1,0},{0,-1}}) -- Matrix corresponding to complex conjugation, the only nontrivial field automorphism
 phi = ringMapFromMatrix(NF, sigma)
-for i from 1 to #(gens R1) do (
-    a_i = (gens R1)#(i-1)
+for i from 1 to #(gens ring NF) do (
+    a_i = (gens ring NF)#(i-1)
 )
 phi(a_1) -- Should return a_1
 isFieldAutomorphism(NF, sigma) -- Should return true
@@ -170,12 +170,21 @@ isFieldAutomorphism(NF, sigma) -- Should return true
 loadPackage ("NumberFields", Reload=>true)
 R = QQ[x]/(x^2+1)
 NF = numberField R
-sigmaI = matrix({{1,0},{0,1}})
+sigmaI = matrix({{1,0},{0,1}})**QQ
 ringMapFromMatrix(NF, sigmaI)
 isFieldAutomorphism(NF, sigmaI) -- Should return true
-sigmaConj = matrix({{1,0},{0,-1}})
+sigmaConj = matrix({{1,0},{0,-1}})**QQ
 ringMapFromMatrix(NF, sigmaConj)
 isFieldAutomorphism(NF, sigmaConj) -- Should return true
+sigma = matrix({{-1,0},{0,1}})**QQ
+ringMapFromMatrix(NF, sigma)
+isFieldAutomorphism(NF, sigma) -- Should return false
+sigma = matrix({{1,0},{0,2}})**QQ
+ringMapFromMatrix(NF, sigma)
+isFieldAutomorphism(NF, sigma) -- Should return false
+sigma = matrix({{1,0},{0,0}})**QQ
+ringMapFromMatrix(NF, sigma)
+isFieldAutomorphism(NF, sigma) -- Should return false
 -- The above two matrices should be on the only automorphisms of Q(i). Let's generate a bunch of random matrices and ensure they aren't automorphisms
 valid = true;
 for i from 1 to 1000 do (
@@ -187,7 +196,7 @@ for i from 1 to 1000 do (
         );
     );
 );
-valid -- Returns true if all 1000 random matrices above do not produce valid automorphisms
+valid -- Returns true if all 1000 random matrices above do not produce automorphisms
 
 -- Example 7
 -- Let's repeat example 6 for Q(cube root of 2). This field only has the trivial automorphism
@@ -210,5 +219,5 @@ for i from 1 to 1000 do (
         );
     );
 );
-valid -- Returns true if all 1000 random matrices above do not produce valid automorphisms
+valid -- Returns true if all 1000 random matrices above do not produce automorphisms
 
