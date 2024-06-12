@@ -33,6 +33,11 @@ loadPackage "NumberFields"
 R = QQ[t, z]/ideal(t^3-2, z^2+z*t+t^2)
 K = numberField R
 B = basis K
+a1 = (gens(K))#0
+a2 = (gens(K))#1
+phi = map(ring K, ring K, {a2,a1})
+N = matrixFromRingMap(K, K, phi)
+ringMapFromMatrix(K, N)
 if ((B#1) == (gens(K))#0) and ((B#4)==(gens(K))#1) then (
     M=matrix{{1,0,0,0,0,0}, {0,0,0,0,1,0},{0,0,1,0,0,0},{0,0,0,1,0,0},{0,1,0,0,0,0},{0,0,0,0,0,1}}**QQ;
     isFieldAutomorphism(K, M) -- this should be false
@@ -44,4 +49,4 @@ a1 = (gens(K))#0
 a2 = (gens(K))#1
 basis K
 N = vector(1_(ring K), K) | vector(a2, K) | vector(a1*a2,K) | vector(a1^2*a2, K) | vector(a1, K) | vector(a1^2, K)
-isFieldAutomorphism(K,N)
+time isFieldAutomorphism(K,N)

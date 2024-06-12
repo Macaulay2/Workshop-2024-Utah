@@ -31,6 +31,7 @@ export{
    "vectorSpace",
    "ringMapFromMatrix",
    "isFieldAutomorphism",
+   "matrixFromRingMap"
 };
 
 NumberField = new Type of HashTable
@@ -316,9 +317,11 @@ isFieldAutomorphism(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
 )
 
 -- Helper method for isFieldAutomorphism
-ringMapFromMatrix = method(Options=>{})
+-*ringMapFromMatrix = method(Options=>{})
 
 ringMapFromMatrix(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
+*-
+ringMapFromMatrix = (NF1, sigma1) -> (
     R1 := ring NF1;
     C1 := coefficientRing R1;
     P1 := (pushFwd(map(R1, C1)))#2;
@@ -328,11 +331,30 @@ ringMapFromMatrix(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
     newGens1 := apply(newGensAsMatrices1, i -> (entries i)#0#0);
     map(R1, R1, newGens1)
 )
-
+-*
 matrixFromRingMap = method(Options=>{})
 
-matrixFromRingMap(NumberField, NumberField, RingMap) := opts -> (nf1, nf2, psi) -> (
+matrixFromRingMap(NumberField, RingMap) := opts -> (n1, psi) ->(
+    print "Hello";
+    matrixFromRingMap(n1, n1, psi)
+)
+matrixFromRingMap(ZZ,ZZ) := opts -> (i,j) -> (
+    i+j
+)
+
+matrixFromRingMap(NumberField, NumberField, Thing) := opts -> (nf1, nf2, psi) -> (
+*-
+matrixFromRingMap = (nf1, nf2, psi) -> (
+    if not ((target psi === ring nf1) and (source psi === ring nf2)) then error "expected the map to go from the the second argument to the first";
     
+    B1 := basis nf2;
+    matrixOut := vector(psi(B1#0), nf1);
+    i := 1;
+    while (i < #B1) do (
+        matrixOut = matrixOut | vector(psi(B1#i), nf1);
+        i = i+1;
+    );
+    matrixOut
 )
 
 simpleExt = method(Options => {});
