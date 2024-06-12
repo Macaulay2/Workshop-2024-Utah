@@ -58,3 +58,18 @@ TEST ///
     q1=E^{1}
     
 ///
+
+TEST ///
+    S = (ZZ/3)[x,y,z]
+    I = ideal(x^3*y+y^3*z+z^3*x)
+    R = S/I
+    X = Proj R
+    L = dual sheaf module ideal (x,y)
+    F = frobeniusSheafMap X
+    B = coker F
+    assert(HH^0(B**dual L) != 0)
+    Ext1 = Ext^1(L, OO_X)
+    E = prune source first yonedaSheafExtension (matrix Ext1_1)
+    PE = projectiveBundle E
+    X = minimalEmbedding PE
+///
