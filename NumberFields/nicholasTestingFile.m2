@@ -79,6 +79,8 @@ h = pushFwd(phi, sigma)
 --    return true
 --)
 
+loadPackage ("NumberFields", Reload=>true)
+
 isFieldAutomorphism = (NF1, sigma1) -> (
     R1 = ring NF1;
     C1 = coefficientRing R1;
@@ -86,6 +88,11 @@ isFieldAutomorphism = (NF1, sigma1) -> (
     phi1 = ringMapFromMatrix(NF1, sigma1);
     newBasis1 = apply(basis NF1, i -> phi1(i));
     newGensAsBasis1 = apply(newBasis1, P1);
+    A = newGensAsBasis1#0;
+    for i from 1 to #newGensAsBasis1-1 do (
+        A |= newGensAsBasis1#i;
+    );
+    return (A-sigma1)==0 -- Test matrix equality only on entry level; A==sigma1 would return false if either sources or target differ
 )
 
 -- Helper method for isFieldAutomorphism
@@ -94,13 +101,14 @@ ringMapFromMatrix = (NF1, sigma1) -> (
     C1 = coefficientRing R1;
     P1 = (pushFwd(map(R1, C1)))#2;
     gensAsBasis1 = apply(gens R1, P1); -- Expresses each generator of R1 as a vector w.r.t. the basis of NF1
-    newGensAsBasis1 = apply(gensAsBasis1, i -> sigma*i);
+    newGensAsBasis1 = apply(gensAsBasis1, i -> sigma1*i);
     newGensAsMatrices1 = apply(newGensAsBasis1, i -> matrix({basis NF1})*i);
     newGens1 = apply(newGensAsMatrices1, i -> (entries i)#0#0);
     map(R1, R1, newGens1)
 )
 
-loadPackage ("NumberFields", Reload=>true)
+
+
 R = QQ[x,y]/(x^2+1,y^2-2)
 NF = numberField R
 
@@ -124,7 +132,7 @@ for i from 1 to #(gens R1) do (
 phi(a_1) -- Should return -a_1
 phi(a_2) -- Should return -a_2
 phi(a_1*a_2) -- Should return a_1*a_2
-isFieldAutomorphism(NF, sigma)
+isFieldAutomorphism(NF, sigma) -- Should return true
 
 -- Example 3
 sigma = matrix({{1,0,0,0},{0,-1,0,0},{0,0,-1,0},{0,0,0,-1}}) -- Identity matrix corresponds to identity map
@@ -134,12 +142,73 @@ for i from 1 to #(gens R1) do (
 )
 phi(a_1) -- Should return -a_1
 phi(a_2) -- Should return -a_2
-phi(a_1*a_2) -- Should return -a_1*a_2
-isFieldAutomorphism(NF, sigma)
+phi(a_1*a_2) -- Should return a_1*a_2; note that actual map corresponding to sigma returns -a_1*a_2
+isFieldAutomorphism(NF, sigma) -- Should return false
 
---ringMapFromMatrix = (NF1, sigma1) -> (
---    R1 = ring NF1;
---    sigmaTargets1 = (entries(matrix({basis NF1})*sigma1))#0;
---    phi1 = map(R1, R1, drop(sigmaTargets1, 1));
---    phi1
---)
+-- Example 4: Q(i)
+R = QQ[x]/(x^2+1)
+NF = numberField R
+
+sigma = matrix({{1,0},{0,1}}) -- Identity matrix corresponds to identity map
+phi = ringMapFromMatrix(NF, sigma)
+for i from 1 to #(gens R1) do (
+    a_i = (gens R1)#(i-1)
+)
+phi(a_1) -- Should return a_1
+isFieldAutomorphism(NF, sigma) -- Should return true
+
+-- Example 5
+sigma = matrix({{1,0},{0,-1}}) -- Matrix corresponding to complex conjugation, the only nontrivial field automorphism
+phi = ringMapFromMatrix(NF, sigma)
+for i from 1 to #(gens R1) do (
+    a_i = (gens R1)#(i-1)
+)
+phi(a_1) -- Should return a_1
+isFieldAutomorphism(NF, sigma) -- Should return true
+
+-- Example 6
+loadPackage ("NumberFields", Reload=>true)
+R = QQ[x]/(x^2+1)
+NF = numberField R
+sigmaI = matrix({{1,0},{0,1}})
+ringMapFromMatrix(NF, sigmaI)
+isFieldAutomorphism(NF, sigmaI) -- Should return true
+sigmaConj = matrix({{1,0},{0,-1}})
+ringMapFromMatrix(NF, sigmaConj)
+isFieldAutomorphism(NF, sigmaConj) -- Should return true
+-- The above two matrices should be on the only automorphisms of Q(i). Let's generate a bunch of random matrices and ensure they aren't automorphisms
+valid = true;
+for i from 1 to 1000 do (
+    sigma = random(QQ^2, QQ^2);
+    if isFieldAutomorphism(NF, sigma) then (
+        if (sigma-sigmaI!=0 and sigma-sigmaConj!=0) then (
+            print sigma;
+            valid = false;
+        );
+    );
+);
+valid -- Returns true if all 1000 random matrices above do not produce valid automorphisms
+
+-- Example 7
+-- Let's repeat example 6 for Q(cube root of 2). This field only has the trivial automorphism
+R = QQ[x]/(x^3-2)
+NF = numberField R
+
+sigmaI = matrix({{1,0,0},{0,1,0},{0,0,1}})
+ringMapFromMatrix(NF, sigmaI)
+isFieldAutomorphism(NF, sigmaI) -- Should return true
+sigma2 = matrix({{1,0,0},{0,0,1},{0,1,0}})
+ringMapFromMatrix(NF, sigma2)
+isFieldAutomorphism(NF, sigma2) -- Should return false
+valid = true;
+for i from 1 to 1000 do (
+    sigma = random(QQ^3, QQ^3);
+    if isFieldAutomorphism(NF, sigma) then (
+        if sigma-sigmaI!=0 then (
+            print sigma;
+            valid = false;
+        );
+    );
+);
+valid -- Returns true if all 1000 random matrices above do not produce valid automorphisms
+

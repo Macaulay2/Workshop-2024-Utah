@@ -29,6 +29,8 @@ export{
    "remakeField",--this probably shouldn't be exposed to the user long term
    "minimalPolynomial",
    "vectorSpace",
+   "ringMapFromMatrix",
+   "isFieldAutomorphism",
 };
 
 NumberField = new Type of HashTable
@@ -294,6 +296,33 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     numberFieldExtension (map(K1, K2))
 )
+
+isFieldAutomorphism = (NF1, sigma1) -> (
+    R1 := ring NF1;
+    C1 := coefficientRing R1;
+    P1 := (pushFwd(map(R1, C1)))#2;
+    phi1 := ringMapFromMatrix(NF1, sigma1);
+    newBasis1 := apply(basis NF1, i -> phi1(i));
+    newGensAsBasis1 := apply(newBasis1, P1);
+    A1 := newGensAsBasis1#0;
+    for i from 1 to #newGensAsBasis1-1 do (
+        A1 |= newGensAsBasis1#i;
+    );
+    return (A1-sigma1)==0 -- Test matrix equality only on entry level; A==sigma1 would return false if either sources or target differ
+)
+
+-- Helper method for isFieldAutomorphism
+ringMapFromMatrix = (NF1, sigma1) -> (
+    R1 := ring NF1;
+    C1 := coefficientRing R1;
+    P1 := (pushFwd(map(R1, C1)))#2;
+    gensAsBasis1 := apply(gens R1, P1); -- Expresses each generator of R1 as a vector w.r.t. the basis of NF1
+    newGensAsBasis1 := apply(gensAsBasis1, i -> sigma1*i);
+    newGensAsMatrices1 := apply(newGensAsBasis1, i -> matrix({basis NF1})*i);
+    newGens1 := apply(newGensAsMatrices1, i -> (entries i)#0#0);
+    map(R1, R1, newGens1)
+)
+
 simpleExt = method(Options => {});
 simpleExt(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
