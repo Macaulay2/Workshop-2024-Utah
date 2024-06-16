@@ -25,6 +25,8 @@ export{
    "splittingField",
    "compositums",
    "simpleExt",
+   "ringElFromMatrix",
+   "matrixFromRingEl",
    "asExtensionOfBase",--this probably shouldn't be exposed to the user long term
    "remakeField",--this probably shouldn't be exposed to the user long term
    "minimalPolynomial",
@@ -356,6 +358,35 @@ matrixFromRingMap = (nf1, nf2, psi) -> (
     );
     matrixOut
 )
+matrixFromRingEl = method(Options => {});
+matrixFromRingEl(NumberField, RingElement) := opts -> (nF, rEl) -> (
+    R := ring nF;
+    return pushFwd(map(R^1, R^1, matrix{{rEl}}));
+)
+ringElFromMatrix = method(Options => {});
+ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
+    --We basically turn the natural linear algebra basis of our number field into a matrix, then row reduce it to turn mat into an element in our number field.
+    R0 := ring nF;
+    R1 := coefficientRing R0;
+    M0 := (pushFwd(map(R0,R1)))_1;
+    vList := {};
+    for i from 0 to ((numgens source M0)-1) do(
+
+        Mi := matrixFromRingEl(nF, (M0_i)_0);
+        vi := vector reshape(R1^((numgens target Mi)*(numgens source Mi)), R1^1, Mi);
+        vList = append(vList, vi);
+    );
+    vList = append(vList, vector reshape(R1^((numgens target mat)*(numgens source mat)), R1^1, mat));
+    M := matrix(vList);
+    RRM := reducedRowEchelonForm M;
+    lastCol := RRM_{numColumns RRM-1};
+    el := 0_R0;
+    for i from 0 to ((numgens source M0)-1) do(
+        el = el + (lastCol_0)_i * (M0_i)_0;
+    );
+    return el;
+)
+
 
 simpleExt = method(Options => {});
 simpleExt(NumberField) := opts -> nf ->(
