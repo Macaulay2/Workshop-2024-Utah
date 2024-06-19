@@ -32,9 +32,9 @@ export{
    "remakeField",--this probably shouldn't be exposed to the user long term
    "minimalPolynomial",
    "vectorSpace",
-   "ringMapFromMatrix",
+   --"ringMapFromMatrix",
    "isFieldAutomorphism",
-   "matrixFromRingMap"
+   --"matrixFromRingMap"
 };
 
 NumberField = new Type of HashTable
@@ -516,14 +516,68 @@ compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
 beginDocumentation()
 
 doc ///
-    Node
-        Key
-            NumberFields
-        Headline
-            an example Macaulay2 package
-        Description
-            Text
-                {\em FirstPackage} is a basic package to be used as an example.
+    Key
+        NumberFields
+    Headline
+        number fields and Galois theory
+    Description
+        Text
+            {\em NumberFields} is a package that allows for clean definition and use of number fields. A number field is a extension of $\QQ$ of finite degree, e.g., $\QQ(\sqrt(2))$, which is isomorphic to $\QQ[x]/(x^2-2)$.
+///
+
+doc ///
+    Key
+        splittingField
+        (splittingField,RingElement)
+    Headline
+        creates the splitting field of a polynomial
+    Usage
+        splittingField f
+    Inputs
+        f: RingElement
+            a polynomial whose splitting field the method returns
+    Outputs
+        : NumberFieldExtension
+    Description
+        Text
+            This method creates a @TO NumberFieldExtension@ whose source is $\mathbb{Q}$, target is a NumberField consisting of the splitting field of $f$, and map is inclusion. Recall that the splitting field of a polynomial $f$ with coefficients in a field $\FF$ is the smallest field extension of $\FF$ in which $f$ splits, or factors into linear factors.
+        Example
+            R = QQ[x];
+            f = x^2-2;
+            splittingField f
+            f = x^2+x+1;
+            splittingField f
+///
+
+doc ///
+    Key
+        minimalPolynomial
+        (minimalPolynomial, RingElement)
+        (minimalPolynomial, List)
+    Headline
+        computes the minimalPolynomial of a field element or list of field elements
+    Usage
+        g = minimalPolynomial f
+        L1 = minimalPolynomial L
+    Inputs
+        f: RingElement
+            the polynomial whose minimal polynomial the method computes
+        L: List
+            a list of polynomials whose minimal polynomials the method computes
+    Outputs
+        g: RingElement
+            minimal polynomial
+        L1: List
+            list of minimal polynomials
+    Description
+        Text
+            This method computes minimal polynomials. Recall that if $\mathbb{K}$ is a field extension of $\mathbb{F}$, the minimal polynomial of a field element $\alpha$ in $\mathbb{K}$ is, if it exists, the unique monic polynomial $f$ of lowest degree with coefficients in $\mathbb{F}$ such that $\alpha$ is a root of $f$.
+        Example
+            R = QQ[x]/(x^3-2);
+            f = x;
+            g = minimalPolynomial f
+            L = {x, x^2, x^2+x};
+            L1 = minimalPolynomial L
 ///
 
 --*****************************
@@ -537,6 +591,11 @@ TEST /// --Test #0
     assert(degree numberField L == 6)
 ///
 
+-*TEST /// --Test #1
+    K = QQ[x]
+    f = x^2-2
+    assert( isIsomorphic(target splittingField(f), numberField(QQ[y]/(y^2-2))) )
+///
 
 --compositums(NumberFieldExtenison,NumberFieldExtension) := opts -> (iota,kappa) -> (
 --    -- check for common base
