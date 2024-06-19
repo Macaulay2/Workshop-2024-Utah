@@ -25,6 +25,7 @@ export{
    "splittingField",
    "compositums",
    "simpleExt",
+   "getRoots",
    "ringElFromMatrix",
    "matrixFromRingEl",
    "asExtensionOfBase",--this probably shouldn't be exposed to the user long term
@@ -386,7 +387,19 @@ ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
     );
     return el;
 )
-
+getRoots = method(Options =>{});
+getRoots(RingElement) := opts -> (f) -> (
+    R := ring f;
+    (S,M, MInv) := (flattenRing (R,Result=>3));
+    primeFactors := decompose ideal M(f);
+    linearTerms := {};
+    for i from 0 to ((length primeFactors)-1) do(
+        if (degree primeFactors#i_0)#0 == 1 then (
+            linearTerms = append(linearTerms, MInv(primeFactors#i_0));
+        );
+    );
+    return linearTerms;
+)
 
 simpleExt = method(Options => {});
 simpleExt(NumberField) := opts -> nf ->(
