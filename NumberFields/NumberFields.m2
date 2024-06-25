@@ -355,6 +355,7 @@ isGalois(RingMap) := opts -> iota -> (
 )
 
 -- splittingField method
+--****KARL:  THIS IS CURRENTLY BROKEN, I TRIED TO MAKE IT FASTER...*****
 splittingField = method(Options => {Variable=>null, Verbose=>false})
 splittingField(RingElement) := opts -> f1 -> (
     --R1 := QQ[x];
@@ -377,18 +378,41 @@ splittingField(RingElement) := opts -> f1 -> (
     variableIndex := 1;
     finished := false;
     i := 1;
-    factorList := {};
+    idealList := {ideal curf1};
     while not finished do (
-        L1 := decompose ideal curf1;
-        L2 := select(L1, z -> not isLinear z);
-        curf1 = product(apply(L2, L2->))
+        print ("Starting a loop : " | toString(idealList));
+        L1 := flatten apply(idealList, z->decompose z);
+        idealList = select(L1, z->not isLinear z);        --let's only keep the good ones.
         --print i;
         --print curf1;
-        if opts.Verbose then print L2;
+        if opts.Verbose then print idealList;
         i += 1;
         finished = true;
-        executeForLoop := true;
-        for i from 0 to #L1-1 do (
+        --executeForLoop := true;
+        if (#idealList > 0) then (
+            currentEntry := (entries gens idealList#0)#0;   --grab a polynomial to work with
+            finished = false;
+            unMadeField = R1/(idealList#0);
+            totalPsi = (map(unMadeField, target totalPsi))  * totalPsi;
+            (K1, psi) = remakeField (unMadeField, Degree=>0);                    
+            totalPsi = psi*totalPsi;
+            --S1 = K1[local a_variableIndex];                    
+            S1 = K1[varName];
+            SvarOld = Svar;
+            Svar = sub(varName#0, S1);
+            linTerm = Svar - psi(SvarOld);
+            phi1 = map(S1, R1, {Svar});    
+            print phi1;               
+            curf1old = phi1(curf1);
+            curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
+            --assert(linTerm*curf1 == curf1old);
+            idealList = apply(idealList, z->phi1(z));
+            R1 = S1;
+            variableIndex += 1;
+        )
+
+        
+        -*for i from 0 to #idealList-1 do (
             if executeForLoop then (
                 currentEntry := (entries gens L1#i)#0;         
                 if opts.Verbose then print (toString(currentEntry) | " : " | toString(length(currentEntry)) | "," | toString(degree(currentEntry#0)) );
@@ -412,7 +436,7 @@ splittingField(RingElement) := opts -> f1 -> (
                     executeForLoop = false;
                 );                                
             );            
-        );
+        );*-
     );
     --K1
     --numberField K1
@@ -424,9 +448,9 @@ splittingField(RingElement) := opts -> f1 -> (
 )
 
 isLinear = method(Options=>{})
-isLinear(Ideal) := (J1) -> (
+isLinear(Ideal) := opts -> (J1) -> (
     idealGens := (entries gens J1)#0;
-    length(currentEntry)==1 and max(degree(currentEntry#0))==1
+    length(idealGens)==1 and max(degree(idealGens#0))==1
 )
 
 syntheticDivision = method(Options=>{})

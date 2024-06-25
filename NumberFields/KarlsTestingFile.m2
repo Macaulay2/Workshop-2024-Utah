@@ -5,6 +5,9 @@ installPackage "NumberFields"
 check NumberFields
 
 R = QQ[x]
+f = x^3-2
+K = (splittingField(f, Verbose=>true))
+use R
 h = x^5-10*x+2
 K = (splittingField(h, Verbose=>true))
 h1 = x^5-10*x+2
