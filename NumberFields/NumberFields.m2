@@ -379,10 +379,10 @@ splittingField(RingElement) := opts -> f1 -> (
     finished := false;
     i := 1;
     idealList := {ideal curf1};
+    L1 := flatten apply(idealList, z->decompose z);
     while not finished do (
-        print ("Starting a loop : " | toString(idealList));
-        L1 := flatten apply(idealList, z->decompose z);
-        idealList = select(L1, z->not isLinear z);        --let's only keep the good ones.
+        print ("Starting a loop : " | toString(idealList));        
+        idealList = select(idealList, z->not isLinear z);        --let's only keep the good ones.
         --print i;
         --print curf1;
         if opts.Verbose then print idealList;
@@ -401,7 +401,7 @@ splittingField(RingElement) := opts -> f1 -> (
             SvarOld = Svar;
             Svar = sub(varName#0, S1);
             linTerm = Svar - psi(SvarOld);
-            phi1 = map(S1, R1, {Svar});    
+            phi1 = map(S1, R1, {Svar});    --this is behaving badly
             print phi1;               
             curf1old = phi1(curf1);
             curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
@@ -454,7 +454,7 @@ isLinear(Ideal) := opts -> (J1) -> (
 )
 
 syntheticDivision = method(Options=>{})
-syntheticDivision(RingElement, RingElement) := (f1, g1) -> (
+syntheticDivision(RingElement, RingElement) := (f1, g1) -> ( --compute f1 / g1, where g1 = x-a, and where g1 divides f1
 
 )
 
