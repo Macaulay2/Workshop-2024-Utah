@@ -21,6 +21,8 @@ export{
    "numberField",
    "NumberFieldExtension",
    "numberFieldExtension",
+   "TempNumberField",
+   "tempNumberField",
    "isGalois",
    "splittingField",
    "compositums",
@@ -37,40 +39,13 @@ export{
    --"matrixFromRingMap"
 };
 
-NumberField = new Type of HashTable
+NumberField = new Type of QuotientRing
 
---
---The entries should be:
---ring (the ring it points to)
---cache (cached data)
---
+-*
+TempNumberField = new Type of QuotientRing
 
---****************************
---NumberField constructors
---****************************
-
---The following function takes a ring and renames the variables
---in the future, it might also try to clean up relations (prune, trim, our own combination of prune/trim)
-remakeField = method(Options => {Variable=>null});
-remakeField(Ring) := opts -> R1 -> (
-    local var;
-    local amb;
-    local myIdeal;
-    a := local a;
-    R2 := (flattenRing R1)#0;
-    if instance(R2, QuotientRing) then (amb = ambient R2; myIdeal = ideal R2) else (amb = R2; myIdeal = ideal(sub(0,R2)));
-    numVars := #(gens amb);
-
-    if opts.Variable === null then (var = a) else (var = opts.Variable);
-    varList := {var_1..var_numVars};
-    newRing1 := QQ(monoid[varList]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
-    phi := map(newRing1, amb, gens newRing1);
-
-    newRing1/phi(myIdeal)
-)
-
-numberField = method(Options => {Variable=>null})
-numberField(RingElement) := opts -> f1 -> (
+tempNumberField = method(Options => {Variable=>null})
+tempNumberField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
     if #(gens R1) != 1 then error("Expected a polynomial in one variable.");
@@ -80,12 +55,12 @@ numberField(RingElement) := opts -> f1 -> (
     if f1 == 0 then error("Expected nonzero polynomial.");
     --if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
 
-    numberField(R1/ideal(f1), opts)
+    tempNumberField(R1/ideal(f1), opts)
 )
 
 
 
-numberField(Ring) := opts -> R1 -> (
+tempNumberField(Ring) := opts -> R1 -> (
     if R1===QQ then return new NumberField from {
             ring => R1, 
             pushFwd => pushFwd(map(QQ[],QQ)),
@@ -117,6 +92,108 @@ numberField(Ring) := opts -> R1 -> (
         if (i < genCt) then myStr = myStr | ", ";
     );
 
+    tempNumField := new TempNumberField from outputRing;        
+
+    tempNumField#pushFwd = myPushFwd;
+    tempNumField#String = myStr;
+    tempNumField#minimalPolynomial = genMinPolys;
+    tempNumField#cache#degree = deg;
+
+    tempNumField
+)
+*-
+
+--
+--The entries should be:
+--ring (the ring it points to)
+--cache (cached data)
+--
+
+--****************************
+--NumberField constructors
+--****************************
+
+--The following function takes a ring and renames the variables
+--in the future, it might also try to clean up relations (prune, trim, our own combination of prune/trim)
+remakeField = method(Options => {Variable=>null, Degree => 1, NoPrune => false});
+remakeField(Ring) := opts -> R1 -> (
+    local var;
+    local amb;
+    local myIdeal;
+    local finalRing2;
+    a := local a;
+    R2 := (flattenRing R1)#0;
+    if instance(R2, QuotientRing) then (amb = ambient R2; myIdeal = ideal R2) else (amb = R2; myIdeal = ideal(sub(0,R2)));
+    numVars := #(gens amb);
+
+    if opts.Variable === null then (var = a) else (var = opts.Variable);
+    varList := {var_1..var_numVars};
+    varDegrees := apply(numVars, i->opts.Degree);
+    newRing1 := QQ(monoid[varList, Degrees=>varDegrees]);--we may want to think about the monomial order, we also might want to consider messing around with choosing a better presentation.
+    phi := map(newRing1, amb, gens newRing1);
+    finalRing := newRing1/phi(myIdeal);    
+    psi := map(finalRing, R1, matrix phi);
+    if not opts.NoPrune then (
+        finalRing2 = prune finalRing;
+        psi = (finalRing.minimalPresentationMap)*psi;
+    )
+    else(
+        finalRing2 = finalRing;
+    );
+
+    (finalRing2, psi)
+)
+
+numberField = method(Options => {Variable=>null})
+numberField(RingElement) := opts -> f1 -> (
+    R1 := ring f1;
+    if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
+    if #(gens R1) != 1 then error("Expected a polynomial in one variable.");
+    if char R1 != 0 then error("Expected characteristic 0.");
+
+    -- Verifies that the resulting quotient is a field.
+    if f1 == 0 then error("Expected nonzero polynomial.");
+    --if not isPrime ideal(f1) then error("Expected an irreducible polynomial.");
+
+    numberField(R1/ideal(f1), opts)
+)
+
+
+
+numberField(Ring) := opts -> R1 -> (
+    if R1===QQ then return new NumberField from {
+            ring => R1, 
+            pushFwd => pushFwd(map(QQ[],QQ)),
+            cache => new CacheTable from {},
+            String => "QQ, rational numbers"
+        };
+    
+    if not isPrime (ideal 0_R1) then error("Expected a field.");
+    if not dim R1 == 0 then error("Expected a field.");
+    
+    if char R1 != 0 then error("Expected characteristic 0.");
+    outputRing := (remakeField(R1, Variable=>opts.Variable))#0;
+    iota := map(outputRing,QQ);
+    local myPushFwd;
+    try myPushFwd = pushFwd(iota) else error("Not finite dimensional over QQ");
+    if not isFreeModule(myPushFwd#0) then error "numberField: something went wrong, this should be a free module over QQ";
+    genMinPolys := apply(gens outputRing, h->minimalPolynomial(h));
+
+    genList := gens outputRing;
+    genCt := #genList;
+    i := 0;
+    deg := rank(myPushFwd#0);
+    
+    myStr := "Number Field, degree ";
+    myStr = myStr | toString(deg) | " / Q, generated by:";
+    if genCt == 0 then myStr = myStr | " nothing";
+    while (i < genCt) do (
+        myStr = myStr | " " | toString(genList#i) | " (" | toString (genMinPolys#i) | ")";
+        i = i+1;
+        if (i < genCt) then myStr = myStr | ", ";
+    );
+
+    -*
     new NumberField from {
         ring => toField outputRing, 
         pushFwd => myPushFwd,
@@ -124,6 +201,15 @@ numberField(Ring) := opts -> R1 -> (
         minimalPolynomial => genMinPolys, --a list of min polys of gens, for display purposes
         cache => new CacheTable from {degree => deg}
     }
+    *-
+    tempNumField := new NumberField from outputRing;        
+
+    tempNumField#pushFwd = myPushFwd;
+    tempNumField#String = myStr;
+    tempNumField#minimalPolynomial = genMinPolys;
+    tempNumField#cache#degree = deg;
+
+    tempNumField
 )
 
 internalNumberFieldConstructor := R1 -> (
@@ -158,12 +244,16 @@ net NumberField := nf -> (
 --NumberField basic operations
 --****************************
 
-ring(NumberField) := R1 -> (
+-*ring(NumberField) := R1 -> (
     if (class (R1#ring) === PolynomialRing) then (
         return coefficientRing(R1#ring);
     );
     R1#ring
-)
+    varList := gens R1;
+    myMon := monoid[varList];
+    amb := QQ[varList];
+    amb/sub(ideal R1, amb)
+)*-
 
 
 
@@ -176,7 +266,7 @@ degree(NumberField) := nf -> (
     nf#cache#degree = rk;
     rk*-
     --Karl:  something is wrong with pushFwd in this context, I rewrote this function for now.  The old version is above.
-    degree ((ring nf)^1)
+    rank(nf#pushFwd#0)
 )
 
 --this gives the basis for the numberField over QQ
@@ -190,26 +280,29 @@ vectorSpace(NumberField) := opts -> nf -> (
 )
 
 vector(RingElement, NumberField) := (f1, nf) -> (
-    if not (ring f1 === ring nf) then error "Expected an element of the NumberField";
+    if not (ring f1 === nf) then error "Expected an element of the NumberField";
     (nf#pushFwd#2)(f1)
 );
 
-gens(NumberField) := opts -> nf -> (
-    gens ring nf
-)
 
 
-NumberFieldExtension = new Type of HashTable
+NumberFieldExtension = new Type of RingMap
 
 numberFieldExtension = method(Options => {})
 numberFieldExtension(RingMap) := opts -> phi1 -> (
-    new NumberFieldExtension from {
+    answer := new NumberFieldExtension from phi1;
+    answer#cache#String = ("Number field extension, degree " | degree answer);
+    answer
+
+    -*new NumberFieldExtension from {
         source=>numberField source phi1, 
         target=>numberField target phi1, 
         "map"=>phi1, 
         cache => new CacheTable from {}
-    }
+    }*-
 );
+
+net NumberFieldExtension := nfe -> (nfe#cache#String)
 
 numberFieldExtension(RingElement) := opts -> f1 -> (
     if not (gens ring f1 == 1) then error "Expected a polynomial in a single variable";
@@ -218,13 +311,13 @@ numberFieldExtension(RingElement) := opts -> f1 -> (
 
 );
 
-source(NumberFieldExtension) := phi1 -> (phi1#source);
-target(NumberFieldExtension) := phi1 -> (phi1#target);
-map(NumberFieldExtension) := opts -> phi1 -> (phi1#"map");
+--source(NumberFieldExtension) := phi1 -> (source phi1);
+--target(NumberFieldExtension) := phi1 -> (target phi1);
+map(NumberFieldExtension) := opts -> phi1 -> (phi1);
 
 degree(NumberFieldExtension) := nfe -> (
     if (nfe#cache#?degree) then return nfe#cache#degree;
-    rk := rank((pushFwd(map nfe))#0);
+    rk := rank((pushFwd(map(target nfe, source nfe, matrix nfe)))#0);
     nfe#cache#degree = rk;
     rk
 )
@@ -262,43 +355,83 @@ isGalois(RingMap) := opts -> iota -> (
 )
 
 -- splittingField method
-splittingField = method(Options => {})
+splittingField = method(Options => {Variable=>null, Verbose=>false})
 splittingField(RingElement) := opts -> f1 -> (
     --R1 := QQ[x];
     R1 := ring f1;
+    curf1 := f1;
+    curf1old := f1;
+    varName := gens R1;
+    if not (#varName == 1) then error "Expected a polynomial ring in a single variable";
     S1 := R1;
+    Svar := (gens R1)#0;
+    SvarOld := Svar;
     K1 := coefficientRing R1;
-    K2 := coefficientRing R1;
+    --K2 := (remakeField( coefficientRing R1, Degree=>0))#0;
+    psi := map(K1, K1);
+    totalPsi := psi;
+    local unMadeField;
+    local phi1;
+    local linTerm;
+    local finalAnswer;
     variableIndex := 1;
     finished := false;
     i := 1;
+    factorList := {};
     while not finished do (
-        L1 := decompose ideal f1;
-        print i;
-        print L1;
+        L1 := decompose ideal curf1;
+        L2 := select(L1, z -> not isLinear z);
+        curf1 = product(apply(L2, L2->))
+        --print i;
+        --print curf1;
+        if opts.Verbose then print L2;
         i += 1;
         finished = true;
         executeForLoop := true;
         for i from 0 to #L1-1 do (
             if executeForLoop then (
-                currentEntry := (entries gens L1#i)#0;
+                currentEntry := (entries gens L1#i)#0;         
+                if opts.Verbose then print (toString(currentEntry) | " : " | toString(length(currentEntry)) | "," | toString(degree(currentEntry#0)) );
                 if not (length(currentEntry)==1 and max(degree(currentEntry#0))==1) then (
                     finished = false;
-                    K1 = R1/(L1#i);
-                    S1 = K1[local a_variableIndex];
-                    phi1 := map(S1, R1, {a_variableIndex});
-                    f1 = phi1(f1);
+                    unMadeField = R1/(L1#i);
+                    totalPsi = (map(unMadeField, target totalPsi))  * totalPsi;
+                    (K1, psi) = remakeField (unMadeField, Degree=>0);                    
+                    totalPsi = psi*totalPsi;
+                    --S1 = K1[local a_variableIndex];                    
+                    S1 = K1[varName];
+                    SvarOld = Svar;
+                    Svar = sub(varName#0, S1);
+                    linTerm = Svar - psi(SvarOld);
+                    phi1 = map(S1, R1, {Svar});                    
+                    curf1old = phi1(curf1);
+                    curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
+                    --assert(linTerm*curf1 == curf1old);
                     R1 = S1;
                     variableIndex += 1;
                     executeForLoop = false;
-                );
-            );
+                );                                
+            );            
         );
     );
     --K1
     --numberField K1
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
-    numberFieldExtension (map(K1, K2))
+    --numberFieldExtension (map(K1, K2))    
+    (finalAnswer, psi) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
+
+    (numberField finalAnswer, numberFieldExtension(psi*totalPsi))
+)
+
+isLinear = method(Options=>{})
+isLinear(Ideal) := (J1) -> (
+    idealGens := (entries gens J1)#0;
+    length(currentEntry)==1 and max(degree(currentEntry#0))==1
+)
+
+syntheticDivision = method(Options=>{})
+syntheticDivision(RingElement, RingElement) := (f1, g1) -> (
+
 )
 
 isFieldAutomorphism = method(Options=>{})
