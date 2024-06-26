@@ -1,9 +1,12 @@
 restart
+
 uninstallPackage "NumberFields"
 loadPackage "NumberFields"
 installPackage "NumberFields"
 check NumberFields
 
+restart
+loadPackage "NumberFields"
 R = QQ[x]
 f = x^3-2
 K = (splittingField(f, Verbose=>true))

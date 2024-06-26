@@ -375,11 +375,18 @@ splittingField(RingElement) := opts -> f1 -> (
     local phi1;
     local linTerm;
     local finalAnswer;
+    local flatTargetRing;
+    local flatPsi;
+    local newPsi;
+    local kappa;
     variableIndex := 1;
     finished := false;
     i := 1;
     idealList := {ideal curf1};
     L1 := flatten apply(idealList, z->decompose z);
+    local var;
+    a := local a;
+    if opts.Variable === null then (var = a) else (var = opts.Variable);
     while not finished do (
         print ("Starting a loop : " | toString(idealList));        
         idealList = select(idealList, z->not isLinear z);        --let's only keep the good ones.
@@ -390,23 +397,35 @@ splittingField(RingElement) := opts -> f1 -> (
         finished = true;
         --executeForLoop := true;
         if (#idealList > 0) then (
-            currentEntry := (entries gens idealList#0)#0;   --grab a polynomial to work with
+            curIdeal := idealList#0;
+            currentEntry := (entries gens curIdeal)#0;   --grab a polynomial to work with
             finished = false;
-            unMadeField = R1/(idealList#0);
+            newTargetRing := K1[var_variableIndex];
+            (flatTargetRing,flatPsi) = flattenRing(newTargetRing);
+            newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
+            kappa = map(S1, K1);
+            K1 = flatTargetRing/newPsi(curIdeal);
+            psi = newPsi * kappa;
+            1/0;
+            -*unMadeField = R1/(idealList#0);
             totalPsi = (map(unMadeField, target totalPsi))  * totalPsi;
-            (K1, psi) = remakeField (unMadeField, Degree=>0);                    
+            (K1, psi) = flattenRing(K1[local a_variableIndex]);*-
+            
+            --(K1, psi) = remakeField (unMadeField, Degree=>0, NoPrune=>true);                    
             totalPsi = psi*totalPsi;
             --S1 = K1[local a_variableIndex];                    
             S1 = K1[varName];
             SvarOld = Svar;
             Svar = sub(varName#0, S1);
-            linTerm = Svar - psi(SvarOld);
-            phi1 = map(S1, R1, {Svar});    --this is behaving badly
+            linTerm = Svar - newPsi(SvarOld);
+            phi1 = map(S1, R1, {Svar});    --this is behaving badly, let me try sub
             print phi1;               
-            curf1old = phi1(curf1);
-            curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
+            --curf1old = phi1(curf1);
+            --curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
             --assert(linTerm*curf1 == curf1old);
-            idealList = apply(idealList, z->phi1(z));
+            
+            idealList = drop(apply(idealList, z->sub(z, S1)), 1);
+            idealList = {saturate(sub(curIdeal, S1), linTerm)} | idealList;
             R1 = S1;
             variableIndex += 1;
         )
@@ -450,7 +469,7 @@ splittingField(RingElement) := opts -> f1 -> (
 isLinear = method(Options=>{})
 isLinear(Ideal) := opts -> (J1) -> (
     idealGens := (entries gens J1)#0;
-    length(idealGens)==1 and max(degree(idealGens#0))==1
+    length(idealGens)<=1 and max(degree(idealGens#0))<=1
 )
 
 syntheticDivision = method(Options=>{})
