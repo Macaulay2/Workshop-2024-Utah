@@ -368,6 +368,7 @@ splittingField(RingElement) := opts -> f1 -> (
     Svar := (gens R1)#0;
     SvarOld := Svar;
     K1 := coefficientRing R1;
+    K0 := K1;
     --K2 := (remakeField( coefficientRing R1, Degree=>0))#0;
     psi := map(K1, K1);
     totalPsi := psi;
@@ -376,7 +377,7 @@ splittingField(RingElement) := opts -> f1 -> (
     local linTerm;
     local finalAnswer;
     local flatTargetRing;
-    local flatPsi;
+    local flatPsi;--psi should be the map that includes one field in another and sends x to x.
     local newPsi;
     local kappa;
     variableIndex := 1;
@@ -400,13 +401,12 @@ splittingField(RingElement) := opts -> f1 -> (
             curIdeal := idealList#0;
             currentEntry := (entries gens curIdeal)#0;   --grab a polynomial to work with
             finished = false;
-            newTargetRing := K1[var_variableIndex];
+            newTargetRing := K1[var_variableIndex, Degrees=>{0}];
             (flatTargetRing,flatPsi) = flattenRing(newTargetRing);
             newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
-            kappa = map(S1, K1);
+            kappa = map(S1, coefficientRing S1);
             K1 = flatTargetRing/newPsi(curIdeal);
-            psi = newPsi * kappa;
-            1/0;
+            psi = (map(K1, target newPsi))*newPsi * kappa;
             -*unMadeField = R1/(idealList#0);
             totalPsi = (map(unMadeField, target totalPsi))  * totalPsi;
             (K1, psi) = flattenRing(K1[local a_variableIndex]);*-
@@ -425,7 +425,12 @@ splittingField(RingElement) := opts -> f1 -> (
             --assert(linTerm*curf1 == curf1old);
             
             idealList = drop(apply(idealList, z->sub(z, S1)), 1);
-            idealList = {saturate(sub(curIdeal, S1), linTerm)} | idealList;
+            if opts.Verbose then print "doing a saturate";
+            newIdeal := saturate(sub(curIdeal, S1), linTerm);
+            if opts.Verbose then print "checking isPrime";
+            print isPrime newIdeal;
+            if opts.Verbose then print "Starting a decompose";
+            idealList = (decompose saturate(sub(curIdeal, S1), linTerm)) | idealList;
             R1 = S1;
             variableIndex += 1;
         )
