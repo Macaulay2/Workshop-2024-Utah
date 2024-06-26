@@ -144,7 +144,7 @@ remakeField(Ring) := opts -> R1 -> (
     (finalRing2, psi)
 )
 
-numberField = method(Options => {Variable=>null})
+numberField = method(Options => {Verify => true, Verbose=>false, Variable=>null})
 numberField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
@@ -161,6 +161,7 @@ numberField(RingElement) := opts -> f1 -> (
 
 
 numberField(Ring) := opts -> R1 -> (
+    if opts.Verify then print ("Starting NumberFieldConstructor, verifying validity :" | toString(opts.Verify));
     if R1===QQ then return new NumberField from {
             ring => R1, 
             pushFwd => pushFwd(map(QQ[],QQ)),
@@ -168,13 +169,14 @@ numberField(Ring) := opts -> R1 -> (
             String => "QQ, rational numbers"
         };
     
-    if not isPrime (ideal 0_R1) then error("Expected a field.");
-    if not dim R1 == 0 then error("Expected a field.");
+    if opts.Verify and not isPrime (ideal 0_R1) then error("Expected a field.");
+    if opts.Verify and not dim R1 == 0 then error("Expected a field.");
     
-    if char R1 != 0 then error("Expected characteristic 0.");
+    if opts.Verify and char R1 != 0 then error("Expected characteristic 0.");
     outputRing := (remakeField(R1, Variable=>opts.Variable))#0;
     iota := map(outputRing,QQ);
     local myPushFwd;
+    if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");
     try myPushFwd = pushFwd(iota) else error("Not finite dimensional over QQ");
     if not isFreeModule(myPushFwd#0) then error "numberField: something went wrong, this should be a free module over QQ";
     genMinPolys := apply(gens outputRing, h->minimalPolynomial(h));
@@ -389,7 +391,7 @@ splittingField(RingElement) := opts -> f1 -> (
     a := local a;
     if opts.Variable === null then (var = a) else (var = opts.Variable);
     while not finished do (
-        print ("Starting a loop : " | toString(idealList));        
+        if debugLevel >= 5 then print ("Starting a loop : " | toString(idealList));        
         idealList = select(idealList, z->not isLinear z);        --let's only keep the good ones.
         --print i;
         --print curf1;
@@ -419,7 +421,7 @@ splittingField(RingElement) := opts -> f1 -> (
             Svar = sub(varName#0, S1);
             linTerm = Svar - newPsi(SvarOld);
             phi1 = map(S1, R1, {Svar});    --this is behaving badly, let me try sub
-            print phi1;               
+            if debugLevel >= 5 then print phi1;               
             --curf1old = phi1(curf1);
             --curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
             --assert(linTerm*curf1 == curf1old);
@@ -428,11 +430,16 @@ splittingField(RingElement) := opts -> f1 -> (
             if opts.Verbose then print "doing a saturate";
             newIdeal := saturate(sub(curIdeal, S1), linTerm);
             if opts.Verbose then print "checking isPrime";
-            print isPrime newIdeal;
+            if debugLevel >= 5 then print newIdeal;
             if opts.Verbose then print "Starting a decompose";
-            idealList = (decompose saturate(sub(curIdeal, S1), linTerm)) | idealList;
-            R1 = S1;
-            variableIndex += 1;
+            if (#idealList == 0) and (#currentEntry == 1) and (max degree(currentEntry#0) <= 2) then (
+                    finished = true;
+            ) 
+            else (
+                idealList = (decompose (newIdeal, Strategy=>"Legacy")) | idealList;
+                R1 = S1;
+                variableIndex += 1;
+            )
         )
 
         
@@ -468,7 +475,7 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberFieldExtension (map(K1, K2))    
     (finalAnswer, psi) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
 
-    (numberField finalAnswer, numberFieldExtension(psi*totalPsi))
+    (numberField(finalAnswer, Verify=>false, Verbose=>opts.Verbose), numberFieldExtension(psi*totalPsi))
 )
 
 isLinear = method(Options=>{})

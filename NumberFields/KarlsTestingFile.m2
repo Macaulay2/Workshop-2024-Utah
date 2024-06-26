@@ -12,6 +12,9 @@ R = QQ[x]
 f = x^3-2
 K = (splittingField(f, Verbose=>true))
 use R
+g = x^5+x^4+x+3
+K = (splittingField(g, Verbose=>true))
+
 h = x^5-10*x+2
 K = (splittingField(h, Verbose=>true))
 h1 = x^5-10*x+2
