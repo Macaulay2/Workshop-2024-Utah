@@ -1,5 +1,23 @@
 restart
+
+uninstallPackage "NumberFields"
 loadPackage "NumberFields"
+installPackage "NumberFields"
+check NumberFields
+
+restart
+loadPackage "NumberFields"
+
+R = QQ[x]
+f = x^3-2
+K = (splittingField(f, Verbose=>true))
+use R
+g = x^5+x^4+x+3
+K = (splittingField(g, Verbose=>true))
+
+h = x^5-10*x+2
+K = (splittingField(h, Verbose=>true))
+h1 = x^5-10*x+2
 
 R = QQ[x]/ideal(x^3-2)
 S = R[y]/ideal(y^2+y+1)
