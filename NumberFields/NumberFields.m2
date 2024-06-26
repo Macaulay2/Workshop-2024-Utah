@@ -395,7 +395,7 @@ getRoots(RingElement) := opts -> (f) -> (
     linearTerms := {};
     for i from 0 to ((length primeFactors)-1) do(
         if (degree primeFactors#i_0)#0 == 1 then (
-            linearTerms = append(linearTerms, MInv(primeFactors#i_0));
+            linearTerms = append(linearTerms, (gens R)_0 - MInv(primeFactors#i_0));
         );
     );
     return linearTerms;
