@@ -35,7 +35,11 @@ ring L
 phi = map(T, QQ[], {})
 pushFwd(phi)
 
+restart
 loadPackage("PushForward", DebuggingMode => true, Reload=>true)
+loadPackage "NumberFields"
+R = QQ[u,v]/ideal(u^3-2, v^2+v+1)
+K = numberField R
 
 
 
