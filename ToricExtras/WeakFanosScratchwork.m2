@@ -3,11 +3,11 @@
 -- Goal: produce all examples of smooth weak Fano 3-folds of Picard number 3
 -- After this, generalize to higher dimensions
 
--- needsPackage "NormalToricVarieties"
--- loadPackage "ToricExtras"
+needsPackage "NormalToricVarieties"
+loadPackage "ToricExtras"
 
 -- sometimes I may need to do this:
--- path = append(path, "~/Documents/PhD/Workshop-2024-Utah/"); stack path
+path = append(path, "~/Documents/PhD/Workshop-2024-Utah/"); stack path
 
 
 -- "sameToricVariety" function written by the Projective Bundle group
@@ -117,7 +117,10 @@ degreeOfThreefold = X -> (
 
 genusOfThreefold = X -> 1 + (degreeOfThreefold X)/2
 
-randomInvariant = X -> HH^0(X, Omega1D(X, -toricDivisor X))
+Omega1D = (X, D) -> (D = -D; rank1 = OO D; omega = cotangentSheaf(X); prune sheafHom(rank1, omega))
+
+
+vectorFields = X -> rank HH^0(X, Omega1D(X, -toricDivisor X))
 
 for X in l do (
     << degreeOfThreefold(X) << " " << randomInvariant(X) << endl;
@@ -358,8 +361,6 @@ primitiveCollections(X03)
 
 X = VV48v3
 
-Omega1D = (X, D) -> (D = -D; rank1 = OO D; omega = cotangentSheaf(X); prune sheafHom(rank1, omega))
-
 HH^3(X, Omega1D(X, toricDivisor X))
 
 randomInvariant1 = X -> HH^3(X, Omega1D(X, toricDivisor X))
@@ -368,7 +369,7 @@ randomInvariant2 = X -> HH^1(X, Omega1D(X, -toricDivisor X))
 vectorFields = X -> HH^0(X, Omega1D(X, -toricDivisor X))
 
 tensor2 = X -> prune sheafHom(prune sheafHom(cotangentSheaf(X), sheaf(X, ring X)), cotangentSheaf(X))
-randomInvariantP = X -> HH^1(X, tensor2(X))
+randomInvariantP = X -> rank HH^1(X, tensor2(X))
 
 
 l2 = {VV48v1, VV48v2, VV48v3, VV56v1, VV56v2, VV64v1, VV64v2, VV64v3}
@@ -524,6 +525,93 @@ randomInvariantP(wZ) -- 10
 
 -- These are the 7 weak Fano 3-folds of Picard rank 3. We may be interested in doing projectivations of O+O(D) on these, the same way as before, to produce fourfolds
 
+bases2D = {hirzebruchSurface 0, hirzebruchSurface 1, hirzebruchSurface 2};
+bases3D = {
+    kleinschmidt(3, {0,1}), -- Fano deg 28 (2-33)
+    kleinschmidt(3, {0}), -- Fano deg 28 (2-34), P^1 x P^2
+    kleinschmidt(3, {1}), -- Fano deg 29 (2-35)
+    kleinschmidt(3, {2}), -- Fano deg 32 (2-36)
+    kleinschmidt(3, {3}), -- weak Fano
+    kleinschmidt(3, {0,2}), -- weak Fano
+    kleinschmidt(3, {1,1}) -- weak Fano
+};
+
+for a in bases3D do (
+    << "hi" << endl;
+)
+
+---
+
+-- Let us produce the weak Fano 4-folds which are projective bundles over a 3-dimensional base
+
+
+newProjectiveBundleConstructor = (X, l) -> (
+    assert(length l == 2);
+    zeroD = toricDivisor({0,0,0,0,0}, X);
+    D = toricDivisor(join(l, {0,0,0}), X);
+    projectivizationOfBundle({zeroD, D})
+);
+
+-- The following also gives the "Chern number" c_1 ^ 4.
+degreeOfFourfold = X -> (
+    K := toricDivisor X;
+    c := chern(1, OO (-K));
+    integral (c*c*c*c)
+);
+
+-- This gives the other Chern number of a 4-fold, c_1 ^2 * c_2
+chernNumberA = X -> (
+    K := toricDivisor X;
+    c1 := chern(1, OO (-K));
+    c2 := chern(2, prune sheafHom(cotangentSheaf(X), sheaf(X, ring X)));
+    integral (c1*c1*c2)
+);
+
+degreeOfFourfold(toricProjectiveSpace 4)
+chernNumberA(toricProjectiveSpace 4)
+hjk = cartesianProduct(toricProjectiveSpace 1, toricProjectiveSpace 3)
+degreeOfFourfold(hjk)
+chernNumberA(hjk)
+
+
+
+
+counter = 0;
+for b from 0 to #bases3D-1 do (
+    for c1 from 0 to 4 do (
+	for c2 from -4 to 4 do (
+	    if not ((c1 == 0 and c2 < 0)) then (
+		if counter < 100 then (
+		    base3D = bases3D#b;
+	    	    X = newProjectiveBundleConstructor(base3D, {c1, c2});
+	    	    if (isAmple(-toricDivisor X)) then (
+		    	counter = counter + 1;
+			<< "(" << c1 << ", " << c2 << ")";
+		    	<< counter << ". ";
+			<< "base: " << b;
+		    	--<< rays X;
+	    	    	--<< "FF" << a << ". D = " << c1 << "d1 + " << c2 << "d2";
+	            	<< "\t degree = " << degreeOfFourfold(X);
+		    	<< "\t other Chern number = " << chernNumberA(X);
+		    	--<< "\t vector fields = " << vectorFields(X);
+		    	<< "\t randinv= " << randomInvariantP(X) << endl;
+		    	<< endl;
+		    )
+		) else (break; 0)
+	    )
+        )
+    )
+);
+
+
+
+X = newProjectiveBundleConstructor(bases3D#1, {0,0})
+Y = newProjectiveBundleConstructor(bases3D#1, {0,1})
+sameToricVariety(X, Y)
+
+
+
+
 
 
 ------
@@ -547,8 +635,76 @@ for a1 from 0 to 10 do (
 ---
 for a from 0 to 123 do (
     X = smoothFanoToricVariety(4, a);
-    if rank picardGroup X == 3 then << a << " is Picard rank 3!" << endl;
-)
+    if rank picardGroup X == 3 then (
+	<< a << " is Picard rank 3: ";
+	<< "\t pc = " << #primitiveCollections(X);
+	--<< rays X;
+	--<< "FF" << a << ". D = " << c1 << "d1 + " << c2 << "d2";
+	<< "\t degree = " << degreeOfFourfold(X);
+	<< "\t other Chern number = " << chernNumberA(X);
+	--<< "\t vector fields = " << vectorFields(X);
+	--<< "\t random invariant = " << randomInvariantP(X) << endl;
+        << endl;
+    )
+);
 
+counter = 0;
+for a from 0 to 123 do (
+    X = smoothFanoToricVariety(4, a);
+    if (rank picardGroup X == 3 and #primitiveCollections(X) == 3) then (
+	counter = counter + 1;
+	<< counter << ". ";
+	<< a << "; Picard rank 3 w/ 3 pc: ";
+	--<< rays X;
+	--<< "FF" << a << ". D = " << c1 << "d1 + " << c2 << "d2";
+	<< "\t deg= " << degreeOfFourfold(X);
+	<< "\t otherChern# = " << chernNumberA(X);
+	--<< "\t vf = " << vectorFields(X);
+	--<< "\t randinv= " << randomInvariantP(X) << endl;
+        << endl;
+    )
+);
 
+--1. 13; Picard rank 3 w/ 3 pc: 	 deg= 592	 otherChern# = 244	 randinv= 15
+--2. 14; Picard rank 3 w/ 3 pc: 	 deg= 576	 otherChern# = 240	 randinv= 13
+--3. 15; Picard rank 3 w/ 3 pc: 	 deg= 560	 otherChern# = 236	 randinv= 12
+--4. 16; Picard rank 3 w/ 3 pc: 	 deg= 560	 otherChern# = 236	 randinv= 13
+--5. 17; Picard rank 3 w/ 3 pc: 	 deg= 496	 otherChern# = 220	 randinv= 9
+--6. 18; Picard rank 3 w/ 3 pc: 	 deg= 496	 otherChern# = 220	 randinv= 9
+--7. 19; Picard rank 3 w/ 3 pc: 	 deg= 486	 otherChern# = 216	 randinv= 6
+--8. 20; Picard rank 3 w/ 3 pc: 	 deg= 480	 otherChern# = 216	 randinv= 7
+--9. 21; Picard rank 3 w/ 3 pc: 	 deg= 464	 otherChern# = 212	 randinv= 6
+--10. 22; Picard rank 3 w/ 3 pc: 	 deg= 464	 otherChern# = 212	 randinv= 7
+--11. 23; Picard rank 3 w/ 3 pc: 	 deg= 459	 otherChern# = 210	 randinv= 5
+--12. 24; Picard rank 3 w/ 3 pc: 	 deg= 448	 otherChern# = 208	 randinv= 6
+--13. 25; Picard rank 3 w/ 3 pc: 	 deg= 432	 otherChern# = 204	 randinv= 6
+--14. 26; Picard rank 3 w/ 3 pc: 	 deg= 432	 otherChern# = 204	 randinv= 6
+--15. 27; Picard rank 3 w/ 3 pc: 	 deg= 432	 otherChern# = 204	 randinv= 5
+--16. 28; Picard rank 3 w/ 3 pc: 	 deg= 432	 otherChern# = 204	 randinv= 4
+--17. 29; Picard rank 3 w/ 3 pc: 	 deg= 405	 otherChern# = 198	 randinv= 6
+--18. 30; Picard rank 3 w/ 3 pc: 	 deg= 400	 otherChern# = 196	 randinv= 3
+--19. 31; Picard rank 3 w/ 3 pc: 	 deg= 400	 otherChern# = 196	 randinv= 3
 --
+
+--Matches:
+--13: X
+--14: 3-(1,0); 
+--15: many options still
+--16: 2-(2,1)
+--17
+--18
+--19: X
+--20: 2-(1,-1)
+--21 many options
+--22: 0-(0,1)
+--23: X
+--24
+--25
+--26
+--27 many options
+--28 2-(0,1)
+--29: X
+--30: X
+--31: X
+
+<< "very cool";
