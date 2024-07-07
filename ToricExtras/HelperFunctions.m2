@@ -46,7 +46,7 @@ permutationIsomorphic := (X, Y) -> (
 
 
 
--- Calculates the dimension of the cohomology group H^0(TX), i.e. the dimension of the space of global vector fields on X
+-- Calculates the dimension of H^0(TX), i.e. the dimension of the space of global vector fields on X
 
 vectorFields = method();
 vectorFields := X -> (
@@ -85,6 +85,13 @@ primitiveCollections := X -> (
     );
     return pcollections;
 );
+
+
+-- Calculates the tensor product of two sheaves on toric varieties, using Hom-tensor adjunction: F tensor G = Hom(F^*, G) = Hom(Hom(F, O), G)
+-- When I tried ** it didn't work
+
+tensor2 = method();
+tensor2 := (sheaf1, sheaf2) -> (prune sheafHom(prune sheafHom(cotangentSheaf(X), sheaf(X, ring X)), cotangentSheaf(X)));
 
 
 
