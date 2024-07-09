@@ -633,6 +633,7 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (
     A1 := (P1#2)(1_R1);
     pow1 := 1;
     while gens(kernel(A1))==0 do (
+        if (debugLevel > 1) then print pow1;
         A1 = A1|(P1#2)(f1^pow1);
         pow1 += 1;
     );
@@ -688,16 +689,16 @@ simpleExt(Ring) := opts -> nf ->(
             if  isPrime (kernel phi) then ( --we shouldn't do it this way
                 I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), R1);
                 tempField = R1/I;
-                simpleExt = numberField(tempField);                
+                simpleExt = numberField(tempField, Verify=>false);                
                 d = degree simpleExt;
                 if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));
             );
         )
-        else if (opts.Strategy===null) then (
+        else if (opts.Strategy===null) then (--I'm surprised that this is slower
             h = minimalPolynomial(r, Variable=> local aa);
             R1 = ring h;
             tempField = R1/(ideal h);
-            simpleExt = numberField(tempField);
+            simpleExt = numberField(tempField, Verify=>false);
             d = degree simpleExt;
             if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));            
         )
