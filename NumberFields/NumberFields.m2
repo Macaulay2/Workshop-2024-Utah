@@ -624,6 +624,7 @@ getRoots(RingElement) := opts -> (f) -> (
 minimalPolynomial = method(Options => {Variable=>null})
 minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the possible minimal polynomial degrees based on the degree
     R1 := ring f1;        
+    D := degree R1;
     local y;
     if (opts.Variable === null) then (y = local xx;) else (y = opts.Variable);    
     --y := local aa;
@@ -632,10 +633,11 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the 
     P1 := pushFwd(map(R1, coefficientRing(R1)));
     A1 := (P1#2)(1_R1);
     pow1 := 1;
-    while gens(kernel(A1))==0 do (
+    while (D%pow1 == 0) and (gens(kernel(A1))==0) do (
         if (debugLevel > 1) then print pow1;
         A1 = A1|(P1#2)(f1^pow1);
         pow1 += 1;
+        if (pow1 > D) then error "minimalPolyommial: something went wrong, is this a field?";
     );
     M1 := matrix({{1_S1}});
     for i1 from 1 to (pow1-1) do (
