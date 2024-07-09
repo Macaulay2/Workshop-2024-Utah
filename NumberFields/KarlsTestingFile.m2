@@ -48,6 +48,21 @@ psi = map(R, QQ)
 pushFwd(psi)
 
 
+break
+restart
+
+loadPackage "NumberFields"
+S = QQ[a,b,c]/ideal(a^3-2, a^2+a*b+b^2, sum(apply(11, t->c^t)))
+R = numberField(S)
+minimalPolynomial( sum gens S)
+minimalPolynomial( (gens R)#0)
+minimalPolynomial( sum gens R)
+
+time simpleExt(R);
+time simpleExt(R, Strategy=>kernel);
+time simpleExt(R, Strategy=>null);
+time simpleExt(R, Strategy=>minimalPolynomial);
+
 
 -----------------
 --Karl testing isFieldAutomorphism

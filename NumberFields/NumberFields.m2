@@ -175,18 +175,19 @@ numberField(Ring) := opts -> R1 -> (
             String => "QQ, rational numbers"
         };*-
     local outputRing;
+    local outputPsi;
     if R1 === QQ then (
         --outputRing = new NumberField from QQ;
         outputRing = QQ;
-        outputRing#pushFwd = pushFwd(map(QQ[],QQ));
-        outputRing#String = "QQ, rational numbers";
+        outputRing#cache#pushFwd = pushFwd(map(QQ[],QQ));
+        outputRing#cache#String = "QQ, rational numbers";
     );
     
     if opts.Verify and not isPrime (ideal 0_R1) then error("Expected a field.");
     if opts.Verify and not dim R1 == 0 then error("Expected a field.");
     
     if opts.Verify and char R1 != 0 then error("Expected characteristic 0.");
-    outputRing = (remakeField(R1, Variable=>opts.Variable))#0;
+    (outputRing, outputPsi) = remakeField(R1, Variable=>opts.Variable);
     iota := map(outputRing,QQ);
     local myPushFwd;
     if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");    
@@ -220,11 +221,12 @@ numberField(Ring) := opts -> R1 -> (
     *-    
     --tempNumField := new NumberField from outputRing;        
     tempNumField := outputRing;        
-
-    tempNumField#pushFwd = myPushFwd;
-    tempNumField#String = myStr;
-    tempNumField#minimalPolynomial = genMinPolys;
+    tempNumField#cache#NumberField = true;
+    tempNumField#cache#pushFwd = myPushFwd;
+    tempNumField#cache#String = myStr;
+    tempNumField#cache#minimalPolynomial = genMinPolys;
     tempNumField#cache#degree = deg;    
+    tempNumField#cache#remakeField = outputPsi;
     return tempNumField;
 )
 
@@ -277,29 +279,35 @@ net NumberField := nf -> (
 
 --degreeNF = method(Options => {})
 degree(NumberField) := nf -> (
-    if (nf#cache#?degree) then return nf#cache#degree;
-    -*iota := map(ring(nf),QQ);
-    rk := rank((pushFwd(iota))#0);
-    nf#cache#degree = rk;
-    rk*-
-    --Karl:  something is wrong with pushFwd in this context, I rewrote this function for now.  The old version is above.
-    rank(nf#pushFwd#0)
+    if ( nf#cache#?NumberField ) then (
+        if (nf#cache#?degree) then return nf#cache#degree;
+        -*iota := map(ring(nf),QQ);
+        rk := rank((pushFwd(iota))#0);
+        nf#cache#degree = rk;
+        rk*-
+        --Karl:  something is wrong with pushFwd in this context, I rewrote this function for now.  The old version is above.
+        return rank(nf#cache#pushFwd#0);
+    )
+    else 
+    (        
+        return degree(nf^1);
+    )
 )
 
 --this gives the basis for the numberField over QQ
 basis2 = method(Options=>{})
 basis2(NumberField) := opts -> nf -> (
-    first entries (nf#pushFwd#1)
+    first entries (nf#cache#pushFwd#1)
 );
 
 vectorSpace = method(Options=>{})
 vectorSpace(NumberField) := opts -> nf -> (
-    nf#pushFwd#0
+    nf#cache#pushFwd#0
 )
 
 vector(RingElement, NumberField) := (f1, nf) -> (
     if not (ring f1 === nf) then error "Expected an element of the NumberField";
-    (nf#pushFwd#2)(f1)
+    (nf#cache#pushFwd#2)(f1)
 );
 
 
@@ -591,60 +599,36 @@ ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
     );
     return el;
 )
-getRoots = method(Options =>{});
+getRoots = method(Options =>{Strategy=>decompose});
 getRoots(RingElement) := opts -> (f) -> (
-    R := ring f;
-    (S,M, MInv) := (flattenRing (R,Result=>3));
-    primeFactors := decompose ideal M(f);
-    linearTerms := {};
-    for i from 0 to ((length primeFactors)-1) do(
-        if (degree primeFactors#i_0)#0 == 1 then (
-            linearTerms = append(linearTerms, (gens R)_0 - MInv(primeFactors#i_0));
+    if opts.Strategy === decompose then (
+        R := ring f;
+        (S,M, MInv) := (flattenRing (R,Result=>3));
+        primeFactors := decompose ideal M(f);
+        linearTerms := {};
+        for i from 0 to ((length primeFactors)-1) do(
+            if (degree primeFactors#i_0)#0 == 1 then (
+                linearTerms = append(linearTerms, (gens R)_0 - MInv(primeFactors#i_0));
+            );
         );
+        return linearTerms;
+    )
+    else if (opts.Strategy === factor) then (
+        
+    )
+    else (
+        error "getRoots: not a valid strategy";
     );
-    return linearTerms;
 )
 
-simpleExt = method(Options => {});
-simpleExt(NumberField) := opts -> nf ->(
-    --We first get the degree of K as a field extension over Q and store it as D. 
-    K := ring nf;
-    D := degree K;
-    --We find an element that produces a degree D field extension.
-    d := 0;
-    c := 0;
-    primitiveElement := 0; -- Uncomment along with below chunk to get a simpler primitive element
-    while d < D do 
-    (
-        r := random(1, K); -- Get a random homogeneous RingElement from K1 of degree 1
-
-        -- Uncomment the following along with primitiveElement := 0 above to get a simpler primitive element
-        (if primitiveElement==0 then (
-            primitiveElement = sum gens K;
-         )
-        else (
-            primitiveElement += (random(gens K))#0; -- Randomly shuffles the list of generators of K and then takes the first element
-         )
-        );
-        r = primitiveElement;
-        --
-
-        xx := local xx;
-        R := QQ[xx];
-        phi := map( K, R, {r});
-        if  isPrime (kernel phi) then (
-            I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), R);
-            simpleExt := numberField(R / I);
-            d = degree simpleExt;
-        );
-    );
-    return simpleExt;
-)
-
-minimalPolynomial = method(Options => {})
-minimalPolynomial(RingElement) := opts -> f1 -> (
-    R1 := ring f1;
-    S1 := (coefficientRing(R1))[local y];
+minimalPolynomial = method(Options => {Variable=>null})
+minimalPolynomial(RingElement) := opts -> (f1) -> (
+    R1 := ring f1;        
+    local y;
+    if (opts.Variable === null) then (y = local xx;) else (y = opts.Variable);    
+    --y := local aa;
+    S1 := (coefficientRing(R1))[y];
+    y = (gens S1)#0;
     P1 := pushFwd(map(R1, coefficientRing(R1)));
     A1 := (P1#2)(1_R1);
     pow1 := 1;
@@ -658,9 +642,73 @@ minimalPolynomial(RingElement) := opts -> f1 -> (
     );
     (entries (M1*(gens(kernel(A1)))))#0#0
 )
+
 minimalPolynomial(List) := opts -> L1 -> (
     apply(L1, i -> minimalPolynomial(i))
 )
+
+
+simpleExt = method(Options => {Strategy=>kernel});
+simpleExt(Ring) := opts -> nf ->(
+    --We first get the degree of K as a field extension over Q and store it as D. 
+    --K := ring nf;
+    K := nf;
+    D := degree K;
+    --We find an element that produces a degree D field extension.
+    d := 0;
+    c := 0;
+    local r;
+    local h;
+    local R1;
+    local phi;
+    local simpleExt;
+    local tempField;
+    count := 0;
+    primitiveElement := 0; -- Uncomment along with below chunk to get a simpler primitive element
+    while d < D do 
+    (
+        -- Uncomment the following along with primitiveElement := 0 above to get a simpler primitive element
+        (if primitiveElement==0 then (
+            primitiveElement = sum gens K;
+         )
+        else if (count < 10) then (
+            primitiveElement += (random(gens K))#0; -- Randomly shuffles the list of generators of K and then takes the first element
+         )
+         else (
+            primitiveElement = random(1, K); -- Get a random homogeneous RingElement from K1 of degree 1
+         )
+        );
+        r = primitiveElement;
+        --
+
+        if (opts.Strategy===kernel) then (
+            aa := local aa;
+            R1 = QQ[aa];
+            phi = map( K, R1, {r});
+            if  isPrime (kernel phi) then ( --we shouldn't do it this way
+                I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), R1);
+                tempField = R1/I;
+                simpleExt = numberField(tempField);                
+                d = degree simpleExt;
+                if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));
+            );
+        )
+        else if (opts.Strategy===null) then (
+            h = minimalPolynomial(r, Variable=> local aa);
+            R1 = ring h;
+            tempField = R1/(ideal h);
+            simpleExt = numberField(tempField);
+            d = degree simpleExt;
+            if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));            
+        )
+        else (
+            error "simpleExt: invalid strategy";
+        );
+        count = count+1;
+    );
+    return (simpleExt, phi);
+)
+
 
 --********************************
 --******Compositums
