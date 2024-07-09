@@ -622,7 +622,7 @@ getRoots(RingElement) := opts -> (f) -> (
 )
 
 minimalPolynomial = method(Options => {Variable=>null})
-minimalPolynomial(RingElement) := opts -> (f1) -> (
+minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the possible minimal polynomial degrees based on the degree
     R1 := ring f1;        
     local y;
     if (opts.Variable === null) then (y = local xx;) else (y = opts.Variable);    
