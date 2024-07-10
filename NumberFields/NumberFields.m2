@@ -660,7 +660,7 @@ minimalPolynomial(List) := opts -> L1 -> (
 )
 
 
-simpleExt = method(Options => {Strategy=>kernel});
+simpleExt = method(Options => {Strategy=>null});
 simpleExt(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
