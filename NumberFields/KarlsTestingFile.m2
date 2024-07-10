@@ -53,7 +53,7 @@ restart
 
 loadPackage "NumberFields"
 S = QQ[a,b,c]/ideal(a^3-2, a^2+a*b+b^2, sum(apply(11, t->c^t)))
-R = numberField(S)
+R = time numberField(S)
 minimalPolynomial( sum gens S)
 minimalPolynomial( (gens R)#0)
 minimalPolynomial( sum gens R)

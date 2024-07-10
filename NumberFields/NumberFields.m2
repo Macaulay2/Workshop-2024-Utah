@@ -138,16 +138,18 @@ remakeField(Ring) := opts -> R1 -> (
     phi := map(newRing1, amb, gens newRing1);
     finalRing := newRing1/phi(myIdeal);    
     psi := map(finalRing, R1, matrix phi);
+    psiinv := inverse psi;
     
     if not opts.NoPrune then (
         finalRing2 = prune finalRing;
         psi = (finalRing.minimalPresentationMap)*psi;
+        psiinv = psiinv*(finalRing.minimalPresentationMapInv);
     )
     else(
         finalRing2 = finalRing;
     );
     
-    (finalRing2, psi)
+    (finalRing2, psi, psiinv)
 )
 
 numberField = method(Options => {Verify => true, Verbose=>false, Variable=>null})
@@ -176,9 +178,11 @@ numberField(Ring) := opts -> R1 -> (
         };*-
     local outputRing;
     local outputPsi;
+    local outputPsiInv;
     if R1 === QQ then (
         --outputRing = new NumberField from QQ;
-        outputRing = QQ;
+        outputRing = QQ[];
+        outputRing#cache = new CacheTable from {};
         outputRing#cache#pushFwd = pushFwd(map(QQ[],QQ));
         outputRing#cache#String = "QQ, rational numbers";
     );
@@ -187,7 +191,7 @@ numberField(Ring) := opts -> R1 -> (
     if opts.Verify and not dim R1 == 0 then error("Expected a field.");
     
     if opts.Verify and char R1 != 0 then error("Expected characteristic 0.");
-    (outputRing, outputPsi) = remakeField(R1, Variable=>opts.Variable);
+    (outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
     iota := map(outputRing,QQ);
     local myPushFwd;
     if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");    
@@ -226,7 +230,7 @@ numberField(Ring) := opts -> R1 -> (
     tempNumField#cache#String = myStr;
     tempNumField#cache#minimalPolynomial = genMinPolys;
     tempNumField#cache#degree = deg;    
-    tempNumField#cache#remakeField = outputPsi;
+    tempNumField#cache#remakeField = (outputPsi, outputPsiInv);
     return tempNumField;
 )
 
@@ -632,15 +636,20 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the 
     y = (gens S1)#0;
     P1 := pushFwd(map(R1, coefficientRing(R1)));
     A1 := (P1#2)(1_R1);
+    curf1 := 1;
     pow1 := 1;
-    while (D%pow1 == 0) and (gens(kernel(A1))==0) do (
+    --while (gens(kernel(A1))==0) do (
+    while ((pow1 == 1) and (gens(kernel(A1))==0)) or (D%(pow1-1) != 0) or (gens(kernel(A1))==0) do (
         if (debugLevel > 1) then print pow1;
-        A1 = A1|(P1#2)(f1^pow1);
         pow1 += 1;
-        if (pow1 > D) then error "minimalPolyommial: something went wrong, is this a field?";
+        curf1=curf1*f1;
+        --A1 = A1|(P1#2)(f1^pow1);
+        A1 = A1|(P1#2)(curf1);
+        if (pow1 > D+1) then error "minimalPolyommial: something went wrong, is this a field?";
     );
+    pow1 = pow1-1;
     M1 := matrix({{1_S1}});
-    for i1 from 1 to (pow1-1) do (
+    for i1 from 1 to (pow1) do (
         M1 |= y^i1;
     );
     (entries (M1*(gens(kernel(A1)))))#0#0
@@ -693,7 +702,8 @@ simpleExt(Ring) := opts -> nf ->(
                 tempField = R1/I;
                 simpleExt = numberField(tempField, Verify=>false);                
                 d = degree simpleExt;
-                if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));
+--                if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));
+                if (d == D) then phi = (map(K, tempField, {r}))*((simpleExt#cache#remakeField)#1);
             );
         )
         else if (opts.Strategy===null) then (--I'm surprised that this is slower
@@ -702,7 +712,8 @@ simpleExt(Ring) := opts -> nf ->(
             tempField = R1/(ideal h);
             simpleExt = numberField(tempField, Verify=>false);
             d = degree simpleExt;
-            if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));            
+--            if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));            
+            if (d == D) then phi = (map(K, tempField, {r}))*((simpleExt#cache#remakeField)#1);
         )
         else (
             error "simpleExt: invalid strategy";
