@@ -53,15 +53,23 @@ restart
 
 loadPackage "NumberFields"
 S = QQ[a,b,c]/ideal(a^3-2, a^2+a*b+b^2, sum(apply(11, t->c^t)))
+T = QQ[a,b]/ideal(a^3-2, a^2+a*b+b^2)
+psi = map(S, T)
 R = time numberField(S)
 minimalPolynomial( sum gens S)
 minimalPolynomial( (gens R)#0)
 minimalPolynomial( sum gens R)
+minimalPolynomial( c, psi)
 
 time simpleExt(R);
 time simpleExt(R, Strategy=>kernel);
 time simpleExt(R, Strategy=>null);
 time simpleExt(R, Strategy=>minimalPolynomial);
+
+S = QQ[x]/ideal(x^2+1)
+T = QQ[y]/ideal(y^4+1)
+psi = map(T, S, {y^2})
+minimalPolynomial(y, psi)
 
 
 -----------------

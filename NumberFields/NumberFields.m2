@@ -655,6 +655,39 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the 
     (entries (M1*(gens(kernel(A1)))))#0#0
 )
 
+minimalPolynomial(RingElement, RingMap) := opts -> (f1, psi1) -> (--this finds the minimal polynomial of an element f1 in L1, where the second argument is a field extension K1 -> L1 
+    --
+    R1 := ring f1;        
+    R2 := target psi1;
+    if not (R1 === R2) then error "minimalPolynomial: expected the target of the map to agree with the ring of the source";
+    C1 := source psi1;
+    D := (degree R1)/ (degree C1);
+    local y;
+    if (opts.Variable === null) then (y = local xx;) else (y = opts.Variable);    
+    --y := local aa;
+    S1 := C1[y];
+    y = (gens S1)#0;
+    P1 := pushFwd(psi1);
+    A1 := (P1#2)(1_R1);
+    curf1 := 1;
+    pow1 := 1;
+    --while (gens(kernel(A1))==0) do (
+    while ((pow1 == 1) and (gens(kernel(A1))==0)) or (D%(pow1-1) != 0) or (gens(kernel(A1))==0) do (
+        if (debugLevel > 1) then print pow1;
+        pow1 += 1;
+        curf1=curf1*f1;
+        --A1 = A1|(P1#2)(f1^pow1);
+        A1 = A1|(P1#2)(curf1);
+        if (pow1 > D+1) then error "minimalPolyommial: something went wrong, is this a field?";
+    );
+    pow1 = pow1-1;
+    M1 := matrix({{1_S1}});
+    for i1 from 1 to (pow1) do (
+        M1 |= y^i1;
+    );
+    (entries (M1*(gens(kernel(A1)))))#0#0
+)
+
 minimalPolynomial(List) := opts -> L1 -> (
     apply(L1, i -> minimalPolynomial(i))
 )
