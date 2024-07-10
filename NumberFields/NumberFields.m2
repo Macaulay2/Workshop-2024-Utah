@@ -605,8 +605,9 @@ ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
 )
 getRoots = method(Options =>{Strategy=>decompose});
 getRoots(RingElement) := opts -> (f) -> (
+    R := ring f;
+    if #(gens R) != 1 then error "getRoots: expected a polynomial in a single variable";
     if opts.Strategy === decompose then (
-        R := ring f;
         (S,M, MInv) := (flattenRing (R,Result=>3));
         primeFactors := decompose ideal M(f);
         linearTerms := {};
@@ -618,7 +619,10 @@ getRoots(RingElement) := opts -> (f) -> (
         return linearTerms;
     )
     else if (opts.Strategy === factor) then (
-        
+        K1 := ((flattenRing(coefficientRing R))#0);
+        (K2a, psi1) := simpleExt(K1);
+        R2 := K2a[gens R];
+        --todo this needs to be written.
     )
     else (
         error "getRoots: not a valid strategy";

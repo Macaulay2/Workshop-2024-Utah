@@ -67,7 +67,7 @@ time simpleExt(R, Strategy=>null);
 time simpleExt(R, Strategy=>minimalPolynomial);
 
 S = QQ[x]/ideal(x^2+1)
-T = QQ[y]/ideal(y^4+1)
+T = toField(QQ[y]/ideal(y^4+1))
 psi = map(T, S, {y^2})
 minimalPolynomial(y, psi)
 
