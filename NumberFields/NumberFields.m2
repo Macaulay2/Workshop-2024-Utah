@@ -623,6 +623,8 @@ getRoots(RingElement) := opts -> (f) -> (
         (K2a, psi1) := simpleExt(K1);
         R2 := K2a[gens R];
         --todo this needs to be written.
+        --we should first find a way to 
+        error "getRoots:strategy=>factor not implemented yet";
     )
     else (
         error "getRoots: not a valid strategy";
