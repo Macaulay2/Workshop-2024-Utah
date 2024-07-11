@@ -964,6 +964,17 @@ TEST /// --Test #2
     assert(M*N == matrix{{1/1,0,0},{0,1,0},{0,0,1}})
 ///
 
+--this also checks matrixFromNumberFieldMap
+TEST /// --Test #3
+    R = QQ[a,b]/ideal(a^3-2, a^2+a*b+b^2)
+    h = map(R, R, {b,a})
+    p1 = pushFwd R    
+    g = inverse h
+    M = matrixFromNumberFieldMap(h)
+    N = matrixFromNumberFieldMap(g)
+    assert(M*N == id_(QQ^6))
+///
+
 -*TEST /// --Test #1
     K = QQ[x]
     f = x^2-2
