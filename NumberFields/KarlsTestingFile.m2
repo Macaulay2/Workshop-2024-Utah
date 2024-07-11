@@ -95,3 +95,11 @@ a2 = (gens(K))#1
 basis K
 N = vector(1_(ring K), K) | vector(a2, K) | vector(a1*a2,K) | vector(a1^2*a2, K) | vector(a1, K) | vector(a1^2, K)
 time isFieldAutomorphism(K,N)
+
+
+loadPackage "NumberFields"
+    R = numberField(QQ[a]/ideal(a^4+a^3+a^2+a+1))
+    b = (gens(R))#0
+    h3 = map(R, R, {b^3})
+    assert(isWellDefined h3)
+    inverseNumberFieldAutomorphism(h3)

@@ -31,6 +31,7 @@ export{
    "ringElFromMatrix",
    "matrixFromRingEl",
    "matrixFromNumberFieldMap",
+   "inverseNumberFieldAutomorphism",--this is a different way to compute a number field automorphism inverse that doesn't call M2's code, and just does linear algebra
    "asExtensionOfBase",--this probably shouldn't be exposed to the user long term
    "remakeField",--this probably shouldn't be exposed to the user long term
    "minimalPolynomial",
@@ -621,6 +622,11 @@ matrixFromRingEl(NumberField, RingElement) := opts -> (nF, rEl) -> (
     R := nF;
     return pushFwd(map(R^1, R^1, matrix{{rEl}}));
 )
+matrixFromRingEl(RingElement) := opts -> (rEl) -> (
+    --R := ring nF;
+    R := ring rEl;
+    return pushFwd(map(R^1, R^1, matrix{{rEl}}));
+)
 
 
 ringElFromMatrix = method(Options => {});
@@ -647,6 +653,21 @@ ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
     );
     return el;
 )
+
+--this function should provide an alternate way to call inverse(RingMap) at least when the ring map is an isomorphism between two fields
+--this function needs to be tested
+inverseNumberFieldAutomorphism = method(Options => {});
+inverseNumberFieldAutomorphism(RingMap) := opts -> (phi1) -> (
+    R := source phi1;
+    S := target phi1;
+    SGensList := gens S;
+    M := matrixFromNumberFieldMap(phi1);
+    Mi := inverse M;
+    RTargetList := apply(SGensList, z -> ringElFromMatrix(S, (Mi*(matrixFromRingEl z)*M)) );
+    outputMap := map(R, S, RTargetList);
+    outputMap    
+)
+
 
 getRoots = method(Options =>{Strategy=>decompose});
 getRoots(RingElement) := opts -> (f) -> (
