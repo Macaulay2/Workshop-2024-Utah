@@ -617,13 +617,17 @@ matrixFromRingMap = (nf1, nf2, psi) -> (
 )
 matrixFromRingEl = method(Options => {});
 matrixFromRingEl(NumberField, RingElement) := opts -> (nF, rEl) -> (
-    R := ring nF;
+    --R := ring nF;
+    R := nF;
     return pushFwd(map(R^1, R^1, matrix{{rEl}}));
 )
+
+
 ringElFromMatrix = method(Options => {});
 ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
     --We basically turn the natural linear algebra basis of our number field into a matrix, then row reduce it to turn mat into an element in our number field.
-    R0 := ring nF;
+    --R0 := ring nF;
+    R0 := nF;
     R1 := coefficientRing R0;
     M0 := (pushFwd(map(R0,R1)))_1;
     vList := {};
@@ -643,6 +647,7 @@ ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
     );
     return el;
 )
+
 getRoots = method(Options =>{Strategy=>decompose});
 getRoots(RingElement) := opts -> (f) -> (
     R := ring f;
@@ -973,6 +978,23 @@ TEST /// --Test #3
     M = matrixFromNumberFieldMap(h)
     N = matrixFromNumberFieldMap(g)
     assert(M*N == id_(QQ^6))
+///
+
+--this checks "matrixFromNumberFieldMap", "ringElFromMatrix","matrixFromRingEl"
+TEST /// --Test #5
+    R = numberField(QQ[a]/ideal(a^4+a^3+a^2+a+1))
+    b = (gens(R))#0
+    h3 = map(R, R, {b^3})
+    assert(isWellDefined h3)
+    c = matrixFromRingEl(R, b^2)
+    M = matrixFromNumberFieldMap(h3)
+    Mi = inverse M
+    d = ringElFromMatrix(R, M*c*Mi)
+    assert(d == h3(b^2))
+    x = random(1, R) + random(2,R)+random(3,R) + random(4,R)
+    cx = matrixFromRingEl(R, x)
+    dx = ringElFromMatrix(R, M*cx*Mi)
+    assert(dx == h3(x))
 ///
 
 -*TEST /// --Test #1
