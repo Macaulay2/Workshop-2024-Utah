@@ -1,7 +1,7 @@
 newPackage(
        "NumberFields",
     Version => "0.0.0", 
-        Date => "June 3, 2024",
+        Date => "July 11th, 2024",
         Authors => {
             {Name=>"Jack J Garzella", Email=>"jgarzell@ucsd.edu", HomePage=>"https://mathweb.ucsd.edu/~jjgarzel"},
             {Name=>"Nicholas Gaubatz", Email=>"nmg0029@auburn.edu", HomePage=>"https://nicholasgaubatz.github.io/"},
@@ -30,12 +30,14 @@ export{
    "getRoots",
    "ringElFromMatrix",
    "matrixFromRingEl",
+   "matrixFromNumberFieldMap",
    "asExtensionOfBase",--this probably shouldn't be exposed to the user long term
    "remakeField",--this probably shouldn't be exposed to the user long term
    "minimalPolynomial",
    "vectorSpace",
    --"ringMapFromMatrix",
    "isFieldAutomorphism",
+   "isNumberField",
    --"matrixFromRingMap"
 };
 
@@ -123,7 +125,7 @@ remakeField(Ring) := opts -> R1 -> (
     local myIdeal;
     local finalRing2;
     a := local a;
-    R2 := (flattenRing R1)#0;
+    (R2, oldToNew, newToOld) := flattenRing(R1, Result=>3);
     
     if instance(R2, QuotientRing) then (amb = ambient R2; myIdeal = ideal R2) else (amb = R2; myIdeal = ideal(sub(0,R2)));
     numVars := #(gens amb);
@@ -137,8 +139,10 @@ remakeField(Ring) := opts -> R1 -> (
     
     phi := map(newRing1, amb, gens newRing1);
     finalRing := newRing1/phi(myIdeal);    
-    psi := map(finalRing, R1, matrix phi);
-    psiinv := inverse psi;
+    psi := map(finalRing, R2, matrix phi);
+    psiinv := inverse psi; 
+    psi = psi*oldToNew;
+    psiinv = newToOld*psiinv;
     
     if not opts.NoPrune then (
         finalRing2 = prune finalRing;
@@ -192,10 +196,10 @@ numberField(Ring) := opts -> R1 -> (
     
     if opts.Verify and char R1 != 0 then error("Expected characteristic 0.");
     (outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
-    iota := map(outputRing,QQ);
+    iota := map(outputRing,QQ); 
     local myPushFwd;
     if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");    
-    try myPushFwd = pushFwd(iota) else error("Not finite dimensional over QQ");
+    try myPushFwd = pushFwd(iota) else error("Not finite dimensional over QQ"); --we should check to see if the pushFwd has already been computed
     if not isFreeModule(myPushFwd#0) then error "numberField: something went wrong, this should be a free module over QQ";
     genMinPolys := apply(gens outputRing, h->minimalPolynomial(h));
 
@@ -223,7 +227,7 @@ numberField(Ring) := opts -> R1 -> (
         cache => new CacheTable from {degree => deg}
     }
     *-    
-    --tempNumField := new NumberField from outputRing;        
+    --tempNumField := new NumberField from outputRing;            
     tempNumField := outputRing;        
     tempNumField#cache#NumberField = true;
     tempNumField#cache#pushFwd = myPushFwd;
@@ -234,8 +238,17 @@ numberField(Ring) := opts -> R1 -> (
     return tempNumField;
 )
 
-internalNumberFieldConstructor := R1 -> (
-    
+pushFwd(NumberField) := opts -> R1 -> (
+    if isNumberField R1 or (R1#?cache and R1#cache#?pushFwd) then (
+        return R1#cache#pushFwd;
+    )
+    else (
+        iota := map(R1,QQ);
+        if not R1#?cache then R1#cache = new CacheTable from {};
+        myPush := pushFwd(iota);
+        R1#cache#pushFwd = myPush;
+        return myPush;
+    );
 );
 
 --*****************************
@@ -290,7 +303,7 @@ degree(NumberField) := nf -> (
         nf#cache#degree = rk;
         rk*-
         --Karl:  something is wrong with pushFwd in this context, I rewrote this function for now.  The old version is above.
-        return rank(nf#cache#pushFwd#0);
+        return rank((pushFwd nf)#0);
     )
     else 
     (        
@@ -301,22 +314,24 @@ degree(NumberField) := nf -> (
 --this gives the basis for the numberField over QQ
 basis2 = method(Options=>{})
 basis2(NumberField) := opts -> nf -> (
-    first entries (nf#cache#pushFwd#1)
+    first entries ((pushFwd nf)#1)
 );
 
 vectorSpace = method(Options=>{})
 vectorSpace(NumberField) := opts -> nf -> (
-    nf#cache#pushFwd#0
+    --nf#cache#pushFwd#0
+    (pushFwd nf)#0
 )
 
 vector(RingElement, NumberField) := (f1, nf) -> (
     if not (ring f1 === nf) then error "Expected an element of the NumberField";
-    (nf#cache#pushFwd#2)(f1)
+    ((pushFwd nf)#2)(f1)
 );
 
 
 
-NumberFieldExtension = new Type of RingMap
+--NumberFieldExtension = new Type of RingMap
+NumberFieldExtension = RingMap
 
 numberFieldExtension = method(Options => {})
 numberFieldExtension(RingMap) := opts -> phi1 -> (
@@ -332,7 +347,7 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
     }*-
 );
 
-net NumberFieldExtension := nfe -> (nfe#cache#String)
+--net NumberFieldExtension := nfe -> (nfe#cache#String)
 
 numberFieldExtension(RingElement) := opts -> f1 -> (
     if not (gens ring f1 == 1) then error "Expected a polynomial in a single variable";
@@ -340,6 +355,30 @@ numberFieldExtension(RingElement) := opts -> f1 -> (
     
 
 );
+
+--this only checks the flag.  In the future, we should have this check the subclass thing
+isNumberField = method(Options =>{});
+isNumberField(Ring) := opts -> R1 -> (
+    if R1#?cache then (
+        if R1#cache#?NumberField then (
+            return R1#cache#NumberField;
+        )        
+    );
+    
+    return false;
+)
+
+--this should give you the matrix over Q corresponding to a map of number fields.  
+--It will throw an error if the map is not valid
+matrixFromNumberFieldMap = method(Options=>{})
+matrixFromNumberFieldMap(RingMap) := opts -> phi1 ->(    
+    pushFwdSource := pushFwd source phi1;
+    pushFwdTarget := pushFwd target phi1;
+    pushFwdMap := pushFwd phi1;
+    outputList := apply( (first entries ((pushFwdSource)#1)), z -> (pushFwdTarget#2)(phi1(z)));
+    
+    fold((x,y)->x|y, outputList)
+)
 
 --source(NumberFieldExtension) := phi1 -> (source phi1);
 --target(NumberFieldExtension) := phi1 -> (target phi1);
@@ -402,6 +441,7 @@ splittingField(RingElement) := opts -> f1 -> (
     --K2 := (remakeField( coefficientRing R1, Degree=>0))#0;
     psi := map(K1, K1);
     totalPsi := psi;
+    local psiInv;
     local unMadeField;
     local phi1;
     local linTerm;
@@ -501,7 +541,7 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberField K1
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     --numberFieldExtension (map(K1, K2))    
-    (finalAnswer, psi) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
+    (finalAnswer, psi, psiInv) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
 
     (numberField(finalAnswer, Verify=>false, Verbose=>opts.Verbose), numberFieldExtension(psi*totalPsi))
 )
@@ -894,6 +934,34 @@ TEST /// --Test #0
     L = K[y]/ideal(y^2 + y + 1)
     assert(degree numberField K == 3)
     assert(degree numberField L == 6)
+///
+
+--this simply checks whether the pushFwd functionality is working
+TEST /// --Test #1
+    R = QQ[x]/(x^4-3);
+    p1 = pushFwd R;
+    assert(rank (p1#0) == 4);
+    nf = numberField R
+    assert (isNumberField nf)
+    p2 = pushFwd nf
+    assert(rank (p2#0) == 4)
+///
+
+--this checks matrixFromNumberFieldMap
+TEST /// --Test #2
+    R = QQ[a]/ideal(a^3-2)
+    S = QQ[b]/ideal((b+1)^3-2)
+    h = map(S, R, {b+1})
+    assert(isWellDefined h)
+    p1 = pushFwd R
+    p2 = pushFwd S
+    assert (p1#1 == matrix{{1,a,a^2}})
+    assert (p2#1 == matrix{{1,b,b^2}})
+    M = matrixFromNumberFieldMap(h)
+    assert(M == matrix{{1/1,1,1}, {0,1,2},{0,0,1}})
+    g = inverse h
+    N = matrixFromNumberFieldMap(g)
+    assert(M*N == matrix{{1/1,0,0},{0,1,0},{0,0,1}})
 ///
 
 -*TEST /// --Test #1
