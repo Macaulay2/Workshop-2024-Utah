@@ -29,6 +29,7 @@ export{
    "simpleExt",
    "getRoots",
    "ringElFromMatrix",
+   "ringElFromMatrix2",
    "matrixFromRingEl",
    "matrixFromNumberFieldMap",
    "inverseNumberFieldAutomorphism",--this is a different way to compute a number field automorphism inverse that doesn't call M2's code, and just does linear algebra
@@ -375,7 +376,7 @@ matrixFromNumberFieldMap = method(Options=>{})
 matrixFromNumberFieldMap(RingMap) := opts -> phi1 ->(    
     pushFwdSource := pushFwd source phi1;
     pushFwdTarget := pushFwd target phi1;
-    pushFwdMap := pushFwd phi1;
+--    pushFwdMap := pushFwd phi1;
     outputList := apply( (first entries ((pushFwdSource)#1)), z -> (pushFwdTarget#2)(phi1(z)));
     
     fold((x,y)->x|y, outputList)
@@ -607,7 +608,7 @@ matrixFromRingMap(NumberField, NumberField, Thing) := opts -> (nf1, nf2, psi) ->
 matrixFromRingMap = (nf1, nf2, psi) -> (
     if not ((target psi === ring nf1) and (source psi === ring nf2)) then error "expected the map to go from the the second argument to the first";
     
-    B1 := basis nf2;
+    B1 := basis nf2; --todo: we should use the pushFwd basis
     matrixOut := vector(psi(B1#0), nf1);
     i := 1;
     while (i < #B1) do (
@@ -619,13 +620,18 @@ matrixFromRingMap = (nf1, nf2, psi) -> (
 matrixFromRingEl = method(Options => {});
 matrixFromRingEl(NumberField, RingElement) := opts -> (nF, rEl) -> (
     --R := ring nF;
-    R := nF;
-    return pushFwd(map(R^1, R^1, matrix{{rEl}}));
+--    R := nF;
+--    return pushFwd(map(R^1, R^1, matrix{{rEl}}));
+    matrixFromRingEl(rEl)
 )
 matrixFromRingEl(RingElement) := opts -> (rEl) -> (
     --R := ring nF;
     R := ring rEl;
-    return pushFwd(map(R^1, R^1, matrix{{rEl}}));
+    --return pushFwd(map(R^1, R^1, matrix{{rEl}}));
+    p := pushFwd R;
+    pf :=  p#2;
+--    apply(first entries (p#1), z->pf(rEl*z));
+    fold( (x,y)->x|y, apply(first entries (p#1), z->pf(rEl*z)))
 )
 
 
@@ -651,8 +657,27 @@ ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
     for i from 0 to ((numgens source M0)-1) do(
         el = el + (lastCol_0)_i * (M0_i)_0;
     );
+--    print ((numgens source M0));
+--    print lastCol;
+--    print el;
+--    print (M0);
     return el;
 )
+--TODO:  Karl, we should try rewriting this function to use the Macaulay2 functionality "solve".  We should also throw an error if the answer is wrong.
+ringElFromMatrix2 = method(Options => {});
+ringElFromMatrix2(NumberField, Matrix) :=opts -> (nF, mat) -> (
+    pf := pushFwd(nF);
+    pfg := first entries (pf#1);
+    --matrixListUnflat := apply(pfg, z->matrixFromRingEl(z));
+    matrix2List := fold((a,b)->a|b, apply(pfg, z->transpose matrix{flatten entries matrixFromRingEl(z)}));
+    mat2 := transpose matrix{flatten entries mat};
+    soln := solve(matrix2List, mat2);
+    --if not (matrix2List*soln == mat2) then error "ringElFromMatrix2: there is no solution, not a ring element";
+    solnEntries := first entries transpose soln;
+    --1/0;
+    sum(apply(#pfg, i -> (pfg#i)*(solnEntries#i) ))
+)
+--huh, in my limited experimentation, this version is slower than the above
 
 --this function should provide an alternate way to call inverse(RingMap) at least when the ring map is an isomorphism between two fields
 --this function needs to be tested
@@ -663,7 +688,13 @@ inverseNumberFieldAutomorphism(RingMap) := opts -> (phi1) -> (
     SGensList := gens S;
     M := matrixFromNumberFieldMap(phi1);
     Mi := inverse M;
-    RTargetList := apply(SGensList, z -> ringElFromMatrix(S, (Mi*(matrixFromRingEl z)*M)) );
+    RTargetList := apply(SGensList, z -> ringElFromMatrix(R, (Mi*(matrixFromRingEl z)*M)) );
+    --apply(SGensList, z->matrixFromRingEl z)
+    --RTargetList
+
+--    RTargetList := apply(SGensList, z -> ringElFromMatrix(S, (Mi*(matrixFromRingEl z))) );
+  --  RTargetList
+--    apply(SGensList, z -> ringElFromMatrix(S, (matrixFromRingEl z)) );
     outputMap := map(R, S, RTargetList);
     outputMap    
 )
