@@ -56,15 +56,22 @@ S = QQ[a,b,c]/ideal(a^3-2, a^2+a*b+b^2, sum(apply(11, t->c^t)))
 T = QQ[a,b]/ideal(a^3-2, a^2+a*b+b^2)
 psi = map(S, T)
 R = time numberField(S)
+R2 = time numberField(T)
 minimalPolynomial( sum gens S)
 minimalPolynomial( (gens R)#0)
 minimalPolynomial( sum gens R)
 minimalPolynomial( c, psi)
 
+time kappa = simpleExt(R2);
+time inverse(kappa#1);
+time inverseNumberFieldAutomorphism(kappa#1)
+
 time simpleExt(R);
 time simpleExt(R, Strategy=>kernel);
-time simpleExt(R, Strategy=>null);
-time simpleExt(R, Strategy=>minimalPolynomial);
+time omega = simpleExt(R, Strategy=>null);
+
+elapsedTime inverse (omega#1);
+time inverseNumberFieldAutomorphism(omega#1);
 
 S = QQ[x]/ideal(x^2+1)
 T = toField(QQ[y]/ideal(y^4+1))
@@ -96,10 +103,11 @@ basis K
 N = vector(1_(ring K), K) | vector(a2, K) | vector(a1*a2,K) | vector(a1^2*a2, K) | vector(a1, K) | vector(a1^2, K)
 time isFieldAutomorphism(K,N)
 
-
+restart
 loadPackage "NumberFields"
     R = numberField(QQ[a]/ideal(a^4+a^3+a^2+a+1))
     b = (gens(R))#0
     h3 = map(R, R, {b^3})
     assert(isWellDefined h3)
-    inverseNumberFieldAutomorphism(h3)
+    time inverse h3
+    time inverseNumberFieldAutomorphism(h3)
