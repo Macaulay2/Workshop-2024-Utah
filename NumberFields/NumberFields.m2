@@ -620,11 +620,13 @@ matrixFromRingEl = method(Options => {});
 matrixFromRingEl(NumberField, RingElement) := opts -> (nF, rEl) -> (
     --R := ring nF;
     R := nF;
+    --TODO:  use the existing pushFwd if possible
     return pushFwd(map(R^1, R^1, matrix{{rEl}}));
 )
 matrixFromRingEl(RingElement) := opts -> (rEl) -> (
     --R := ring nF;
     R := ring rEl;
+    --TODO:  use the existing pushFwd if possible
     return pushFwd(map(R^1, R^1, matrix{{rEl}}));
 )
 
