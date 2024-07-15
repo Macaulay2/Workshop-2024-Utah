@@ -11,7 +11,7 @@ newPackage(
         Headline => "number fields",
         Keywords => {"field extension"},
     PackageImports => {},
-    PackageExports => {"PushForward", "MinimalPrimes"},
+    PackageExports => {"PushForward", "MinimalPrimes", "InvariantRing"},
     Reload => true,
     DebuggingMode => true
     )
@@ -40,6 +40,7 @@ export{
    --"ringMapFromMatrix",
    "isFieldAutomorphism",
    "isNumberField",
+   "getGaloisGroup",
    --"matrixFromRingMap"
 };
 
@@ -562,13 +563,13 @@ syntheticDivision(RingElement, RingElement) := (f1, g1) -> ( --compute f1 / g1, 
 isFieldAutomorphism = method(Options=>{})
 
 isFieldAutomorphism(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
-    R1 := ring NF1;
+    R1 := NF1;
     C1 := coefficientRing R1;
     P1 := (pushFwd(map(R1, C1)))#2;
     phi1 := ringMapFromMatrix(NF1, sigma1);
     if not isWellDefined phi1 then (return false;);
     if not isInjective phi1 then (return false;);
-    newBasis1 := apply(basis NF1, i -> phi1(i));
+    newBasis1 := apply(flatten entries basis NF1, i -> phi1(i));
     newGensAsBasis1 := apply(newBasis1, P1);
     A1 := newGensAsBasis1#0;
     for i from 1 to #newGensAsBasis1-1 do (
@@ -583,12 +584,12 @@ isFieldAutomorphism(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
 ringMapFromMatrix(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
 *-
 ringMapFromMatrix = (NF1, sigma1) -> (
-    R1 := ring NF1;
+    R1 := NF1;
     C1 := coefficientRing R1;
     P1 := (pushFwd(map(R1, C1)))#2;
     gensAsBasis1 := apply(gens R1, P1); -- Expresses each generator of R1 as a vector w.r.t. the basis of NF1
     newGensAsBasis1 := apply(gensAsBasis1, i -> sigma1*i);
-    newGensAsMatrices1 := apply(newGensAsBasis1, i -> matrix({basis NF1})*i);
+    newGensAsMatrices1 := apply(newGensAsBasis1, i -> matrix(basis NF1)*i);
     newGens1 := apply(newGensAsMatrices1, i -> (entries i)#0#0);
     map(R1, R1, newGens1)
 )
@@ -859,7 +860,49 @@ simpleExt(Ring) := opts -> nf ->(
     return (simpleExt, phi);
 )
 
+getGaloisGroup= method(Options =>{});
+getGaloisGroup(NumberField) :=  opts ->(nF) -> (
+    u := local u; 
+    R1 := nF[u];
+    --We get all the roots and store them in rootList
+    rootList := {};
+    for i from 0 to (length gens coefficientRing R1)-1 do(
+        r0 := (gens coefficientRing R1)_i;
+        minPol := minimalPolynomial(r0);
+        M := map(R1,ring minPol,{(gens R1)_0});
+        rootList = append(rootList, getRoots(M(minPol)));
+    );
 
+    --We then generate the necessary permutations.
+    perms := toList (0..(length rootList_0 - 1));
+    for i from 1 to length rootList - 1 do (
+        perms = perms ** toList (0..(length rootList_i - 1));
+    );
+    if length rootList == 1 then (
+        perms = {};
+        for i from 0 to length rootList_0 -1 do (
+            perms = append(perms, {i})
+        );
+    );
+    perms = perms / splice;
+    --We then loop through, checking if they are field automorphisms, then adding them to all maps if they are.
+    allMaps := {};
+    for i from 0 to length perms -1 do (
+        rootsImg := {}; 
+        for j from 0 to length perms_i -1 do (
+            rootsImg = append(rootsImg, substitute(rootList_j_(perms_i_j), nF));
+        );
+        M := map(nF, nF, rootsImg );
+        F := matrixFromNumberFieldMap(M);
+        if isFieldAutomorphism(nF, F) then (
+            allMaps = append(allMaps, F);
+        );
+    );
+    --We then create the group
+    numVars := length flatten entries basis  nF;
+    x := local x;
+    return group finiteAction(allMaps, QQ [x_1..x_numVars]);
+)
 --********************************
 --******Compositums
 --********************************
