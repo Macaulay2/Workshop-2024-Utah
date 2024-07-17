@@ -53,6 +53,9 @@ restart
 
 loadPackage "NumberFields"
 S = QQ[a,b,c]/ideal(a^3-2, a^2+a*b+b^2, sum(apply(11, t->c^t)))
+Ss = S[x]
+f = x^3-2
+time getRoots(f, Strategy=>decompose)
 T = QQ[a,b]/ideal(a^3-2, a^2+a*b+b^2)
 psi = map(S, T)
 R = time numberField(S)

@@ -700,15 +700,30 @@ inverseNumberFieldAutomorphism(RingMap) := opts -> (phi1) -> (
     outputMap    
 )
 
+--given a polynomial f in K[x] and a map K -> L, this forms the image of f in L[x].
+polynomialFieldChange = method(Options => {});
+polynomialFieldChange(RingElement, RingMap) := opts -> (f1,psi1) -> (
+    coeffRing := coefficientRing ring f1;
+    oldVars := gens ring f1;
+    (myVars, myCoeffs) := coefficients f1;
+    error "This is not finished yet.";
+)
 
 getRoots = method(Options =>{Strategy=>decompose});
 getRoots(RingElement) := opts -> (f) -> (
     R := ring f;
+    linearTerms := {};
+    local i;
+    local newLinTerm;
+    local newCoeffs;
+    local newCoeffs2;
+    local newVars;
+    local newVars2;
     if #(gens R) != 1 then error "getRoots: expected a polynomial in a single variable";
     if opts.Strategy === decompose then (
         (S,M, MInv) := (flattenRing (R,Result=>3));
         primeFactors := decompose ideal M(f);
-        linearTerms := {};
+        
         for i from 0 to ((length primeFactors)-1) do(
             if (degree primeFactors#i_0)#0 == 1 then (
                 linearTerms = append(linearTerms, (gens R)_0 - MInv(primeFactors#i_0));
@@ -719,10 +734,28 @@ getRoots(RingElement) := opts -> (f) -> (
     else if (opts.Strategy === factor) then (
         K1 := ((flattenRing(coefficientRing R))#0);
         (K2a, psi1) := simpleExt(K1);
-        R2 := K2a[gens R];
-        --todo this needs to be written.
+        psi2 := inverse psi1; --this is slow, it would be nice if it was faster
+        (myVars, myCoeffs) := coefficients f;
+        K2 := toField K2a;
+        R2 := K2[gens R];
+        myVars2 := sub(myVars, R2);
+        myCoeffs2 := sub(psi2(sub(myCoeffs, K1)), R2);
+        newf := first first entries (myVars2*myCoeffs2);
+        tempTerms := factor newf;
+        i = 0;
+        while i <  #tempTerms do (
+            if ((degree (tempTerms#i#0))#0 == 1) then (
+                (newVars, newCoeffs) = coefficients tempTerms#i#0;
+                newVars2 = sub(newVars, R);
+                newCoeffs2 = psi1(sub(newCoeffs, K2a));
+                linearTerms = append(linearTerms, (gens R)_0 - (entries(newVars2*newCoeffs2))#0#0);
+            );
+            i = i+1;
+        );
+        return linearTerms;
+        --todo this needs to be written.newf
         --we should first find a way to 
-        error "getRoots:strategy=>factor not implemented yet";
+        --error "getRoots:strategy=>factor not implemented yet";
     )
     else (
         error "getRoots: not a valid strategy";
