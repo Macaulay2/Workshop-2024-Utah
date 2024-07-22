@@ -3,12 +3,7 @@
 -- Goal: produce all examples of smooth weak Fano 3-folds of Picard number 3
 -- After this, generalize to higher dimensions
 
-needsPackage "NormalToricVarieties"
 loadPackage "ToricExtras"
-
--- sometimes I may need to do this:
-path = append(path, "~/Documents/PhD/Workshop-2024-Utah/"); stack path
-
 
 -- "sameToricVariety" function written by the Projective Bundle group
 -- just a way to see if two toric varieties are the same by a simple permutation
@@ -366,9 +361,6 @@ HH^3(X, Omega1D(X, toricDivisor X))
 randomInvariant1 = X -> HH^3(X, Omega1D(X, toricDivisor X))
 randomInvariant2 = X -> HH^1(X, Omega1D(X, -toricDivisor X))
 
-Omega1D = (X, D) -> (D = -D; rank1 = OO D; omega = cotangentSheaf(X); prune sheafHom(rank1, omega))
-
-
 vectorFields = X -> HH^0(X, Omega1D(X, -toricDivisor X))
 
 tensor2 = X -> prune sheafHom(prune sheafHom(cotangentSheaf(X), sheaf(X, ring X)), cotangentSheaf(X))
@@ -593,10 +585,10 @@ for b from 0 to #bases3D-1 do (
 		if counter < 100 then (
 		    base3D = bases3D#b;
 	    	    X = newProjectiveBundleConstructor(base3D, {c1, c2});
-	    	    if (not isAmple(-toricDivisor X) and isNef(-toricDivisor X)) then (
+	    	    if (isAmple(-toricDivisor X)) then (
 		    	counter = counter + 1;
-			<< counter << ".\t" << b << "-";
-		     	<< "(" << c1 << "," << c2 << ")";
+			<< counter << ". " << b << "-";
+		     	<< "(" << c1 << "," << c2 << "),(" << c3 << "," << c4 << ")";
 			--<< rays X;
 			--<< "FF" << a << ". D = " << c1 << "d1 + " << c2 << "d2";
 			<< "\t deg= " << degreeOfFourfold(X);
@@ -604,6 +596,7 @@ for b from 0 to #bases3D-1 do (
 		       	<< "\t v.fields= " << vectorFields(X);
 	       		<< "\t randinv= " << randomInvariantP(X) << endl;
        			<< endl;
+				)
 		    )
 		) else (break; 0)
 	    )

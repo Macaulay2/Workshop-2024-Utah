@@ -58,19 +58,19 @@ newPackage(
             Name => "Thiago Holleben",
             Email => "hollebenthiago@dal.ca",
             HomePage => "https://hollebenthiago.github.io/"},
-	{
+	    {
             Name => "Will Gilroy",
-            Email => "wlg38@cornell.edu"
-	},
+            Email => "wlg38@cornell.edu"},
         {
-	    Name => "Rohan Joshi",
-	    Email => "rohansjoshi@math.ucla.edu"},
+	        Name => "Rohan Joshi",
+	        Email => "rohansjoshi@math.ucla.edu",
+            HomePage => "math.ucla.edu/~rohansjoshi"},
         {
             Name => "Samikshaya Ananthakrishnan",
             Email => "samikshaya@berkeley.edu"}
-        },
+    },
 
-    Headline => "new routines for working with normal toric varieties",
+    Headline => "New routines for working with normal toric varieties",
     Keywords => {"Toric Geometry"},
     PackageExports => {"NormalToricVarieties"},
     PackageImports => {"PrimaryDecomposition", "LLLBases"},
@@ -86,7 +86,9 @@ export {
     "toricMap",
     "idealOfImage",
     "TargetRing", 
-    "projectivizationOfBundle"
+    "projectivizationOfBundle",
+    "anticanonicalDegree",
+    "primitiveCollections"
     }
 
 protect TargetRing
@@ -100,6 +102,9 @@ load "./ToricExtras/ToricLinearSeries.m2"
 load "./ToricExtras/BatyrevConstructions.m2"
 
 load "./ToricExtras/ProjectiveBundlesDivisors.m2"
+
+load "./ToricExtras/HelperFunctions.m2"
+
 
 ------------------------------------------------------------------------------
 -- DOCUMENTATION

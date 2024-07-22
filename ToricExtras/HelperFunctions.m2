@@ -8,7 +8,7 @@ needsPackage "NormalToricVarieties"
 -- Anticanonical degree of a toric variety, i.e. (-K)^n where n is the dimension of the variety and K is the canonical divisor. This is also the Chern number c_1 ^ n, since c_1 of the tangent bundle is c_1 of the determinant of the tangent bundle, so it is (-1)^n times the determinant of the cotangent bundle (i.e. the canonical bundle), so it is (-1)^n * K^n = (-K)^n  --
 
 anticanonicalDegree = method();
-anticanonicalDegree := X -> (
+anticanonicalDegree(NormalToricVariety) := X -> (
     n := dim X;
     K := toricDivisor X;
     c1 := chern(1, OO (-K));
@@ -16,10 +16,10 @@ anticanonicalDegree := X -> (
 )
 
 -- The "genus" of a variety is the number g that satisfies 2g-2 = d, where d is the anticanonical degree.
--- It really only has a geometric interpretation that makes sense in the case of Fano 3-folds. For a Fano 3-fold X, its anticanonical divisor is ample, and so defines an embedding into some projective space. Then a smooth hyperplane section of X is a surface S whose canonical divisor is zero by the adjunction formula: K_S = (K_X + H)_H = 0, since H is linearly equivalent to -K_X. So is a Calabi-Yau surface (I believe it can be proved S is a K3 surface). Anyway, if we intersect S with a hyperplane section, we get a curve C, and by the adjunction formula for surfaces we have 2g(C)-2 = (0+H_S).H = (H.H).H = H^3 = (-K_X)^3, which is the anticanonical degree --
+-- It really only has a geometric interpretation that makes sense in the case of Fano 3-folds. For a Fano 3-fold X, its anticanonical divisor is ample, and so (a multiple of it) defines an embedding into some projective space. Then a smooth hyperplane section of X is a surface S whose canonical divisor is zero by the adjunction formula: K_S = (K_X + H)_H = 0, since H is linearly equivalent to -K_X. So is a Calabi-Yau surface (I believe it can be proved S is a K3 surface). Anyway, if we intersect S with a hyperplane section, we get a curve C, and by the adjunction formula for surfaces we have 2g(C)-2 = (0+H_S).H = (H.H).H = H^3 = (-K_X)^3, which is the anticanonical degree --
  
 genusOfFanoThreefold = method();
-genusOfFanoThreefold := X -> (
+genusOfFanoThreefold(NormalToricVariety) := X -> (
     assert isFano X;
     assert (dim X == 3);
     return 1 + (anticanonicalDegree X)/2;
@@ -28,12 +28,12 @@ genusOfFanoThreefold := X -> (
 
 
 -- Checks if two toric varieties are the same by a permutation of rays
--- sufficient, but not necessary for isomorphism
+-- sufficient, but not necessary for isomorphism (??)
 -- (this is the "sameToricVariety" function written by the Projective Bundle group)
 
 permutationIsomorphic = method();
-permutationIsomorphic := (X, Y) -> (
-    areIsomorphic = (X, Y, m) -> (
+permutationIsomorphic(NormalToricVariety, NormalToricVariety) := (X, Y) -> (
+    areIsomorphic := (X, Y, m) -> (
 	try (f := inducedMap map(X, Y, m)) then f ideal X == ideal Y 
 	else false
     );
@@ -49,11 +49,11 @@ permutationIsomorphic := (X, Y) -> (
 -- Calculates the dimension of H^0(TX), i.e. the dimension of the space of global vector fields on X
 
 vectorFields = method();
-vectorFields := X -> (
+vectorFields(NormalToricVariety) := X -> (
     -- Constructs the sheaf Omega^1 tensor O(D), by doing Hom(O(-D), Omega^1)
-    Omega1D = (X, D) -> (
-	rank1 = OO (-D); 
-	omega = cotangentSheaf(X); 
+    Omega1D := (X, D) -> (
+	rank1 := OO (-D); 
+	omega := cotangentSheaf(X); 
 	prune sheafHom(rank1, omega)
     );
     return rank HH^0(X, Omega1D(X, -toricDivisor X));
@@ -64,7 +64,7 @@ vectorFields := X -> (
 -- Returns the set of all primitive collections of rays of X
 
 primitiveCollections = method();
-primitiveCollections := X -> (
+primitiveCollections(NormalToricVariety) := X -> (
     n := #(rays X);
     maxConez := max X;
     isCone := c -> (for maxCone in maxConez do 
@@ -91,7 +91,7 @@ primitiveCollections := X -> (
 -- When I tried ** it didn't work
 
 tensor2 = method();
-tensor2 := (sheaf1, sheaf2) -> (prune sheafHom(prune sheafHom(cotangentSheaf(X), sheaf(X, ring X)), cotangentSheaf(X)));
+tensor2(NormalToricVariety, CoherentSheaf, CoherentSheaf) := (X, sheaf1, sheaf2) -> (prune sheafHom(prune sheafHom(cotangentSheaf(X), sheaf(X, ring X)), cotangentSheaf(X)));
 
 
 
