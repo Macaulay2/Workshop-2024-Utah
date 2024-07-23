@@ -964,9 +964,10 @@ asExtensionOfBase(NumberFieldExtension) := opts -> iota -> (
 
 --loadPackage ("NumberFields", Reload=>true)
 
+-- note: add basic case when degrees are relatively prime
 compositums = method(Options => {})
 compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
-    T := ring(K1) ** ring(K2);
+    T := K1 ** K2;
     -- compositums correspond to prime ideals
     II := decompose (ideal 0_T);
     -- quotient rings
@@ -976,8 +977,8 @@ compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
     -- sort by degree
     sorted := sort(NFs, degree);
     -- get maps from K1 & K2 
-    K1maps := apply(sorted, nf -> map(ring(nf),ring(K1)));
-    K2maps := apply(sorted, nf -> map(ring(nf),ring(K2)));
+    K1maps := apply(sorted, nf -> map(nf,K1));
+    K2maps := apply(sorted, nf -> map(nf,K2));
 
     degs := apply(sorted, degree);
     -- a slight hack to package the data
@@ -987,6 +988,38 @@ compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
     infoList
 )
 
+compositums(NumberFieldExtension,NumberFieldExtension) := opts -> (iota,kappa) -> (
+    -- check for common base
+    b1 := source iota;
+    b2 := source kappa;
+    if not (class b1 === class b2) then error "the sources of the two extensions have different types, but they must match";
+    if (class b1 === QuotientRing) then (
+        if not (ideal b1 == ideal b2) then error "the sources of the two extensions must match";
+    );
+
+    K1 := target iota;
+    K2 := target kappa;
+    T := K1 ** K2;
+    -- compositums correspond to prime ideals
+    II := decompose (ideal 0_T);
+    -- quotient rings
+    QRs := apply(II, I -> first flattenRing(T / I, CoefficientRing=>b1));
+    -- make them number field objects?
+    NFs := apply(QRs, qr -> numberFieldExtension(map(qr,b1)));
+    -- sort by degree
+    sorted := sort(NFs, degree);
+    -- get maps from K1 & K2 
+    K1maps := apply(sorted, nfe -> map(target(nfe),K1));
+    K2maps := apply(sorted, nfe -> map(target(nfe),K2));
+
+    degs := apply(sorted, degree);
+    -- a slight hack to package the data
+    inds := toList(0..(length(sorted)-1));
+    infoList := apply(inds, i -> (sorted#i,K1maps#i,K2maps#i,degs#i));
+
+    infoList
+
+)
 
 --*****************************
 --Documentation
@@ -1131,13 +1164,6 @@ TEST /// --Test #5
     assert( isIsomorphic(target splittingField(f), numberField(QQ[y]/(y^2-2))) )
 ///
 
---compositums(NumberFieldExtenison,NumberFieldExtension) := opts -> (iota,kappa) -> (
---    -- check for common base
---    -- write iota and kappa as entensions of common base
---    -- take tensor product wrt common base
---    -- do all the same things as compositums over QQ
---
---)
 
 -*
 This is a comment block.
