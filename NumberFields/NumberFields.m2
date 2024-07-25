@@ -967,7 +967,12 @@ asExtensionOfBase(NumberFieldExtension) := opts -> iota -> (
 -- note: add basic case when degrees are relatively prime
 compositums = method(Options => {})
 compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
+    
     T := K1 ** K2;
+    if (gcd(degree K1, degree K2) == 1) then (
+        numfld := numberField(T);
+        return { (numfld,map(T, K1), map(T, K2),degree numfld) };
+    );
     -- compositums correspond to prime ideals
     II := decompose (ideal 0_T);
     -- quotient rings
@@ -1000,6 +1005,12 @@ compositums(NumberFieldExtension,NumberFieldExtension) := opts -> (iota,kappa) -
     K1 := target iota;
     K2 := target kappa;
     T := K1 ** K2;
+
+    if (gcd(degree iota, degree kappa) == 1) then (
+        mapT := map(T,b1);
+        extn := numberFieldExtension(mapT);
+        return { (extn,map(T, target iota), map(T, target kappa),degree extn) };
+    );
     -- compositums correspond to prime ideals
     II := decompose (ideal 0_T);
     -- quotient rings
