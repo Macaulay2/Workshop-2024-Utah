@@ -26,7 +26,7 @@ export{
    "isGalois",
    "splittingField",
    "compositums",
-   "simpleExt",
+   "simpleExtension",
    "getRoots",
    "ringElFromMatrix",
    "ringElFromMatrix2",
@@ -747,7 +747,7 @@ getRoots(RingElement) := opts -> (f) -> (
     )
     else if (opts.Strategy === factor) then (
         K1 := ((flattenRing(coefficientRing R))#0);
-        (K2a, psi1) := simpleExt(K1);
+        (K2a, psi1) := simpleExtension(K1);
         psi2 := inverse psi1; --this is slow, it would be nice if it was faster
         (myVars, myCoeffs) := coefficients f;
         K2 := toField K2a;
@@ -844,10 +844,11 @@ minimalPolynomial(List) := opts -> L1 -> (
 )
 
 
-simpleExt = method(Options => {Strategy=>null});
-simpleExt(Ring) := opts -> nf ->(
+simpleExtension = method(Options => {Strategy=>null});
+simpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
+    if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
     K := nf;
     D := degree K;
     --We find an element that produces a degree D field extension.
@@ -904,6 +905,7 @@ simpleExt(Ring) := opts -> nf ->(
         );
         count = count+1;
     );
+    nf#cache#simpleExtension = (simpleExt, phi);
     return (simpleExt, phi);
 )
 
@@ -1185,7 +1187,7 @@ compositums(NumberFieldExtension,NumberFieldExtension) := opts -> (iota,kappa) -
 
 fieldBaseChangeCharZero = method(Options=>{})
 fieldBaseChangeCharZero(Ring, Ring) := opts -> (R1, K1) -> (
-    
+
 );
 
 fieldBaseChangeCharZero(Ring, RingMap) := opts -> (R1, K1) -> (
