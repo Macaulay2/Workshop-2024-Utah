@@ -444,8 +444,14 @@ isGalois(RingMap) := opts -> iota -> (
 --****KARL:  THIS IS CURRENTLY BROKEN, I TRIED TO MAKE IT FASTER...*****
 splittingField = method(Options => {Variable=>null, Verbose=>false})
 splittingField(RingElement) := opts -> f1 -> (
-    --R1 := QQ[x];
+    --R1 := QQ[x];    
     R1 := ring f1;
+    if not (R1#?cache) then R1#cache = new CacheTable from {};
+    if (R1#cache#?(splittingField,f1)) then 
+    (   
+        if opts.Verbose then print "splittingField: result already cached, returning";
+        return R1#cache#(splittingField,f1);
+    );
     curf1 := f1;
     curf1old := f1;
     varName := gens R1;
@@ -560,11 +566,14 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberFieldExtension (map(K1, K2))    
     (finalAnswer, psi, psiInv) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
 
-    (numberField(finalAnswer, Verify=>false, Verbose=>opts.Verbose), numberFieldExtension(psi*totalPsi))
+    answer := (numberField(finalAnswer, Verify=>false, Verbose=>opts.Verbose), numberFieldExtension(psi*totalPsi));    
+    (ring f1)#cache#(splittingField,f1) = answer;
+    answer
 )
 
 isLinear = method(Options=>{})
 isLinear(Ideal) := opts -> (J1) -> (
+    if J1 == 0 then return true;
     idealGens := (entries gens J1)#0;
     length(idealGens)<=1 and max(degree(idealGens#0))<=1
 )
@@ -733,6 +742,7 @@ getRoots(RingElement) := opts -> (f) -> (
     local newCoeffs2;
     local newVars;
     local newVars2;
+
     if #(gens R) != 1 then error "getRoots: expected a polynomial in a single variable";
     if opts.Strategy === decompose then (
         (S,M, MInv) := (flattenRing (R,Result=>3));
