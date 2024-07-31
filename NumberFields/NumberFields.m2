@@ -733,8 +733,9 @@ polynomialFieldChange(RingElement, RingMap) := opts -> (f1,psi1) -> (
 )
 
 getRoots = method(Options =>{Strategy=>decompose});
-getRoots(RingElement) := opts -> (f) -> (
-    R := ring f;
+getRoots(RingElement) := opts -> (f1) -> (
+    R1 := ring f1;
+    if not (R1#?cache) then R1#cache = new CacheTable from {};
     linearTerms := {};
     local i;
     local newLinTerm;
@@ -743,25 +744,25 @@ getRoots(RingElement) := opts -> (f) -> (
     local newVars;
     local newVars2;
 
-    if #(gens R) != 1 then error "getRoots: expected a polynomial in a single variable";
+    if #(gens R1) != 1 then error "getRoots: expected a polynomial in a single variable";
     if opts.Strategy === decompose then (
-        (S,M, MInv) := (flattenRing (R,Result=>3));
-        primeFactors := decompose ideal M(f);
+        (S,M, MInv) := (flattenRing (R1,Result=>3));
+        primeFactors := decompose ideal M(f1);
         
         for i from 0 to ((length primeFactors)-1) do(
             if (degree primeFactors#i_0)#0 == 1 then (
-                linearTerms = append(linearTerms, (gens R)_0 - MInv(primeFactors#i_0));
+                linearTerms = append(linearTerms, (gens R1)_0 - MInv(primeFactors#i_0));
             );
         );
         return linearTerms;
     )
     else if (opts.Strategy === factor) then (
-        K1 := ((flattenRing(coefficientRing R))#0);
+        K1 := ((flattenRing(coefficientRing R1))#0);
         (K2a, psi1) := simpleExtension(K1);
         psi2 := inverse psi1; --this is slow, it would be nice if it was faster
-        (myVars, myCoeffs) := coefficients f;
+        (myVars, myCoeffs) := coefficients f1;
         K2 := toField K2a;
-        R2 := K2[gens R];
+        R2 := K2[gens R1];
         myVars2 := sub(myVars, R2);
         myCoeffs2 := sub(psi2(sub(myCoeffs, K1)), R2);
         newf := first first entries (myVars2*myCoeffs2);
@@ -770,9 +771,9 @@ getRoots(RingElement) := opts -> (f) -> (
         while i <  #tempTerms do (
             if ((degree (tempTerms#i#0))#0 == 1) then (
                 (newVars, newCoeffs) = coefficients tempTerms#i#0;
-                newVars2 = sub(newVars, R);
+                newVars2 = sub(newVars, R1);
                 newCoeffs2 = psi1(sub(newCoeffs, K2a));
-                linearTerms = append(linearTerms, (gens R)_0 - (entries(newVars2*newCoeffs2))#0#0);
+                linearTerms = append(linearTerms, (gens R1)_0 - (entries(newVars2*newCoeffs2))#0#0);
             );
             i = i+1;
         );
@@ -858,6 +859,7 @@ simpleExtension = method(Options => {Strategy=>null});
 simpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
+    if not(nf#?cache) then nf#cache = new CacheTable from {};
     if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
     K := nf;
     D := degree K;
