@@ -41,6 +41,12 @@ export{
    "isFieldAutomorphism",
    "isNumberField",
    "getGaloisGroup",
+   "isGNormal",
+   "getAllSubgroups",
+   "getNormalSubgroups",
+   "getFixedFields",
+   "vectorToFieldEl",
+
    --"matrixFromRingMap"
 };
 
@@ -407,12 +413,19 @@ trace(RingElement) := (elt) -> (
 --*************************
 
 isGalois = method(Options =>{})
-isGalois(NumberField) := opts -> K -> {
-    mapList := compositums(K,K);
-    degs := apply(mapList, x -> x#3);
-    L := all(degs, d -> d == degs#0);
-    L
-}
+-- I've added a isGalois function for number fields, though it could likely be optimized as it calls getGaloisGroup. (Toshi)
+-- isGalois(NumberField) := opts -> K -> {
+--     mapList := compositums(K,K);
+--     degs := apply(mapList, x -> x#3);
+--     L := all(degs, d -> d == degs#0);
+--     L
+-- }
+isGalois(NumberField) := opts -> (nF) -> (
+    if length getGaloisGroup(nF) == degree nF then (
+        return true;
+    );
+    return false;
+)
 
 isGalois(NumberFieldExtension) := opts -> iota -> (
      myMapList := {}; --replace with Jack's function when ready
@@ -893,10 +906,12 @@ simpleExt(Ring) := opts -> nf ->(
     return (simpleExt, phi);
 )
 
-getGaloisGroup= method(Options =>{});
+getGaloisGroup= method(Options => {Strategy=>null});
 getGaloisGroup(NumberField) :=  opts ->(nF) -> (
     u := local u; 
     R1 := nF[u];
+    numVars := length flatten entries basis  nF;
+    x := local x;
     --We get all the roots and store them in rootList
     rootList := {};
     for i from 0 to (length gens coefficientRing R1)-1 do(
@@ -920,6 +935,8 @@ getGaloisGroup(NumberField) :=  opts ->(nF) -> (
     perms = perms / splice;
     --We then loop through, checking if they are field automorphisms, then adding them to all maps if they are.
     allMaps := {};
+    curGroup := {};
+
     for i from 0 to length perms -1 do (
         rootsImg := {}; 
         for j from 0 to length perms_i -1 do (
@@ -927,15 +944,144 @@ getGaloisGroup(NumberField) :=  opts ->(nF) -> (
         );
         M := map(nF, nF, rootsImg );
         F := matrixFromNumberFieldMap(M);
-        if isFieldAutomorphism(nF, F) then (
+        flag := false;
+        if opts.Strategy === "strat2" then (
+            if any(curGroup, g -> g == F ) then(
+                flag = true;
+            )
+        );
+        if flag then (
+
+        )
+        else if isFieldAutomorphism(nF, F) then (
             allMaps = append(allMaps, F);
+            if opts.Strategy === "strat2" then (
+                curGroup = group finiteAction(allMaps, QQ [x_1..x_numVars]);
+            );
         );
     );
     --We then create the group
-    numVars := length flatten entries basis  nF;
-    x := local x;
+    
     return group finiteAction(allMaps, QQ [x_1..x_numVars]);
 )
+vectorToFieldEl = method(Options =>{});
+vectorToFieldEl(NumberField, Vector) := opts -> (nF, v) -> (
+    b := flatten entries basis nF;
+    el := 0_nF;
+    for i from 0 to (length  b) -1 do (
+        el = el + b_i * v_i;
+    );
+    return el;
+);
+
+isGNormal = method(Options =>{});
+isGNormal(List, List) :=  opts -> (G, H) ->(
+    conj := null;
+    for i from 0 to length H -1 do (
+        --We conjugate each element of H by each element of G, if any aren't in H, then not normal, otherwise noraml
+        for j from 0 to length G - 1 do (
+            conj = G_j * H_i * (inverse G_j);
+            if not any(H, h -> h == conj) then (
+                return false;
+            );
+        );
+    );
+    return true;
+)
+getAllSubgroups = method(Options =>{});
+getAllSubgroups(List) := opts -> (G) -> (
+    x := local x;
+    numVars := length flatten entries G_0_0;
+    allSubgroups := set {};
+    curSubsets := null;
+    --We only need to look at half
+    for i from 1 to ceiling (length G/2) do (
+        curSubsets = subsets(G, i);
+        for j from 0 to length curSubsets - 1 do(
+            allSubgroups = allSubgroups + set{set(group finiteAction(curSubsets_j, QQ [x_1..x_numVars]))};
+        );
+    );
+    allSubgroupList := {};
+    for i from 0 to length (toList allSubgroups) - 1 do (
+        allSubgroupList = append(allSubgroupList, toList (toList allSubgroups)_i);
+    );
+    return allSubgroupList;
+);
+
+getNormalSubgroups = method(Options =>{});
+getNormalSubgroups(List) := opts -> (G) -> (
+    normalGroups := {};
+    allSubgroups := getAllSubgroups(G);
+    for i from 0 to length allSubgroups -1 do (
+        if isGNormal(G, allSubgroups_i) then(
+            normalGroups = append(normalGroups, allSubgroups_i); 
+        );
+    );
+    return normalGroups;
+);
+
+getFixedFields = method();
+getFixedFields(NumberField) := (nF) -> (
+    G := null;
+    G = getGaloisGroup(nF);
+    NG := null; --have to write this function; should return a list of normal 
+    --   subgroups of G(these groups are lists of matrices).
+    NG = getNormalSubgroups(G);
+
+    allFixed := {};
+    H := null;
+    allFixedVectors := null;
+    idMatrix := id_(source( NG_0_0));
+    allMinPoly := set {};
+    aa := local aa;
+    testRing := QQ[aa];
+    numCols := null;
+    M := null;
+    v := null;
+    p := null;
+    x := local x;
+    relationIdeal := null;
+    ambientRing := null;
+    for i from 0 to length NG -1 do (
+
+        H = NG_i;
+        if length H ==1 then (
+            allFixed = append(allFixed, nF);
+        )
+        else(
+            -- We calcualate the intersection of fixed vectors in normal subgroup H 
+            allFixedVectors = kernel (H_0 - idMatrix);
+            for j from 1 to length H -1 do (
+                allFixedVectors = intersect(allFixedVectors, kernel (H_j - (idMatrix)) );
+
+            );
+            --We create the set of all minimalpolynomials of fixedVectors
+            --We do so with set so we don't have duplicate min polynomials
+            allMinPoly = set {};
+            numCols = numColumns basis allFixedVectors; --Assuredly a better way of indexing; ask Karl.
+            for j from 0 to numCols -1 do (
+                v = vectorToFieldEl(nF, allFixedVectors_j);
+                p = minimalPolynomial v;
+                M = map(testRing,ring p,{(gens testRing)_0});
+                allMinPoly = allMinPoly + set {M(p)};
+            );
+            -- We now create a base ring and quotient out by each minimal polynomial
+            allMinPoly = toList allMinPoly;
+            numVars := length allMinPoly;
+            ambientRing = QQ[x_0..x_(numVars-1)];
+            relationIdeal = ideal(0_ambientRing); 
+            for j from 0 to numVars -1 do (
+                M = map(ambientRing,ring allMinPoly_j,{(gens ambientRing)_j});
+                relationIdeal = relationIdeal + M(allMinPoly_j);
+            );
+            allFixed = append(allFixed, numberField(ambientRing/relationIdeal));
+        );
+        --We create a ring with indeterminates for each min polynomial in allMinPoly, then add the field that is this ring mod all the min polynomials
+
+    );
+    return allFixed;
+)
+
 --********************************
 --******Compositums
 --********************************
