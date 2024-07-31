@@ -46,6 +46,7 @@ export{
    "getNormalSubgroups",
    "getFixedFields",
    "vectorToFieldEl",
+   "fieldBaseChangeCharZero"
 
    --"matrixFromRingMap"
 };
@@ -1177,6 +1178,19 @@ compositums(NumberFieldExtension,NumberFieldExtension) := opts -> (iota,kappa) -
     infoList
 
 )
+
+--****************************
+--SwitchingFields overloads
+--****************************
+
+fieldBaseChangeCharZero = method(Options=>{})
+fieldBaseChangeCharZero(Ring, Ring) := opts -> (R1, K1) -> (
+    
+);
+
+fieldBaseChangeCharZero(Ring, RingMap) := opts -> (R1, K1) -> (
+
+);
 
 --*****************************
 --Documentation
