@@ -1125,6 +1125,18 @@ asExtensionOfBase(NumberFieldExtension) := opts -> iota -> (
 
 --loadPackage ("NumberFields", Reload=>true)
 
+-- takes a number field and a map to the original ring used to create
+-- the number field, and returns the map composed with the isomorphism
+composedMap = method(Options => {})
+composedMap(NumberField,Ring) := opts -> (nf,S) -> (
+
+  Psi := nf#cache#remakeField#0;
+  R := source(Psi);
+  G := map(R,S);
+  return Psi*G;
+
+)
+
 -- note: add basic case when degrees are relatively prime
 compositums = method(Options => {})
 compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
@@ -1143,8 +1155,8 @@ compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
     -- sort by degree
     sorted := sort(NFs, degree);
     -- get maps from K1 & K2 
-    K1maps := apply(sorted, nf -> map(nf,K1));
-    K2maps := apply(sorted, nf -> map(nf,K2));
+    K1maps := apply(sorted, nf -> composedMap(nf,K1));
+    K2maps := apply(sorted, nf -> composedMap(nf,K2));
 
     degs := apply(sorted, degree);
     -- a slight hack to package the data
