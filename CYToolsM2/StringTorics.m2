@@ -40,6 +40,7 @@ export {
     "InteriorFacets",
     "ID",
     "cyPolytope",
+    "cyPolytopeFromRays",
     "dump",
     "label",
     
@@ -81,6 +82,8 @@ export {
     "findAllCYs",
     "findAllConnectedStarFine",
     "findStarFineGraph",
+    "findAllSimplicialFans",
+    "isTriangulationOfPolytope",
     
     -- older triangulation code (still useful?)
     "Origin",
@@ -838,6 +841,25 @@ exampleP111122'44 = () -> (value /// () -> (
      findAllFRSTs A
      )
 
+-- This function finds all regular, simplicial fans with the given rays.
+-- If Fine => true is given, then only triangulations that use all of the rays are considered.
+-- Return value: a list of triangulations of the vector configuration.
+findAllSimplicialFans = method(Options => {Fine => true})
+findAllSimplicialFans Matrix := List => opts -> (A) -> (
+     Ts := allTriangulations(A, Homogenize => false, RegularOnly => true, Fine => opts.Fine); -- TODO: bug? if Fine => true, get crash?
+     if #Ts === 0 or #Ts#0 == 0 then (
+         count := 0;
+         while count < 100 and (#Ts === 0 or #Ts#0 == 0) do (
+             Ts = allTriangulations(A, Homogenize => false, RegularOnly => true, Fine => opts.Fine);
+             count = count + 1;
+             );
+         --if #Ts == 0 then error "no triangulation could be found";
+         << "WARNING: TOPCOM failed to find triangulations, then found them after " << 
+           count << " attempt(s)" << endl;
+         );
+     Ts
+     )
+
 
 -- Being rewritten 22 Aug 2023.
 -- findAllCYs = method(Options => {Ring => null}) -- opts.Ring: ZZ[h11 variables].
@@ -920,7 +942,6 @@ restart
   installPackage "IntegerEquivalences" -- works, lots of warnings
   installPackage "DanilovKhovanskii"
   installPackage "StringTorics"
-
 
   check IntegerEquivalences -- 8 checks, finishes to completion.
   check DanilovKhovanskii -- 10 checks, finishes, 3 take some time

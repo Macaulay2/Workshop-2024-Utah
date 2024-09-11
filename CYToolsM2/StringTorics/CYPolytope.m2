@@ -32,6 +32,19 @@ cyPolytope = method(Options => {ID => null, InteriorFacets => false})
 -- TODO: currently it is NOT this!  
 
 -- vertices: A list of the integer coordinates (also a list)
+cyPolytopeFromRays = method(Options => {ID => null})
+cyPolytopeFromRays List := CYPolytope => opts -> allrays -> (
+    -- we assume that the convex hull of all the rays is a reflexive polytope.
+    -- we also assume that the origin is not an array (and so in any
+    -- case, all rays are on the reflexive polytope.
+    Q := new CYPolytope from {
+        symbol cache => new CacheTable,
+        "rays" => allrays
+        };
+    if opts.ID =!= null then Q.cache#"id" = opts.ID;
+    Q
+    )
+
 cyPolytope List := CYPolytope => opts -> vertices -> (
     cyPolytope(transpose matrix vertices, opts)
     )
@@ -356,6 +369,20 @@ findAllCYs CYPolytope := List => opts -> Q -> (
         X);
     Xs
     )
+
+-- This function returns true if the given triangulation of the vector configuration
+-- given by `rays Q` is also a (star) triangulation of the polytope.  This is the
+-- case when every maximal cone in the triangulation is contained in a facet of the
+-- polytope.
+isTriangulationOfPolytope = method()
+isTriangulationOfPolytope(CYPolytope, List) := (Q, T) -> (
+    facetsQ := for x in annotatedFaces Q list if x#0 =!= dim Q - 1 then continue else set x#2;
+    for t in T do (
+        if any(facetsQ, f -> isSubset(t, f)) then continue else return false;
+        );
+    true
+    )
+isTriangulationOfPolytope(CYPolytope, Triangulation) := (Q, T) -> isTriangulationOfPolytope(Q, max T)
 
 hh(Sequence, CYPolytope) := (pq, Q) -> (
     cySetH11H21 Q;

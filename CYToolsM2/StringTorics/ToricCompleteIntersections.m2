@@ -10,7 +10,7 @@
 --------------------------------------------------------
 completeIntersection = method(Options => {
         Equations => true,
-        Basis => null, -- a list of integer indices of rays taht form a basis
+        Basis => null, -- a list of integer indices of rays that form a basis
         Variables => null -- variable names for each basis element
         })
 
