@@ -91,6 +91,9 @@ doc ///
     polytope data for a Calabi-Yau 3-fold hypersurface in a toric variety
   Description
     Text
+      This type encapsulates a reflexive polytope pair (one in M lattice, one in N lattice),
+      and can contain cached information used for creating Calabi-Yau hypersurfaces and
+      complete intersections.
   SeeAlso
     CalabiYauInToric
 ///
@@ -105,6 +108,114 @@ doc ///
   SeeAlso
     CYPolytope
 ///
+
+-- the following function is not ready yet, maybe we don't even want it??
+///
+  Key
+    cyPolytopeFromRays
+  Headline
+    the most basic constructor of a CYPolytope 
+  Usage
+    Q = cyPolytopeFromRays L
+  Inputs
+    L:List
+  Outputs
+    Q:CYPolytope
+  Description
+    Text
+      This is a light-weight constructor once the rays are known.
+    Text
+      Let's start with a reflexive 4D polytope corresponding to a Calabi-Yau
+      3-fold with $h^{1,1} = 3$.
+    Example
+      topes = kreuzerSkarke 3;
+      tope = topes_30
+      A = matrix tope
+      P = convexHull A
+      P2 = polar P
+      allrays = matrix{select(latticePoints P2, lp -> lp != 0)}
+      allrays = transpose entries allrays
+      Q = cyPolytopeFromRays allrays
+      assert(rays Q === allrays)
+      vertices P
+      (transpose vertices P) * transpose matrix allrays
+      convexHull transpose matrix allrays
+      vertices oo
+
+      Q = cyPolytope tope
+      A = transpose matrix rays Q
+      vertices convexHull A
+      latticePoints convexHull A
+      transpose matrix degrees Q
+      basisIndices Q
+      automorphisms Q
+      hh^(1,1) Q
+      hh^(1,2) Q
+      dim Q
+      A
+      netList annotatedFaces Q
+    Text
+      We want to make sure we can take rays of a fan, in order, that someone gives us,
+      and *not* change the order of the generators...!
+///
+
+doc ///
+  Key
+    cyPolytope
+  Headline
+    construction of a CYPolytope 
+  Usage
+    Q = cyPolytope A
+  Inputs
+    A:{Matrix,List,KSEntry,Polyhedron}
+  Outputs
+    Q:CYPolytope
+  Description
+    Text
+      There are a number of ways to construct a CYPolytope object.
+    Text
+      Let's start with a reflexive 4D polytope corresponding to a Calabi-Yau
+      3-fold with $h^{1,1} = 3$.
+    Example
+      topes = kreuzerSkarke 3;
+      tope = topes_30
+      Q = cyPolytope tope
+      A = transpose matrix rays Q
+      vertices convexHull A
+      latticePoints convexHull A
+      transpose matrix degrees Q
+      basisIndices Q
+      automorphisms Q
+      hh^(1,1) Q
+      hh^(1,2) Q
+      dim Q
+      A
+      netList annotatedFaces Q
+    Text
+      We want to make sure we can take rays of a fan, in order, that someone gives us,
+      and *not* change the order of the generators...!
+///
+
+-- TODO: need
+-- cyPolytope List -- where the list is a list of vertices/
+-- cyPolytope List -- where the list is all vertices, and lattice points, in an order we
+--   want them to stay in...
+
+///
+  Key
+    (cyPolytope, List)
+  Headline
+    construction of a CYPolytope 
+  Usage
+  Inputs
+  Outputs
+  Description
+    Text
+    Example
+  SeeAlso
+///
+
+
 
 ///
   Key

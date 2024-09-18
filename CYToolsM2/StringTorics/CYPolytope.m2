@@ -1,9 +1,32 @@
+-- TODO: I think changing the name to ReflexiveData is better?
+--   data will contain: an ordered list of ALL lattice points.
+--   I think I would like to make the restriction that the points
+--   occur in some order (e.g. ordered by face dimension).
+
 ---------------------------------------
 -- CYPolytope ---------------------
 ---------------------------------------
 -- This type can be written to disk, and tries to retain computations computed already.
 -- It does not retain Polyhedron objects, but hopefully it recreates these quickly.
--- 
+--
+
+-- A CYPolytope is fundamentally, a list of *all* the non-zero lattice points of
+-- a reflexive polytope, together with cached information about the polytope,
+-- which is useful for constructing Calabi-Yau hypersurfaces in simplicial
+-- toric varieties arising from this polytope.
+-- The information which is cached is designed to be easy to read and write to a disk
+-- or database.  It is possible to supply some of this cached data, including
+-- glsm degree matrix and annotated faces, but generally, the package will compute these
+-- for you.
+-- The above is not currently correct: (1) it is currently a list of all lattice points
+--   not in facets, (2) you cannot set the rays yourself, otherwise the indices are all wrong
+--   (in e.g.) annotated faces.
+--   (3) you cannot easily set "glsm" and "basis indices".
+-- Note that "basis indices", for nonfavorable, includes not just indices,
+-- but items like (3,0), (3,1), ...(3,g), where 3 is the index of a lattice point
+-- in the interior of a 2-face.
+-- This will all change with the introduction of cyPolytopeFromRays, and a function
+-- which makes it easy to collect the rays from the vertices of a polytope.
 
 CYPolytopeFields = {
     "rays" => {value, toString, List}
@@ -11,7 +34,7 @@ CYPolytopeFields = {
 
 -- These are the cache fields that we write to a string via 'dump'
 CYPolytopeCache = {
-    -- these fields do not need to exist.
+    -- these fields may or may not exist in a specific CYPolytope object.
     "face dimensions" => {value, toString, List},
     "id" => {value, toString, ZZ},
     "favorable" => {value, toString, Boolean},
@@ -25,18 +48,19 @@ CYPolytopeCache = {
     "triangulations" => {value, toString, List}
     }
 
-cyPolytope = method(Options => {ID => null, InteriorFacets => false})
+cyPolytope = method(Options => {ID => null, InteriorFacets => false}) -- TODO: remove InteriorFaces.  That should be in construction of CY's.
 
 -- This is the main creation function.  Other functions call this.
 -- Goal: this function does NOT change vertices list
 -- TODO: currently it is NOT this!  
 
 -- vertices: A list of the integer coordinates (also a list)
-cyPolytopeFromRays = method(Options => {ID => null})
+cyPolytopeFromRays = method(Options => {ID => null, Degrees => null, BasisIndices => null})
 cyPolytopeFromRays List := CYPolytope => opts -> allrays -> (
     -- we assume that the convex hull of all the rays is a reflexive polytope.
     -- we also assume that the origin is not an array (and so in any
     -- case, all rays are on the reflexive polytope.
+    error "cyPolytopeFromRays function is not yet implemented";
     Q := new CYPolytope from {
         symbol cache => new CacheTable,
         "rays" => allrays
@@ -45,25 +69,119 @@ cyPolytopeFromRays List := CYPolytope => opts -> allrays -> (
     Q
     )
 
+cyPolytopeFromRays(List, List) := opts -> (verts, latticepoints) -> (
+    error "cyPolytopeFromRays function is not yet implemented";
+    -- WARNING: the order of lattice points given is used, the indices of verts given
+    --  are not kept!
+    -- make P2 from verts
+    -- get lattice points
+    -- get face dimensions for each lattice point (in that order!)
+    -- maybe: stash the change of basis from latticePointList P2 to latticepoints?
+    )
+
+-- cyPolytope List := opts -> verts -> (
+--     -- make P2 from verts
+--     -- get lattice points
+--     -- get face dimensions for each lattice point (in that order!)
+--     )
+
+-- When do we need:
+-- M polytope
+-- N polytope
+-- lattice points
+--
+-- should use:
+--  rays Q: all lattice points other than the origin.
+--  vertices Q: returns the rays which are vertices of the polytope.
+
+
 cyPolytope List := CYPolytope => opts -> vertices -> (
     cyPolytope(transpose matrix vertices, opts)
     )
+cyPolytope Matrix := CYPolytope => opts -> vertices -> (
+    P2 := convexHull vertices;
+    cyPolytope(P2, opts)
+    )
+cyPolytopeWithGivenLatticePoints = method(Options => options cyPolytope)
+cyPolytopeWithGivenLatticePoints(List, List) := opts ->  (latticePoints, faceDimensions) -> (
+    error "cyPolytopeWithGivenLatticePoints function is not yet implemented";
+    verts := for i from 0 to #latticePoints - 1 list if faceDimensions#i == 0 then latticePoints#i else continue;
+    P2 := convexHull transpose matrix verts;
+    (LP, LPdim) := latticePointsAndDimensions P2;
+    -- now check that the give lattice points and face dimensions match:
+    if #latticePoints =!= #LP then error("expected "|#LP|" lattice points");
+    if #faceDimensions =!= #latticePoints then error "expected both arguments to have the same length";
+    LPset1 := for i from 0 to #latticePoints - 1 list latticePoints#i => faceDimensions#i;
+    LPset2 := for i from 0 to #LP - 1 list LP#i => LPdim#i;
+    if sort LPset1 =!= sort LPset2 then error "expected a list of all lattice points";
+    Q := new CYPolytope from {
+        symbol cache => new CacheTable,
+        "rays" => latticePoints,
+        };
+    Q.cache#"face dimensions" = faceDimensions;
+    Q.cache#"N polytope" = P2;
+    if opts.ID =!= null then Q.cache#"id" = opts.ID;
+    Q
+    )
 
+    
+-- TODO: remove once we are using InteriorFacets when constructing CY's
+-- in construction: move InteriorFacets checks to elsewhere
+-- cyPolytope Polyhedron := opts -> P2 -> (
+--     topdim := if opts.InteriorFacets then dim P2 - 1 else dim P2 - 2;
+--     LP := latticePointList P2;
+--     LPdim := for lp in LP list dim(P2, minimalFace(P2, lp));
+--     -- now remove the ones that are in facets (or the origin):
+--     LP = for i from 0 to #LP-1 list if LPdim#i <= topdim then LP#i else continue;
+--     LPdim = for i from 0 to #LP-1 list if LPdim#i <= topdim then LPdim#i else continue;
+--     cyData := new CYPolytope from {
+--         symbol cache => new CacheTable,
+--         "rays" => LP,
+--         };
+--     cyData.cache#"face dimensions" = LPdim;
+--     if opts.ID =!= null then cyData.cache#"id" = opts.ID;
+--     cyData
+--     )
+
+-- in construction: move InteriorFacets checks to elsewhere?
 cyPolytope Polyhedron := opts -> P2 -> (
     topdim := if opts.InteriorFacets then dim P2 - 1 else dim P2 - 2;
-    LP := latticePointList P2;
-    LPdim := for lp in LP list dim(P2, minimalFace(P2, lp));
-    -- now remove the ones that are in facets (or the origin):
+    (LP, LPdim) := latticePointsAndDimensions P2;
     LP = for i from 0 to #LP-1 list if LPdim#i <= topdim then LP#i else continue;
     LPdim = for i from 0 to #LP-1 list if LPdim#i <= topdim then LPdim#i else continue;
-    cyData := new CYPolytope from {
+    Q := new CYPolytope from {
         symbol cache => new CacheTable,
         "rays" => LP,
         };
-    cyData.cache#"face dimensions" = LPdim;
-    if opts.ID =!= null then cyData.cache#"id" = opts.ID;
-    cyData
+    Q.cache#"face dimensions" = LPdim;
+    Q.cache#"N polytope" = P2;
+    if opts.ID =!= null then Q.cache#"id" = opts.ID;
+    Q
     )
+
+faceDimensions = method()
+faceDimensions CYPolytope := Q -> (
+    if not Q.cache#?"face dimensions" then (
+        P2 := polytope(Q, "N");
+        pts := Q#"rays";
+        -- LP := latticePointList P2;
+        -- if sort pts != sort LP then (
+        --     error "expected the given lattice points to be the same (except for their order) as the provided points";
+        --     -- TODO: create the reorder permutation(s).
+        --     );
+        LPdim := for lp in pts list dim(P2, minimalFace(P2, lp));
+        Q.cache#"face dimensions" = LPdim;
+        );
+    Q.cache#"face dimensions"
+    )
+
+vertices CYPolytope := Q -> (
+    raysQ := rays Q;
+    dims := faceDimensions Q;
+    for i from 0 to #rays Q - 1 list if dims#i > 0 then continue else raysQ#i
+    )
+
+latticePoints CYPolytope := Q -> latticePointList polytope(Q, "N")
 
 -- This version contains ALL lattice points
 -- cyPolytope Polyhedron := opts -> P2 -> (    
@@ -81,11 +199,6 @@ cyPolytope Polyhedron := opts -> P2 -> (
 --     cyData
 --     )
 
--- vertices: Matrix whose columns are the vertices of the reflexive polytope.
-cyPolytope Matrix := CYPolytope => opts -> vertices -> (
-    P2 := convexHull vertices;
-    cyPolytope(P2, opts)
-    )
 cyPolytope KSEntry := CYPolytope => opts -> tope -> (
     -- KSEntry is a Kreuzer-Skarke polytope entry, returned from
     --   ReflexivePolytopesDB functions.
@@ -104,15 +217,15 @@ cyPolytope String := CYPolytope => opts -> str -> (
         readFcn := field#1#0;
         if fields#?k then k => readFcn fields#k else error("expected key "|k)
         );
-    cyData := new CYPolytope from prepend(symbol cache => new CacheTable, required);
+    Q := new CYPolytope from prepend(symbol cache => new CacheTable, required);
     -- now read in the cache values (including "id" value, if any)
     for field in CYPolytopeCache do (
         k := field#0;
         readFcn := field#1#0;
-        if fields#?k then cyData.cache#k = readFcn fields#k;
+        if fields#?k then Q.cache#k = readFcn fields#k;
         );
-    if opts.ID =!= null then cyData.cache#"id" = opts.ID; -- just for compatibility with other constructors...
-    cyData
+    if opts.ID =!= null then Q.cache#"id" = opts.ID; -- just for compatibility with other constructors...
+    Q
     )
 
 -- todo: translation function: {1, 2, 3, 6} ==> "1 2 3 6" (and viceversa)
@@ -220,7 +333,10 @@ cySetGLSM = method()
 --     )
 cySetGLSM CYPolytope := Q -> (
     if Q.cache#?"glsm" then return;
-    mLP := transpose matrix rays Q;
+    dimQ := dim Q;
+    rayIndices := for i from 0 to #rays Q - 1 list if (faceDimensions Q)#i <= dimQ-2 then i else continue;
+    raysToKeep := for i in rayIndices list (rays Q)#i;
+    mLP := transpose matrix raysToKeep;
     D := transpose syz mLP; -- use LLL?
     -- D := transpose LLL syz M; -- which line should we use?
     nonfavsList := findTwoFaceInteriorDivisors Q;
@@ -269,37 +385,54 @@ cySetH11H21 = cyData -> (
     (h11, h21)
     )
 
-rays CYPolytope := List => {} >> opts -> cyData -> (
-    cyData#"rays"
+rays CYPolytope := List => {} >> opts -> Q -> Q#"rays"
+
+dim CYPolytope := ZZ => Q -> dim polytope(Q, "N")
+
+degrees CYPolytope := List => Q -> (
+    if not Q.cache#?"glsm" then cySetGLSM Q;
+    Q.cache#"glsm"
     )
 
-dim CYPolytope := List => cyData -> dim polytope(cyData, "N")
-degrees CYPolytope := List => cyData -> (
-    if not cyData.cache#?"glsm" then cySetGLSM cyData;
-    cyData.cache#"glsm"
-    )
 basisIndices = method()
-basisIndices CYPolytope := List => cyData -> (
-    if not cyData.cache#?"basis indices" then cySetGLSM cyData;
-    cyData.cache#"basis indices"
+basisIndices CYPolytope := List => Q -> (
+    if not Q.cache#?"basis indices" then cySetGLSM Q;
+    Q.cache#"basis indices"
     )
--- h11OfCY CYPolytope := ZZ => cyData -> (
---     if not cyData.cache#?"h11" then cySetH11H21 cyData;
---     cyData.cache#"h11"
+
+isFavorable CYPolytope := Boolean => Q -> (
+    if not Q.cache#?"favorable" then cySetH11H21 Q;
+    Q.cache#"favorable"
+    )
+
+-- faceDimensions CYPolytope := List => Q -> (
+--     if not Q.cache#?"favorable" then cySetFaceDimensions Q;
+--     Q.cache#"favorable"
 --     )
--- h21OfCY CYPolytope := ZZ => cyData -> (
---     if not cyData.cache#?"h21" then cySetH11H21 cyData;
---     cyData.cache#"h21"
---     )
-isFavorable CYPolytope := Boolean => cyData -> (
-    if not cyData.cache#?"favorable" then cySetH11H21 cyData;
-    cyData.cache#"favorable"
+
+annotatedFaces CYPolytope := Q -> (
+    if not Q.cache#?"annotated faces" then (
+        P2 := polytope(Q, "N");
+        result := annotatedFaces P2;
+        LPlist := latticePointList P2;
+        if take(LPlist, #(rays Q)) =!= rays Q then (
+            --if sort LPlist =!= sort rays Q then error "internal error in annotatedFaces: Q is not well defined";
+            raysQ := rays Q;
+            rayHash := hashTable for i from 0 to #raysQ - 1 list raysQ#i => i;
+            lpHash := hashTable for i from 0 to #LPlist - 1 list LPlist#i => i;
+            lp2rays := for i from 0 to #LPlist-1 list rayHash#(LPlist#i); -- a permutation
+            result = sort for f in result list (
+                -- each entry is of the form {dim of face, indices of vertices in face, indices of all lps in face, genus, genus}
+                -- only items #1, #2 need to be recomputed.
+                if #f =!= 5 then error "my logic is wrong";
+                {f#0, sort for a in f#1 list lp2rays#a, sort for a in f#2 list lp2rays#a, f#3, f#4}
+                );
+            );
+        Q.cache#"annotated faces" = result;
+        );
+    Q.cache#"annotated faces"
     )
-annotatedFaces CYPolytope := cyData -> (
-    if not cyData.cache#?"annotated faces" then
-      cyData.cache#"annotated faces" = annotatedFaces polytope(cyData, "N");
-    cyData.cache#"annotated faces"
-    )
+
 polytope(CYPolytope, String) := Polyhedron => (cyData, which) -> (
     if which === "N" then (
         if not cyData.cache#?"N polytope" then (

@@ -40,9 +40,12 @@ export {
     "InteriorFacets",
     "ID",
     "cyPolytope",
-    "cyPolytopeFromRays",
+    --"cyPolytopeFromRays",
+    --"cyPolytopeWithGivenLatticePoints",
     "dump",
     "label",
+    "findTwoFaceInteriorDivisors",
+    "faceDimensions",
     
     "cyData",
     "makeCY",
@@ -75,6 +78,7 @@ export {
     "latticePointHash",
     "interiorLatticePointList",
     "annotatedFaces",
+    "latticePointsAndDimensions",
     "automorphisms",
 
     -- current triangulation code
@@ -250,6 +254,7 @@ export {
     
     -- Flop chains, Mori cones
 
+    "BasisIndices",
     "IntersectionNumbers",
     "MoriHilbertGens",
     "Automorphisms",

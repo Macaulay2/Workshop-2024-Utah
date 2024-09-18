@@ -1,3 +1,54 @@
+///
+  -- CYPolytope's
+-*
+  restart
+  needsPackage "StringTorics"
+*-
+  tope = KSEntry "4 13  M:34 13 N:12 10 H:7,29 [-44] id:40
+   1   0   0   0   0  -2  -2   1   2   1   2   2  -2
+   0   1   0   0   0   2   1  -1  -2  -2   0  -2   0
+   0   0   1  -1   0  -1   0  -1   1   0   1  -1   1
+   0   0   0   0   1   1   2   1  -2  -1  -2   0   0
+   "
+  Q = cyPolytope(tope, ID => 40)  
+
+  P = polytope(Q, "N")
+  P1 = polytope(Q, "M")
+  assert(P === polytope Q)
+  assert isReflexive P
+  assert(# latticePoints P - 1 === # rays Q)
+
+  V0 = normalToricVariety Q -- not implemented... FAILS
+  
+  -- now given these rays, we want to make a CYPolytope with these exact rays, in order.
+  netList annotatedFaces Q
+
+  -- this triangulation appears to be of Batyrev type.
+  tri1 = {{0, 1, 2, 3}, {0, 1, 2, 4}, {0, 1, 3, 7}, {0, 1, 4, 7}, {0, 2, 3, 4}, {0, 3, 4, 7}, {1, 2, 3, 7}, {1, 2, 4, 8}, {1, 2, 7, 9}, {1, 2, 8, 9}, {1, 4, 7, 9}, {1, 4, 8, 9}, {2, 3, 4, 5}, {2, 3, 5, 6}, {2, 3, 6, 7}, {2, 4, 5, 6}, {2, 4, 6, 8}, {2, 6, 7, 9}, {2, 6, 8, 9}, {3, 4, 5, 7}, {3, 5, 6, 7}, {4, 5, 6, 8}, {4, 5, 7, 8}, {4, 7, 8, 9}, {5, 6, 7, 8}, {6, 7, 8, 9}}
+  isTriangulationOfPolytope(Q, tri1)
+
+  A = transpose matrix rays Q
+  elapsedTime Ts = findAllFans A; -- 27s on apple M2 MBP, # = 14619.
+  assert(#Ts == 14619)
+  isTriangulationOfPolytope(Q, Ts_100)
+  elapsedTime for T in Ts list isTriangulationOfPolytope(Q, T);
+  tally oo  
+  
+  X = calabiYau(Q, tri1)
+  X = calabiYau(Q, max Ts_7)
+  isWellDefined X -- not implemented... FAILS
+  hh^(1,1) X
+  hh^(1,2) X
+  peek X.cache
+  Xa = abstractVariety(X)
+  IX = intersectionRing Xa
+  cubicForm X
+  c2Form X
+  (select(annotatedFaces Q, x -> x#0 == 3))/(x -> x#2)
+
+///
+
+
 TEST ///
   -- XX TODO: being worked on now 29 June 2023
   -- Checking the methods for CYPolytope's
@@ -1679,4 +1730,126 @@ TEST ///
       # findAllCYs(Q, NTFE => true, Automorphisms => true)
       })
   Q = Qs#31
+///
+
+-------------------------------------------------------------------------------
+-- Tests for CYPolytope's -----------------------------------------------------
+-------------------------------------------------------------------------------
+TEST ///
+-*
+  restart
+  needsPackage "StringTorics"
+*-
+tope = KSEntry "4 9  M:273 9 N:21 8 H:11,201 [-380] id:6
+   1   0   0  -2   2   3  -9   3 -23
+   0   1   0   1   1   0  -2  -6  -6
+   0   0   1  -2   2   4  -6  10 -16
+   0   0   0   0   4   6  -6  12 -14
+"
+  A = matrix tope
+  elapsedTime P1 = convexHull A
+  elapsedTime P2 = polar P1
+  (LP, LPdim) = latticePointsAndDimensions P2
+  perm = {4,1,2,0,9,20,19,18,17,16,15,3,5,6,7,8,10,11,12,13,14}
+  Q = cyPolytope tope
+  --Q = cyPolytopeWithGivenLatticePoints(LP_perm, LPdim_perm)
+  faceDimensions Q
+  annotatedFaces Q
+  netList oo
+  degrees Q
+  basisIndices Q
+  transpose matrix degrees Q
+  dim Q == 4
+  isFavorable Q
+
+  latticePoints Q
+  latticePointsAndDimensions polytope(Q, "N") -- should allow latticePoinsAndDimensions Q?
+  Q = cyPolytope(P2, ID => 6)
+  faceDimensions Q
+
+  rays Q -- maybe add in InteriorFacets?  Default should be to take all lattice points of face dim <= dim - 2.
+  assert(hh^(1,1) Q == 11)
+  assert(hh^(1,2) Q == 201)
+  netList annotatedFaces Q
+  transpose matrix degrees Q
+  basisIndices Q -- BUG: should not contain the origin...  Actually, should only consider those rays we want to keep...
+  #rays Q
+
+  latticePointsAndDimensions polytope Q -- not written for Q... allow latticePointsAndDimensions Q too
+  findTwoFaceInteriorDivisors Q  -- none...
+  assert isFavorable Q
+  assert(dim Q == 4)
+
+  -- let's first create the ray list.
+  topes = kreuzerSkarke 3;
+  Q1 = cyPolytope(topes_30, ID => 30)
+
+  rays Q1
+  Q1.cache#"face dimensions"
+
+  -- changing the order of the rays is not currently allowed!
+  -- TODO: should we get the following to work?
+  --Q2 = cyPolytopeFromRays((rays Q1)_{3,1,2,0,6,5,4})
+  --Q2.cache#"face dimensions" = {0,0,0,0,1,0,0}
+  --dim Q2 == 4
+  --netList annotatedFaces Q1
+///
+
+TEST ///
+-*
+  restart
+  needsPackage "StringTorics"
+*-
+  -- Let's check MyPolyhedra functionality.
+tope = KSEntry "4 9  M:273 9 N:21 8 H:11,201 [-380] id:6
+   1   0   0  -2   2   3  -9   3 -23
+   0   1   0   1   1   0  -2  -6  -6
+   0   0   1  -2   2   4  -6  10 -16
+   0   0   0   0   4   6  -6  12 -14
+"
+  A = matrix tope
+  elapsedTime P1 = convexHull A
+  elapsedTime P2 = polar P1
+  peek P1.cache
+  debug Polyhedra -- for underlyingCone
+  peek P2.cache.underlyingCone.cache
+
+  elapsedTime latticePointList P1 -- .375s, .25s
+  #latticePointList P1 == 273
+  elapsedTime latticePointList P2
+
+  faceDimensionHash P1
+  faceDimensionHash P2
+  peek P1.cache
+  debug Polyhedra
+  P2 = P1.cache.computedPolar
+
+
+  topes = kreuzerSkarke(11, 201, Limit => 100000);
+  
+  elapsedTime Q = cyPolytope topes_8
+  cyPolytope P2
+  
+  hh^(1,1) Q
+  hh^(1,2) Q
+  Q1 = polar Q
+  #rays Q1
+  elapsedTime convexHull transpose matrix rays Q1
+  A = matrix topes_8
+  elapsedTime P1 = convexHull A
+  elapsedTime P2 = polar P1 -- 10 times slower than first...  still fast enough?  .0056 sec actually it is very all over, time wise...
+
+  elapsedTime latticePointList P2 -- .13 sec -- generally.
+
+  latticePointList P2
+  elapsedTime Q = convexHull transpose matrix oo
+  latticePointList Q
+  peek Q.cache
+
+  elapsedTime cyPolytope latticePointList P2
+  peek oo.cache
+
+  latticePointList P2
+  elapsedTime Q = convexHull transpose matrix latticePointList P2
+  
 ///
