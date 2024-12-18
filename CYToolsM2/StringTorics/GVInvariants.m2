@@ -245,6 +245,17 @@ gvRay(HashTable, List, ZZ, List) := opts -> (GVHash, C, deglimit, degvector) -> 
     rayC
     )
 
+gvRay(HashTable, List, ZZ, List) := opts -> (GVHash, C, deglimit, degvector) -> (
+    contentC := gcd C;
+    if contentC =!= 1 then C = C // contentC;
+    d := dotProduct(degvector, C);
+    rayC := for i from 1 to floor(deglimit/d) list (
+        iC := i*C;
+        if GVHash#?iC then GVHash#iC else 0
+        );
+    rayC
+    )
+
 count = 0; -- used to give a unique index to each ZERO ray.
 
 classifyExtremalCurve = method()

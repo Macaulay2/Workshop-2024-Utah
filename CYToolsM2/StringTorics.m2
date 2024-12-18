@@ -31,11 +31,15 @@ newPackage(
 
 export {
     -- Types defined here
+    "ReflexivePolytope",
     "CYPolytope", -- rename to CYReflexivePair?  How about CYPolytope?
     "CalabiYauInToric",
     "CYToolsCY3", -- we should have a superclass for CalabiYauInToric, CYToolsCY3
     "TopologicalDataOfCY3",
 
+    -- ReflexivePolytope
+    "reflexivePolytope",
+    
     -- CYPolytope, CalabiYauInToric
     "InteriorFacets",
     "ID",
@@ -308,6 +312,7 @@ findEquivalence(CalabiYauInToric, CalabiYauInToric) := (X1, X2) -> (
     )
 
 load (currentFileDirectory | "StringTorics/MyPolyhedra.m2")
+load (currentFileDirectory | "StringTorics/ReflexivePolytopes.m2")
 load (currentFileDirectory | "StringTorics/CYPolytope.m2")
 load (currentFileDirectory | "StringTorics/CalabiYauInToric.m2")
 load (currentFileDirectory | "StringTorics/IntersectionNumbers.m2")
