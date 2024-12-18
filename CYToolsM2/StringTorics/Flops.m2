@@ -31,100 +31,8 @@
 ----    negate the curve class, take all effective curves other than that.  What if a curve class has 0 gv's?
 ----    use the gv of the flopped curve.
 
-debug needsPackage "StringTorics"
+--debug needsPackage "StringTorics"
 
---------------------
--- GVInvariants ----
---------------------
--- Should this move to GVInvariants.m2 in StringTorics?
--- Probably...
-gvByRay = method()
--- gvByRay: Take a "standard" hash table of GV invariants for various curve classes,
---  and data used to compute that, and create a sometimes more useful version of the data:
---  a hash table whose keys are primitive curve classes, and whose values are list of GV invariants
---  for a number of multiples of the primitive curve, up to some degree bound.
-gvByRay(HashTable, ZZ, List) := HashTable => (GVHash, deglimit, degvector) -> (
-      primcurve := curve -> (
-          i := position(curve, a -> a != 0);
-          c := curve // gcd curve;
-          mult := curve#i // c#i;
-          {c, mult}
-          );
-      curves := for k in keys GVHash list join(primcurve k, {GVHash#k});
-      H := partition(val -> val#0, curves);
-      H2 := hashTable for kv in pairs H list (
-          val := kv#0 => kv#1/(x -> {x#1, x#2});
-          val);
-      -- now we change the values to be a list og gv's.
-      toRayList := (primcurve, listOfPairs) -> (
-          Hmult2gv = hashTable listOfPairs;
-          d := max (listOfPairs/first);
-          deg := dotProduct(degvector, primcurve);
-          maxmult := max(d, deglimit//deg);
-          for i from 1 to maxmult list if Hmult2gv#?i then Hmult2gv#i else 0
-          );
-      hashTable for kv in pairs H2 list (
-          val := toRayList(kv#0, kv#1);
-          if #val >= 2 then kv#0 => val else continue
-          )
-      )
-
-GVTable = new Type of HashTable
-expression GVTable := GVT -> (
-    expression GVT.GVRays
-    )
-
-gvTable = method(Options => {DegreeLimit => 20, Heft => {}})
-
--- GVInvariants is a hash table constructed with gvInvariants function.
-gvTable HashTable := GVTable => opts -> GVinvariants -> (
-    if opts.DegreeLimit === null then error "need to provide DegreeLimit value, e.g. DegreeLimit => 20";
-    if opts.Heft === null then error "need to provide Heft list, e.g. Heft => {1,3,6,2}";
-    -- now we take the input hashtable of curveclass => GVinvariant
-    -- and change it to primitiveCurve C => {list of GV invariants of C, 2*C, 3*C, ...}
-    -- where the values go up max i*C whose heft vector value is <= degreelimit.
-    gvs := gvByRay(GVinvariants, opts.DegreeLimit, opts.Heft);
-    result := new GVTable from {
-        symbol cache => new CacheTable,
-        symbol DegreeLimit => opts.DegreeLimit,
-        symbol Heft => opts.Heft,
-        symbol GVRays => gvs
-        };
-    result
-    )
-gvTable CalabiYauInToric := GVTable => opts -> X -> (
-    if opts.DegreeLimit === null then error "need to provide DegreeLimit value, e.g. DegreeLimit => 20";
-    degvector := heft X;
-    gvH := gvInvariants(X, DegreeLimit => opts.DegreeLimit);
-    gvH2 := hashTable for kv in pairs gvH list {toList kv#0, kv#1};
-    gvTable(gvH2, DegreeLimit => opts.DegreeLimit, Heft => heft X)
-    )
-
-gvRays = method()
-gvRays GVTable := gvTable -> gvTable.GVRays
-
-moriCone = method()
-moriCone(GVTable, List) := Cone => (gvTable, negatedCurves) -> (
-    -- We take the primitive curves in the table, negate the ones that need negating,
-    -- and make the cone of all these
-    primcurves := keys gvRays gvTable;
-    negatedCurves = set negatedCurves;
-    curves := matrix transpose for c in primcurves list if negatedCurves#?c then -c else c;
-    posHull curves
-    )
-
-
--- TODO: use the GV code to do these rays directly?  Is that possible?
-gvRay(GVTable, List) := opts -> (gvTable, curve) -> (gvRays gvTable)#curve
-
-isNilpotent = method()
-isNilpotent(GVTable, List) := (gvTable, curve) -> (
-    gvrays := gvRays gvTable;
-    if not gvrays#?curve then return false;
-    thisray := gvrays#curve;
-    (#thisray >= 4 and thisray#-1 == 0 and thisray#-2 == 0 )
-      or (#thisray <= 3 and thisray#-1 == 0)
-    )
 --------------------------------------------
 --------------------------------------------
 
@@ -161,7 +69,10 @@ isNilpotent(GVTable, List) := (gvTable, curve) -> (
 --     X
 --     )
 
-CY3 = new Type of HashTable
+-- TODO: move this def to StringTorics? Is this similar to another class?
+-- This one contains GV information and flopped curves info.
+CY3 = new Type of HashTable 
+
 makeCY3 = method(Options => {
         GVTable => null, -- of the original, toric, hypersurface
         DegreeLimit => null, -- if null, no GVs will be computed fresh

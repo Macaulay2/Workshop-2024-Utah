@@ -36,6 +36,8 @@ export {
     "CalabiYauInToric",
     "CYToolsCY3", -- we should have a superclass for CalabiYauInToric, CYToolsCY3
     "TopologicalDataOfCY3",
+    "GVTable",
+    "CY3",
 
     -- ReflexivePolytope
     "reflexivePolytope",
@@ -128,19 +130,30 @@ export {
     "toricMoriCone",
     "toricMoriConeCap",
         
-    -- gvInvariants
+    -- gvInvariants. Which do we really want to keep here?
     "gvInvariants",
     "gvCone",
     "partitionGVConeByGV",
     "classifyExtremalCurves",
     "extremalRayGVs",
 
+    -- new gv code, maybe replace previous ones?  (Except: need to be able to handle extremal curves faster?)
+    "gvByRay", -- should this be private?
+    "gvTable",
+    "gvRays",
+    "gvRay",
+    "isNilpotent",
+
+    -- CY3: flopping via curves
+    "makeCY3",
+    "negatedCurves",
+    "performFlop",
+    "moriCone",
+    
     -- remove these gvInvariant functions?
     "classifyExtremalCurve",
     "gvInvariantsAndCone",
-    --    "gvRay",
     "findLinearMaps",
-
     
     -- Invariants
     "hubschInvariants",
@@ -268,7 +281,12 @@ export {
     "Count",
     "Hodge",
     "NTFE",
-    "PicardRing"
+    "PicardRing",
+    "GVRays",
+    "h11",
+    "h12",
+    "Label",
+    "NegatedCurves"
     }
 
 --- kludge to access parts of the 'Core'
@@ -925,6 +943,7 @@ reflexiveToSimplicialToricVariety Polyhedron := opts -> (P1) -> (
 
 
 load (currentFileDirectory | "StringTorics/GVInvariants.m2")
+load (currentFileDirectory | "StringTorics/Flops.m2")
 
 -- This file refers to many of the method names defined earlier, applied to CYToolsCY3
 load (currentFileDirectory | "StringTorics/CYTools.m2")
