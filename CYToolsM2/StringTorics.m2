@@ -283,8 +283,8 @@ export {
     "NTFE",
     "PicardRing",
     "GVRays",
-    "h11",
-    "h12",
+--    "h11",
+--    "h12",
     "Label",
     "NegatedCurves"
     }

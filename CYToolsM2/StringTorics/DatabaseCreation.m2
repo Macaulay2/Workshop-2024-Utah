@@ -68,13 +68,72 @@ addToCYDatabase(String, KSEntry) := CYPolytope => opts -> (dbfilename, ks) -> (
     Q
     )
 
-processCYPolytopes = method()
-processCYPolytopes(String, ZZ, Sequence) := (dbfilenamePrefix, h11, lohi) -> (
-    elapsedTime topes := kreuzerSkarke(h11, Limit => 200000);
+processCYPolytopes = method(Options => options addToCYDatabase)
+-- processCYPolytopes(String, ZZ, Sequence) := (dbfilenamePrefix, h11, lohi) -> (
+--     elapsedTime topes := kreuzerSkarke(h11, Limit => 200000);
+--     mytopes := take(topes, toList lohi);
+--     dbname := dbfilenamePrefix | "-" | lohi#0 | "-" | lohi#1 | ".dbm";
+--     elapsedTime createCYDatabase(dbname, mytopes);
+--     )
+
+addToCYDatabase(String, String, Sequence) := String => opts -> (dbfilenamePrefix, topesFilename, lohi) -> (
+    -- dbfilenamePrefix will include lo,hi in the name of the created database.
+    -- creates (or appends to) a database, and returns the name of the database file.
+    topes := elapsedTime value get topesFilename;
+    (lo,hi) := lohi;
+    if lo < 0 then error "expected range of non-negative integers";
+    if hi >= #topes then hi = #topes-1; -- last one
     mytopes := take(topes, toList lohi);
-    dbname := dbfilenamePrefix | "-" | lohi#0 | "-" | lohi#1 | ".dbm";
-    elapsedTime createCYDatabase(dbname, mytopes);
+    dbname := dbfilenamePrefix | "-range-" | lohi#0 | "-" | lohi#1 | ".dbm";
+    t := elapsedTiming addToCYDatabase(dbname, mytopes, opts);
+    << "filename " << dbname << " has been constructed in " << t#0 << "s" << endl;
+    dbname
     )
+
+addToCYDatabase(String, String, ZZ, ZZ) := opts -> (dbfilenamePrefix, topesFilename, whichpart, numparts) -> (
+    -- dbfilenamePrefix will include lo,hi in the name of the created database.
+    -- creates (or appends to) a database, and returns the name of the database file.
+    topes := elapsedTime value get topesFilename;
+    nPerPart := ceiling(#topes / (numparts + 0.0)); -- all but the last...
+    -- now recompute #parts...
+    
+    lo := whichpart * nPerPart;
+    hi := (whichpart+1)  * nPerPart - 1;
+    if lo < 0 then error "expected range of non-negative integers";
+    if hi >= #topes then hi = #topes-1; -- last one
+    << "doing part=" << whichpart << " #parts=" << numparts << " range:" << lo << " " << hi << endl;
+    mytopes := take(topes, {lo,hi});
+    dbname := dbfilenamePrefix | "-" | whichpart | "-of-" | numparts | ".dbm";
+    t := elapsedTiming addToCYDatabase(dbname, mytopes, opts);
+    << "filename " << dbname << " has been constructed in " << t#0 << "s" << endl;
+    dbname
+    )
+
+createGroups = (numtotal, numgroups) -> (
+    q := numtotal // numgroups;
+    r := numtotal % numgroups;
+    print (q,r);
+    set1 := for i from 0 to r-1 list (i*(q+1), i*(q+1) + q);
+    set2 := for j from 0 to numgroups-r-1 list (r*(q+1) + j*q, r*(q+1) + j*q + q-1);
+    join(set1, set2)
+    )
+
+cmdLine = ///M2 --silent --stop -e 'needsPackage "StringTorics"' -e 'lohi = (LO,HI)' -e 'addToCYDatabase("DBNAMEPREFIX", "TOPESFILE", lohi)' -e 'exit 0' &///
+createM2Lines = (dbfilenamePrefix, topesFilename, numtotal, numgroups) -> (
+    sets := createGroups(numtotal, numgroups);
+    for s in sets do print (
+        replace("TOPESFILE", topesFilename,
+        replace("DBNAMEPREFIX", dbfilenamePrefix,
+        replace("HI", toString s#1, 
+            replace("LO", toString s#0, cmdLine)))))
+    )
+
+///
+restart
+debug needsPackage "StringTorics"
+createM2Lines("AFile", "BFile", 40, 11)
+createGroups(17101, 100)
+///
 
 --addToCYDatabase = method(Options => {NTFE => false})
 
@@ -2753,4 +2812,57 @@ makeCY(ZZ, Sequence, MutableHashTable, MutableHashTable) := opts -> (labX, PSs, 
     Xs#labX = X;
     X
     )
-    
+
+end--
+-----------------------------------------
+-- mongodb databases? -------------------
+-----------------------------------------
+-- Here is some experimentation
+  restart
+  needsPackage "StringTorics"
+  polytopes6 = kreuzerSkarke(6, Limit => 100000);
+  #polytopes6 == 17101
+
+  polytopes7 = kreuzerSkarke(7, Limit => 100000);
+  #polytopes7 == 50376
+
+  polytopes8 = kreuzerSkarke(8, Limit => 500000);
+  #polytopes8 == 128165
+
+  polytopes9 = kreuzerSkarke(9, Limit => 1000000);
+  #polytopes9 == 285929
+
+  polytopes10 = kreuzerSkarke(10, Limit => 2000000);
+  #polytopes10 == 568078
+
+  elapsedTime mats6 = polytopes6/matrix;
+  mats6/(m -> numcols m)//tally  
+
+  elapsedTime mats7 = polytopes7/matrix;  -- 212 sec!  hmm doing it again: 95 sec, 87 sec
+  elapsedTime mats7/(m -> numcols m)//tally  
+
+  elapsedTime mats7a = mats7/(m -> entries transpose m); -- 9 sec, now 1.9 sec, now 68 sec!!
+  elapsedTime mats7b = mats7/(m -> entries m); -- 1.6 sec, 1.7 sec
+  elapsedTime mats7c = mats7/(m -> transpose m); -- 15 sec, .05 sec
+
+  elapsedTime mats7a/(m -> transpose matrix m); -- 438 sec!!
+  
+  
+  elapsedTime mats7a/(m -> matrix transpose m); -- 848 sec!!
+  elapsedTime mats7a/(m -> matrix m); --  sec!!
+
+  restart
+  needsPackage "StringTorics"
+  polytopes7 = kreuzerSkarke(7, Limit => 100000);
+  #polytopes7 == 50376
+  elapsedTime mats7 = polytopes7/matrix;  -- 212 sec!  hmm doing it again: 95 sec, 87 sec, 80 sec
+  elapsedTime mats7/(m -> numcols m)//tally  
+  elapsedTime mats7a = mats7/(m -> entries transpose m); -- 9 sec, now 1.9 sec, now 68 sec!! 56 sec
+
+  GC_INITIAL_HEAP_SIZE=40G M2 ....
+  polytopes7 = kreuzerSkarke(7, Limit => 100000);
+  #polytopes7 == 50376
+  elapsedTime mats7 = polytopes7/matrix;  -- 11 sec
+  elapsedTime mats7/(m -> numcols m)//tally  
+  elapsedTime mats7a = mats7/(m -> entries transpose m); -- 3 sec
+  elapsedTime mats7a/(m -> matrix m); -- 3 sec

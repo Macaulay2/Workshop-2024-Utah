@@ -82,8 +82,8 @@ makeCY3 = method(Options => {
 makeCY3(ZZ, ZZ, RingElement, RingElement) := opts -> (h11val, h12val, L, F) -> (
     X := new CY3 from {
         cache => new CacheTable,
-        h11 => h11val,
-        h12 => h12val,
+        "h11" => h11val,
+        "h12" => h12val,
         c2Form => L, -- maybe store list of ints?
         cubicForm => F -- maybe store intnums? (for basis).
         };
@@ -102,30 +102,40 @@ cubicForm CY3 := X -> X#cubicForm
 c2Form CY3 := X -> X#c2Form
 label CY3 := X -> X#Label
 negatedCurves = method()
-negatedCurves CY3 := X -> X#negatedCurves
+negatedCurves CY3 := X -> X.cache#NegatedCurves
 
 -- TODO: store info in X?
 -- TODO: warn that these are the "generic" complex structure mori cone and nef cone.
 gvTable CY3 := opts -> X -> X.cache#GVTable
 gvRays CY3 := X -> gvRays gvTable X
-gvRay(CY3, List) := opts -> (X, curve) -> (gvRays X)#curve
-moriCone CY3 := X -> moriCone(gvTable X, X.cache.NegatedCurves)
+gvRay(CY3, List) := opts -> (X, curve) -> (
+    if member(-curve, negatedCurves X) then curve = -curve;
+    (gvRays X)#curve ?? 0
+    )
+
+  -- how to fix the above line: if the curve is a negated curve, negate it, then also check that that is in the table...
+moriCone CY3 := X -> moriCone(gvTable X, negatedCurves X)
 nefCone CY3 := X -> dualCone moriCone X
 isNilpotent(CY3, List) := (X, curve) -> isNilpotent(gvTable X, curve)
     
-performFlop = method()
-performFlop(CY3, List) := CY3 => (X, C) -> (
+performFlop = method(Options => {"GV" => null})
+performFlop(CY3, List) := CY3 => opts -> (X, C) -> (
     if gcd C != 1 then error "expected a primitive curve class";
+    negatedCs := negatedCurves X;
+    if member(-C, negatedCs) then
+        negatedCs = select(negatedCs, c -> c != -C)
+    else
+        negatedCs = negatedCs | {C};
     -- perform a flop
     L := c2Form X;
     F := cubicForm X;
     R := ring L;
     linform := sum for i from 0 to numgens R - 1 list C_i * R_i;
-    n := first gvRay(X, C); -- is this correct?  Maybe not. -- TODO: look at the entire ray.
-    makeCY3(X#h11, X#h12, L + 2*n*linform, F - n * linform^3,
+    n := if opts#"GV" =!= null then opts#"GV" else first gvRay(X, C); -- TODO: what if multiple values on the ray?
+    makeCY3(X#"h11", X#"h12", L + 2*n*linform, F - n * linform^3,
         Label => splice{X, {"flop via ", C}},
         GVTable => gvTable X,
-        NegatedCurves => X.cache.NegatedCurves | {C}
+        NegatedCurves => negatedCs
         )
     )
 

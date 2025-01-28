@@ -384,10 +384,12 @@ gvByRay(HashTable, ZZ, List) := HashTable => (GVHash, deglimit, degvector) -> (
           maxmult := max(d, deglimit//deg);
           for i from 1 to maxmult list if Hmult2gv#?i then Hmult2gv#i else 0
           );
-      hashTable for kv in pairs H2 list (
+      result := hashTable for kv in pairs H2 list (
           val := toRayList(kv#0, kv#1);
-          if #val >= 2 then kv#0 => val else continue
-          )
+          kv#0 => val
+          --if #val >= 2 then kv#0 => val else continue -- this misses curves that we might need for mori cone!
+          );
+      result
       )
 
 GVTable = new Type of HashTable
@@ -436,7 +438,9 @@ moriCone(GVTable, List) := Cone => (gvTable, negatedCurves) -> (
 
 
 -- TODO: use the GV code to do these rays directly?  Is that possible?
-gvRay(GVTable, List) := opts -> (gvTable, curve) -> (gvRays gvTable)#curve
+gvRay(GVTable, List) := opts -> (gvTable, curve) -> (
+    if (gvRays gvTable)#?curve then (gvRays gvTable)#curve else {}
+    )
 
 isNilpotent = method()
 isNilpotent(GVTable, List) := (gvTable, curve) -> (
