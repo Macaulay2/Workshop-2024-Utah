@@ -5,13 +5,13 @@ newPackage(
         Authors => {
             {Name=>"Jack J Garzella", Email=>"jgarzell@ucsd.edu", HomePage=>"https://mathweb.ucsd.edu/~jjgarzel"},
             {Name=>"Nicholas Gaubatz", Email=>"nmg0029@auburn.edu", HomePage=>"https://nicholasgaubatz.github.io/"},
-            {Name=>"Ethan Toshihiro Mowery"},
+            {Name=>"Toshi Mowery", Email=>"Tosmow@gmail.com"},
             {Name => "Karl Schwede", Email=>"schwede@math.utah.edu", HomePage=>"http://www.math.utah.edu/~schwede"}
         },
         Headline => "number fields",
         Keywords => {"field extension"},
     PackageImports => {},
-    PackageExports => {"PushForward", "MinimalPrimes", "InvariantRing"},
+    PackageExports => {"PushForward", "MinimalPrimes", "InvariantRing","Permutations"},
     Reload => true,
     DebuggingMode => true
     )
@@ -922,6 +922,7 @@ simpleExtension(Ring) := opts -> nf ->(
 )
 
 getGaloisGroup= method(Options => {Strategy=>null});
+--Returns Permutations, corresponding roots, and galois group as matrix 
 getGaloisGroup(NumberField) :=  opts ->(nF) -> (
     u := local u; 
     R1 := nF[u];
@@ -929,13 +930,17 @@ getGaloisGroup(NumberField) :=  opts ->(nF) -> (
     x := local x;
     --We get all the roots and store them in rootList
     rootList := {};
+    
     for i from 0 to (length gens coefficientRing R1)-1 do(
         r0 := (gens coefficientRing R1)_i;
         minPol := minimalPolynomial(r0);
-        M := map(R1,ring minPol,{(gens R1)_0});
-        rootList = append(rootList, getRoots(M(minPol)));
-    );
+        M0 := map(R1,ring minPol,{(gens R1)_0});
+        -- print ring minPol;
+        -- print ring M0(minPol);
 
+        rootList = append(rootList, getRoots(M0(minPol)));
+    );
+    -- print M0;
     --We then generate the necessary permutations.
     perms := toList (0..(length rootList_0 - 1));
     for i from 1 to length rootList - 1 do (
@@ -950,14 +955,15 @@ getGaloisGroup(NumberField) :=  opts ->(nF) -> (
     perms = perms / splice;
     --We then loop through, checking if they are field automorphisms, then adding them to all maps if they are.
     allMaps := {};
+    allRingMaps := {};
     curGroup := {};
-
     for i from 0 to length perms -1 do (
-        rootsImg := {}; 
+        rootsImg := {};
         for j from 0 to length perms_i -1 do (
             rootsImg = append(rootsImg, substitute(rootList_j_(perms_i_j), nF));
         );
         M := map(nF, nF, rootsImg );
+        
         F := matrixFromNumberFieldMap(M);
         flag := false;
         if opts.Strategy === "strat2" then (
@@ -970,14 +976,33 @@ getGaloisGroup(NumberField) :=  opts ->(nF) -> (
         )
         else if isFieldAutomorphism(nF, F) then (
             allMaps = append(allMaps, F);
+            allRingMaps = append (allRingMaps, M);
             if opts.Strategy === "strat2" then (
                 curGroup = group finiteAction(allMaps, QQ [x_1..x_numVars]);
             );
         );
     );
     --We then create the group
-    
-    return group finiteAction(allMaps, QQ [x_1..x_numVars]);
+    --We need to use root list ordering to create a permutation representation of galois group. This will be slow but memory good
+    --We currently have the map applying to variable correctly.
+    allPerms := {};
+    for i from 0 to length allMaps-1 do (
+        curPerm := {};
+        for j from 0 to length flatten rootList -1 do (
+            -- We build permutations by checking how the ring map acts on each root of the list.
+            curPerm = append (curPerm,1+ position(flatten rootList, a ->  a== allRingMaps_i(lift ((flatten rootList)_j, coefficientRing ring (flatten rootList)_j)))); 
+        );
+        p:= permutation curPerm;
+        -- print p;
+        -- print (p*{0, 1, 2});
+        allPerms = append(allPerms, curPerm);
+        -- print ring allMaps_i;
+        -- print allRingMaps_i(lift (rootList_0_0, coefficientRing ring rootList_0_0));
+        -- print ring lift (rootList_0_0, coefficientRing ring rootList_0_0);
+    );
+    -- print(allMaps);
+    -- print allPerms;
+    return (allPerms, flatten rootList, group finiteAction(allMaps, QQ [x_1..x_numVars]));
 )
 vectorToFieldEl = method(Options =>{});
 vectorToFieldEl(NumberField, Vector) := opts -> (nF, v) -> (
