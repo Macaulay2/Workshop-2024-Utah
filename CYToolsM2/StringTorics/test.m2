@@ -1,3 +1,8 @@
+-*
+  restart
+  needsPackage "StringTorics"
+  -- TODO: modify to work
+*-
 ///
   -- CYPolytope's
 -*
@@ -48,18 +53,16 @@
 
 ///
 
-
+-*
+  restart
+  needsPackage "StringTorics"
+  -- TODO: make sure this test gives correct answers, put asserts in
+*-
 TEST ///
   -- XX TODO: being worked on now 29 June 2023
   -- Checking the methods for CYPolytope's
   -- We eventually want to test this for: favorable, non-favorable, torsion V.
 
--*
-  restart
-  needsPackage "StringTorics"
-*-
-  debug needsPackage "StringTorics"
-  
   tope = KSEntry "4 13  M:34 13 N:12 10 H:7,29 [-44] id:40
    1   0   0   0   0  -2  -2   1   2   1   2   2  -2
    0   1   0   0   0   2   1  -1  -2  -2   0  -2   0
@@ -69,8 +72,8 @@ TEST ///
   Q = cyPolytope(tope, ID => 40)  
   assert isFavorable Q
   basisIndices Q
-  Q.cache#"toric basis indices"
-  Q.cache#"basis indices"
+  Q.cache#"toric basisIndices"
+  Q.cache#"basisIndices"
   transpose matrix degrees Q
   X = makeCY Q
   toricIntersectionNumbers X
@@ -93,7 +96,7 @@ TEST ///
   assert(hh^(1,2) Q2 == 27)
   -- the following will need to change...
   assert(basisIndices Q2 === {0, 1, 2, 3, 4, (9, 0), (9, 1)}) -- this could change if the algorithm changes.
-  Q2.cache#"toric basis indices" === {0, 1, 2, 3, 4, 9}
+  Q2.cache#"toric basisIndices" === {0, 1, 2, 3, 4, 9}
   findTwoFaceInteriorDivisors Q2
   netList annotatedFaces Q2
   assert(
@@ -125,12 +128,13 @@ TEST ///
   cubicForm Xs#0
 ///
 
-///
-  -- Checking on the interface of the package.
 -*
   restart
   needsPackage "StringTorics"
+  TODO: make into a test, with asserts, don't call kreuzerSkarke
 *-
+///
+  -- Checking on the interface of the package.
   debug needsPackage "StringTorics"
   topes = kreuzerSkarke(5, Limit => 10000);
   #topes == 4990
@@ -156,11 +160,11 @@ TEST ///
   c2Form X
 ///
 
-TEST ///
 -*
   restart
   needsPackage "StringTorics"
 *-
+TEST ///
   str4 =         "         1   0   0   0   1   1   0  -1  -1  -2  -4
                   0   1   1   0  -2   2   3  -1  -4   1  -1
                   0   0   2   0  -2   4   4  -1  -4  -2  -4
@@ -180,12 +184,11 @@ TEST ///
   a*t_1 -- should still work...
 ///
 
-
-TEST ///
--*
+-*  
   restart
+  needsPackage "StringTorics"
 *-
-  debug needsPackage "StringTorics"
+TEST ///
   -- augmentWithOrigin
     mat = "   1   0   0   1  -3   3   3  -3   5
             0   1   0   0   2  -4  -6   4  -8  
@@ -205,7 +208,10 @@ TEST ///
       )
 ///
 
-
+-*  
+restart
+needsPackage "StringTorics"
+*-
 TEST ///
   -- readSageTriangulation
   Ts = readSageTriangulations sageTri
@@ -241,14 +247,14 @@ TEST ///
   assert(L1 === L2)
 ///
 
-TEST ///
-  -- XXX  TODO: This test should be in Triangulations?
-  -- Test functionality of triangulations, part 1. Basic tests
-  -- 
 -*  
 restart
 needsPackage "StringTorics"
 *-
+TEST ///
+  -- XXX  TODO: This test should be in Triangulations?
+  -- Test functionality of triangulations, part 1. Basic tests
+  -- 
   -- WARNING: currently, we use the polar dual of a convex polytope to determine
   -- minimal faces, etc.  However, for this to work, the convex polytope
   -- MUST contain the origin in the interior.
@@ -355,11 +361,14 @@ needsPackage "StringTorics"
       --id_(ZZ^8)_{1,6,2,3,4} * syz AmatH_{1,6,2,3,4} 
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-  
 TEST /// 
   -- XXX  
   -- simple test of the polyhedral functions here: on the cube with the origin as its only 
   -- interior point
-  needsPackage "StringTorics"
   P = hypercube 3
   assert isCompact P -- These functions fail if P is not a polytope.
   assert(
@@ -417,12 +426,12 @@ TEST ///
 *-  
 ///
 
-TEST ///
-  -- Test of triangulation code
 -*
   restart
   needsPackage "StringTorics"
 *-  
+TEST ///
+  -- Test of triangulation code
   -- XXX
   topes = kreuzerSkarke 3;
   A = matrix topes_30
@@ -438,12 +447,12 @@ TEST ///
   assert(Amat == transpose matrix {{-1, -1, 0, 0}, {-1, -1, 0, 1}, {-1, -1, 2, 0}, {-1, 0, 0, 0}, {1, -1, -1, 1}, {1, 2, -1, -1}, {-1, -1, 1, 0}, {0, 0, 0, 0}})
 ///
 
-TEST ///
-  -- Test of triangulation code
 -*
   restart
-  needsPackage "Triangulations"
-*-  
+  needsPackage "StringTorics"
+*-
+TEST ///
+  -- Test of triangulation code
   Amat = transpose matrix {{-1, -1, 0, 0}, {-1, -1, 0, 1}, {-1, -1, 2, 0}, {-1, 0, 0, 0}, {1, -1, -1, 1}, {1, 2, -1, -1}, {-1, -1, 1, 0}, {0, 0, 0, 0}}
   regularSubdivision(Amat, matrix{{0,0,1,3,6,9,20,30}}) -- seems incorrect.
   TRI = regularFineTriangulation Amat -- is this including the origin automatically?
@@ -489,10 +498,13 @@ TEST ///
   4! * volumeVector(Amat, bistellarFlip(TRI, C_6))
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
   -- Test functionality of triangulations, part 2. reflexive polytope in 4D
   -- We try one with h11=3
-  needsPackage "StringTorics"
   tope = "4 13  M:64 13 N:8 7 H:3,51 [-96]
    1   0   0   2  -2   0  -1  -1   0   2   2  -3  -3
    0   1   1   3  -5   2   0   0   2   4   4  -6  -6
@@ -517,6 +529,10 @@ TEST ///
   regularStarTriangulation P2
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
   -- this is an example of a polytope with 200 lattice points.
   tope = "4 12  M:72 12 N:276 12 H:200,50 [300]
@@ -537,6 +553,10 @@ TEST ///
   max V
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
   -- testing triangulations of fans
   -- Our plan: start with example #26 from Kreuzer-Skarke with h11=5, h12=57
@@ -544,10 +564,6 @@ TEST ///
   -- How do we create Amat?  This is the way:
   --      4 11  M:58 11 N:10 8 H:5,51 [-92]
   -- XXXXXXXXXX This test is failing May 2022.
--*
-  restart
-*-
-  needsPackage "StringTorics"
   mat = "  1   1   1  -1   0   1   1  -1  -3  -1  -3
          0   2   0   0   0   0   2  -2  -2  -2  -4
          0   0   2  -2   0  -2   2   2  -2   4   2
@@ -591,13 +607,13 @@ TEST ///
   -- )
 ///
 
-TEST ///
-  -- analyze polytopes with h11=30, h12=50.
-  -- grabbed 3000 examples, but there are more!
 -*
   restart
   needsPackage "StringTorics"
 *-
+TEST ///
+  -- analyze polytopes with h11=30, h12=50.
+  -- grabbed 3000 examples, but there are more!
   -- one of the "favorable" examples
   --  4 7  M:51 7 N:45 7 H:30,50 [-40]
   mat = "    1    0    0    0    0   -4  -10
@@ -616,6 +632,10 @@ TEST ///
   assert(sort unique flatten TRI == toList(0..numcols Amat))
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
       -- 4 10  M:105 10 N:71 10 H:50,80 [-60]
      mat = "     1    0    0    0   -1   -1   -1   -5  -15  -15
@@ -633,6 +653,10 @@ TEST ///
   assert(sort unique flatten TRI == toList(0..numcols Amat))
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
   -- creating simplicial toric varieties from data base
       -- 4 10  M:105 10 N:71 10 H:50,80 [-60]
@@ -661,13 +685,13 @@ TEST ///
   assert not isSmooth V
 ///
 
-TEST ///
-  -- toric complete intersection cohomology code
-  -- YYY
 -*
   restart
   needsPackage "StringTorics"
 *-
+TEST ///
+  -- toric complete intersection cohomology code
+  -- YYY
   mat = "  1   1   1  -1   0   1   1  -1  -3  -1  -3
          0   2   0   0   0   0   2  -2  -2  -2  -4
          0   0   2  -2   0  -2   2   2  -2   4   2
@@ -689,11 +713,12 @@ TEST ///
 ///
 
 -- example: regular star triangulations
-///
+-- flip function is NOT functional...
 -*
   restart
-*-
   needsPackage "StringTorics"
+*-
+///
   mat = "  1   1   1  -1   0   1   1  -1  -3  -1  -3
          0   2   0   0   0   0   2  -2  -2  -2  -4
          0   0   2  -2   0  -2   2   2  -2   4   2
@@ -728,10 +753,11 @@ TEST ///
   unique oo
 ///
 
-TEST ///
 -*
   restart
+  needsPackage "StringTorics"
 *-
+TEST ///
   -- from Kreuzer-Skarke database
   -- 4 9  M:32 9 N:11 8 H:6,30 [-48]
   polystr = "   1   0   1   1  -1   1   0  -1  -2
@@ -909,12 +935,13 @@ TEST ///
   netList annotatedFaces(3,P1)
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
   -- Test of h11 and h21 formulae for an example from Kreuzer-Skarke database.
   -- as well as minimalFace, dim, genus, isFavorable.
--*
-  restart
-*-
   -- from Kreuzer-Skarke database
   -- 4 9  M:32 9 N:11 8 H:6,30 [-48]
   polystr = "   1   0   1   1  -1   1   0  -1  -2
@@ -939,6 +966,10 @@ TEST ///
   assert(minfaces == {0,0,0,0,0,0,0,0,1,1,4})
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
   -- We work on one example in 4 dimensions, where we know the answers (or have computed them elsewhere).
   -- Second polytope (index 1) on h11=3 Kreuzer-Skarke list of 4d reflexive polytopes for h11=3.
@@ -979,6 +1010,10 @@ TEST ///
   assert not isFavorable polar P
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
   -- id=0 h11=11
   -- 4 13  M:23 13 N:16 13 H:11,18 [-14]
@@ -1023,10 +1058,11 @@ TEST ///
   assert isFavorable polar P
 ///
 
-TEST ///
 -*
-restart
+  restart
+  needsPackage "StringTorics"
 *-
+TEST ///
 str = "    1    0    0    0  -11   -3   -1   -3
     0    1    0    0   -6   -2   -2   -6
     0    0    1    0   -2   -2   -2   -2
@@ -1051,6 +1087,10 @@ assert(h21OfCY(polar P) == 90)
 -- tests from MyPolyhedra --
 ----------------------------
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///  
   debug needsPackage "StringTorics"
   A = transpose matrix {{-1,-1,2},{-1,0,1},{-1,1,1},{0,-1,2},{0,1,1},{1,-1,3},{1,0,-1},{1,1,-2}}
@@ -1069,7 +1109,10 @@ TEST ///
   volume P2
 ///
 
-
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
   A = transpose matrix {{1, 0, 0, 0}, {1, 2, 0, 0}, {1, 0, 2, 0}, {0, 0, 0, 1}, {0, 4, 0, 1}, {0, 0, 4, 1}, {-2, -4, -6, -3}, {-2, -6, -6, -3}, {-2, -6, -4, -3}}
   P = convexHull A
@@ -1126,15 +1169,21 @@ TEST ///
   for i from 0 to 4 list netList annotatedFaces(i,P)
 ///
 
-
-
-TEST /// -- medium size (h^11 = 15) example
 -*
   restart
   needsPackage "StringTorics"
 *-
-  topes = kreuzerSkarke(15, Limit=>10, Access=>"wget")
-  A1 = matrix topes_8
+TEST /// -- medium size (h^11 = 15) example
+  -- the following polytope from KS database was grabbed as follows:
+  --    topes = kreuzerSkarke(15, Limit=>10, Access=>"wget")
+  --    topes8 = topes_8
+  topes8 = KSEntry "4 8  M:18 8 N:18 9 H:15,15 [0] id:8
+    1    1    0    0   -2    2    0   -1
+    0    2    0    0    0    2   -2   -2
+    0    0    1    0    2   -2    0   -1
+    0    0    0    1    1   -1   -1   -1
+  "
+  A1 = matrix topes8
   P = convexHull A1
   P2 = polar P
   A = transpose matrix latticePointList P2  
@@ -1177,15 +1226,15 @@ TEST /// -- medium size (h^11 = 15) example
   assert(ans == startri)
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-
 TEST ///
 -- This test is failing: May 2022.  It isn't a complete test anyway...
 -- Test of intersection number computations.
 -- This requires that V be favorable?
 -- Remove this test?  In any case, make sure intersection numbers are bombproof!
--*
-  restart
-  needsPackage "StringTorics"
-*-
   debug StringTorics
 
   topes = kreuzerSkarke(3, Limit => 50);    
@@ -1537,11 +1586,11 @@ TEST ///
 
 ///
 
-TEST ///
 -*
   restart
   needsPackage "StringTorics"
 *-  
+TEST ///
   topes = kreuzerSkarke(5, Limit => 10);
   Qs = for i from 0 to #topes-1 list cyPolytope(topes#i, ID => i)
   for tope in topes list isFavorable convexHull matrix tope
@@ -1560,13 +1609,11 @@ TEST ///
   assert all(Vs, isSimplicial)
 ///  
 
-"TEST"
-///
--- XXX
 -*
   restart
   needsPackage "StringTorics"
 *-  
+TEST ///
   topes = kreuzerSkarke(3, Limit => 50);    
   Q = cyPolytope(topes_30, ID => 30)
   Ts = findAllFRSTs Q
@@ -1599,12 +1646,12 @@ TEST ///
 ///  
 
 
-TEST ///
--- XXX
 -*
   restart
   needsPackage "StringTorics"
 *-  
+TEST ///
+-- XXX
   -- Test the routines of this package on the example X given here (h11=3, h12=69)
   topes = kreuzerSkarke(3, Limit => 50);    
   A = matrix topes_30
@@ -1735,11 +1782,11 @@ TEST ///
 -------------------------------------------------------------------------------
 -- Tests for CYPolytope's -----------------------------------------------------
 -------------------------------------------------------------------------------
-TEST ///
 -*
   restart
   needsPackage "StringTorics"
 *-
+TEST ///
 tope = KSEntry "4 9  M:273 9 N:21 8 H:11,201 [-380] id:6
    1   0   0  -2   2   3  -9   3 -23
    0   1   0   1   1   0  -2  -6  -6
@@ -1785,28 +1832,28 @@ tope = KSEntry "4 9  M:273 9 N:21 8 H:11,201 [-380] id:6
   Q1 = cyPolytope(topes_30, ID => 30)
 
   rays Q1
-  Q1.cache#"face dimensions"
+  Q1.cache#"faceDimensions"
 
   -- changing the order of the rays is not currently allowed!
   -- TODO: should we get the following to work?
   --Q2 = cyPolytopeFromRays((rays Q1)_{3,1,2,0,6,5,4})
-  --Q2.cache#"face dimensions" = {0,0,0,0,1,0,0}
+  --Q2.cache#"faceDimensions" = {0,0,0,0,1,0,0}
   --dim Q2 == 4
   --netList annotatedFaces Q1
 ///
 
-TEST ///
 -*
   restart
   needsPackage "StringTorics"
 *-
+TEST ///
   -- Let's check MyPolyhedra functionality.
-tope = KSEntry "4 9  M:273 9 N:21 8 H:11,201 [-380] id:6
+  tope = KSEntry "4 9  M:273 9 N:21 8 H:11,201 [-380] id:6
    1   0   0  -2   2   3  -9   3 -23
    0   1   0   1   1   0  -2  -6  -6
    0   0   1  -2   2   4  -6  10 -16
    0   0   0   0   4   6  -6  12 -14
-"
+  "
   A = matrix tope
   elapsedTime P1 = convexHull A
   elapsedTime P2 = polar P1
@@ -1815,41 +1862,45 @@ tope = KSEntry "4 9  M:273 9 N:21 8 H:11,201 [-380] id:6
   peek P2.cache.underlyingCone.cache
 
   elapsedTime latticePointList P1 -- .375s, .25s
-  #latticePointList P1 == 273
+  assert(#latticePointList P1 == 273)
   elapsedTime latticePointList P2
+  assert(#latticePointList P2 == 21)
+///
 
-  faceDimensionHash P1
-  faceDimensionHash P2
-  peek P1.cache
-  debug Polyhedra
-  P2 = P1.cache.computedPolar
-
-
-  topes = kreuzerSkarke(11, 201, Limit => 100000);
+-*
+  restart
+  needsPackage "StringTorics"
+*-
+TEST ///
+  -- ks is the example we use here.
+  -- It is obtained (needs internet connection) via:
+  --   topes = kreuzerSkarke(11, 201, Limit => 100000); -- there are 9 here.
+  --   ks = topes_8
+  ks = KSEntry "4 10  M:274 10 N:20 9 H:11,201 [-380] id:8
+   1   0   0   0  -2  -2  -3  -3  -9  -9
+   0   1   0   0   1   1   0  -2  -6  -6
+   0   0   1   0  -4   0  -6   6 -12  14
+   0   0   0   1   2  -2   4  -6  10 -16
+  "
   
-  elapsedTime Q = cyPolytope topes_8
-  cyPolytope P2
+  elapsedTime Q = cyPolytope ks
   
-  hh^(1,1) Q
-  hh^(1,2) Q
+  hh^(1,1) Q == 11
+  hh^(1,2) Q == 201
   Q1 = polar Q
-  #rays Q1
+  #rays Q1 
   elapsedTime convexHull transpose matrix rays Q1
-  A = matrix topes_8
+  A = matrix ks
   elapsedTime P1 = convexHull A
   elapsedTime P2 = polar P1 -- 10 times slower than first...  still fast enough?  .0056 sec actually it is very all over, time wise...
 
   elapsedTime latticePointList P2 -- .13 sec -- generally.
 
-  latticePointList P2
-  elapsedTime Q = convexHull transpose matrix oo
-  latticePointList Q
-  peek Q.cache
+  #latticePointList P2 == 20
 
   elapsedTime cyPolytope latticePointList P2
   peek oo.cache
 
-  latticePointList P2
   elapsedTime Q = convexHull transpose matrix latticePointList P2
   
 ///

@@ -18,9 +18,11 @@ doc ///
       @SUBSECTION "Reflexive polytopes"@
     Text
       In this package, a key type is @TO CYPolytope@.  Objects of this class
-      contain information about a reflexive polytope.  It also stores
-      Calabi-Yau data associated to this polytope that is independent of the
-      triangulation of the polytope used.  
+      contain information about a reflexive polytope.  This is essentially
+      a reflexive polytope, but also computes and caches information about the Batryev
+      Calabi-Yau hypersurfaces that is independent of the FRST (i.e. fine regular star triangulation
+      of this reflexive polytope).  This includes the GLSM charge matrix, and a description of
+      the generators of the Picard group of the corresponding Calabi-Yau varieties.
     Text
       @UL {
           TO CYPolytope,
@@ -102,6 +104,7 @@ doc ///
       A {\tt CYPolytope} can be constructed from vertices of a reflexive polytope.
     Text
       For example, let's start with a dimension 3 reflexive polytope: the cube.
+      We use @TO cyPolytope@ to create the corresponding Macaulay2 object.
     Example
       verts = {
           {-1, -1, -1}, {1, -1, -1}, {-1, 1, -1}, {1, 1, -1},
@@ -136,6 +139,7 @@ doc ///
       object (faces, maximal cones, etc) {\it all} refer to the order of rays/lattice points from $Q$.
   SeeAlso
       CalabiYauInToric
+      cyPolytope
 ///
 
 doc ///
@@ -204,8 +208,12 @@ doc ///
 doc ///
   Key
     cyPolytope
+    (cyPolytope, Matrix)
+    (cyPolytope, List)
+    (cyPolytope, Polyhedron)
+    (cyPolytope, KSEntry)
   Headline
-    construction of a CYPolytope 
+    construction of a CYPolytope (reflexive polytope)
   Usage
     Q = cyPolytope A
   Inputs
@@ -236,7 +244,7 @@ doc ///
       isReflexive P2
     Text
       Instead of a list of points, you may also give a matrix whose columns are
-      integral points.
+      integral points.  The convex hull of these is constructed.
     Example
       pts = transpose matrix latticePoints Q
       Q1 = cyPolytope pts
@@ -251,7 +259,7 @@ doc ///
     Text
       Finally, perhaps the easiest way to generate reflexive polytopes (of dimension 4)
       is to use the Kreuzer-Skarke database.  This one assumes that the entry is for the
-      polytope on the "M" lattice side, so it computes the dual on the "N" lattice side.
+      polytope on the "M" lattice side, so it computes the polar dual on the "N" lattice side.
 
       This particular example happens to match the input above.
       For dimension 4 polytopes, the Kreuzeer-Skarke database is generally
@@ -267,6 +275,7 @@ doc ///
   SeeAlso
     (vertices, CYPolytope)
     (latticePoints, CYPolytope)
+    (annotatedFaces, CYPolytope)
 ///
 
 ///
@@ -345,6 +354,8 @@ doc ///
 ///
   Key
     annotatedFaces
+    (annotatedFaces, CYPolytope)
+    (annotatedFaces, Polyhedron)
   Headline
     a list of faces of a reflexive polytope together with lattice point information
   Usage
@@ -414,7 +425,10 @@ doc ///
 
       First, take an example from the Kreuzer-Skarke database.  Note: you need to be online
       in order for this to work!
-    Example
+    Text
+      We don't run the code below here, as it requires a network connection.
+      But you should try it.
+    Pre
       polytopes = kreuzerSkarke(5, 57, Limit=>200, Access => "wget");
       #polytopes == 197
     Text
@@ -425,7 +439,13 @@ doc ///
       Let's consider the 11th one on this list.
     Example
       polytopes_10
-      A = matrix (polytopes_10)
+      ks = KSEntry "4 10  M:56 10 N:11 7 H:5,57 [-104] id:10
+        1   1   1   1   0   0   0  -1  -1  -1
+        0   2   0   0  -1  -1   3   3  -2  -2
+        0   0   2   0   3  -1  -1  -2  -2   3
+        0   0   0   2  -1   3  -1  -2   3  -2
+        "
+      A = matrix ks
     Text
       The Calabi-Yau is (the resolution of) an anti-canonical hypersurface
       in the 4 dimensional projective toric variety whose polytope is $P_1$
@@ -1126,16 +1146,12 @@ doc ///
       precomputed features allows us to spend much less time scanning over many polytopes.
 
       Here, we describe how to construct such a file.  We will construct the file for all examples
-      with $h^(1,1) = 1$.  There are not very many of these, but the same method works for
+      with $h^{1,1} = 2$.  There are not very many of these, but the same method works for
       larger cases.
-
-      First, we construct a small file, where we do not need to create
-      lots of processes to make them all.
-
     Example
       topes = kreuzerSkarke(2, Limit => 1000);
       assert(#topes == 36)
-      elapsedTime addToCYDatabase("can-delete-me-ntfe-h11-2.dbm", topes)
+      elapsedTime addToCYDatabase("can-delete-me-ntfe-h11-2.dbm", topes, NTFE => false)
     Text
       Let's test that this was created correctly.  We see that in particular the
       annotated faces (@TO (annotatedFaces, CYPolytope)@) has been computed (this is
@@ -1143,15 +1159,28 @@ doc ///
       For higher $h^{1,1}(X)$, we must arrange to not compute these, as there are too many triangulations.
       This has not been done yet.
 
-      We set the ring of each, so the rings will all be the same.
+      The ring of a @TO CalabiYauInToric@ is the intersection ring: a ring over $\ZZ$ in
+      $h^{1,1}(X)$ variables.  This is the same for all Calabi-Yaus with the same $h^{1,1}(X)$, so we
+      create one such ring, and use it for all constructed Calabi-Yau's.
     Example
       RZ = ZZ[a,b]
       (Qs, Xs) = readCYDatabase("can-delete-me-ntfe-h11-2.dbm", Ring => RZ);
       assert(keys Qs === toList(0..35))
       sort keys Xs
-      peek Qs#3 .cache
+      #oo == 36
+    Text
+      The line above confirms that there are 36 constructed Calabi-Yau 3-fold hypersurfaces of
+      $h^{1,1} = 2$.  Note that each polytope only gives one triangulation.  As  $h^{1,1}$ increases,
+      the number of triangulations increases, and at some point, becomes astronomical.
+
+      For now, we take one, and look at some of its invariants.
+    Example
       X = Xs#(0,0)
       label X
+      hh^(1,1) X
+      hh^(1,2) X
+      cubicForm X
+      c2Form X
       removeFile "can-delete-me-ntfe-h11-2.dbm"
     Text
       Now let's deal with a larger case, when we want to have multiple processes working on creating

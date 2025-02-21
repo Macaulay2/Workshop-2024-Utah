@@ -21,8 +21,8 @@
 -- The above is not currently correct: (1) it is currently a list of all lattice points
 --   not in facets, (2) you cannot set the rays yourself, otherwise the indices are all wrong
 --   (in e.g.) annotated faces.
---   (3) you cannot easily set "glsm" and "basis indices".
--- Note that "basis indices", for nonfavorable, includes not just indices,
+--   (3) you cannot easily set "glsm" and "basisIndices".
+-- Note that "basisIndices", for nonfavorable, includes not just indices,
 -- but items like (3,0), (3,1), ...(3,g), where 3 is the index of a lattice point
 -- in the interior of a 2-face.
 -- This will all change with the introduction of cyPolytopeFromRays, and a function
@@ -35,14 +35,14 @@ CYPolytopeFields = {
 -- These are the cache fields that we write to a string via 'dump'
 CYPolytopeCache = {
     -- these fields may or may not exist in a specific CYPolytope object.
-    "face dimensions" => {value, toString, List},
+    "faceDimensions" => {value, toString, List},
     "id" => {value, toString, ZZ},
     "favorable" => {value, toString, Boolean},
     "h11" => {value, toString, ZZ},
     "h21" => {value, toString, ZZ},
-    "basis indices" => {value, toString, List},
+    "basisIndices" => {value, toString, List},
     "glsm" => {value, toString, List},
-    "annotated faces" => {value, toString, List},
+    "annotatedFaces" => {value, toString, List},
     "automorphisms" => {value, toString, List},
     "autPermutations" => {value, toString, List},
     "triangulations" => {value, toString, List}
@@ -118,7 +118,7 @@ cyPolytopeWithGivenLatticePoints(List, List) := opts ->  (latticePoints, faceDim
         symbol cache => new CacheTable,
         "rays" => latticePoints,
         };
-    Q.cache#"face dimensions" = faceDimensions;
+    Q.cache#"faceDimensions" = faceDimensions;
     Q.cache#"N polytope" = P2;
     if opts.ID =!= null then Q.cache#"id" = opts.ID;
     Q
@@ -138,7 +138,7 @@ cyPolytopeWithGivenLatticePoints(List, List) := opts ->  (latticePoints, faceDim
 --         symbol cache => new CacheTable,
 --         "rays" => LP,
 --         };
---     cyData.cache#"face dimensions" = LPdim;
+--     cyData.cache#"faceDimensions" = LPdim;
 --     if opts.ID =!= null then cyData.cache#"id" = opts.ID;
 --     cyData
 --     )
@@ -153,7 +153,7 @@ cyPolytope Polyhedron := opts -> P2 -> (
         symbol cache => new CacheTable,
         "rays" => LP,
         };
-    Q.cache#"face dimensions" = LPdim;
+    Q.cache#"faceDimensions" = LPdim;
     Q.cache#"N polytope" = P2;
     if opts.ID =!= null then Q.cache#"id" = opts.ID;
     Q
@@ -161,7 +161,7 @@ cyPolytope Polyhedron := opts -> P2 -> (
 
 faceDimensions = method()
 faceDimensions CYPolytope := Q -> (
-    if not Q.cache#?"face dimensions" then (
+    if not Q.cache#?"faceDimensions" then (
         P2 := polytope(Q, "N");
         pts := Q#"rays";
         -- LP := latticePointList P2;
@@ -170,9 +170,9 @@ faceDimensions CYPolytope := Q -> (
         --     -- TODO: create the reorder permutation(s).
         --     );
         LPdim := for lp in pts list dim(P2, minimalFace(P2, lp));
-        Q.cache#"face dimensions" = LPdim;
+        Q.cache#"faceDimensions" = LPdim;
         );
-    Q.cache#"face dimensions"
+    Q.cache#"faceDimensions"
     )
 
 vertices CYPolytope := Q -> (
@@ -194,7 +194,7 @@ latticePoints CYPolytope := Q -> latticePointList polytope(Q, "N")
 --         symbol cache => new CacheTable,
 --         "rays" => LP,
 --         };
---     cyData.cache#"face dimensions" = LPdim;
+--     cyData.cache#"faceDimensions" = LPdim;
 --     if opts.ID =!= null then cyData.cache#"id" = opts.ID;
 --     cyData
 --     )
@@ -233,12 +233,12 @@ cyPolytope String := CYPolytope => opts -> str -> (
 -- Format
 -- CYPolytope
 --   rays: 1 0 0; 1 0 -1; 1 1 1
---   face dimensions: 0 0 0
+--   faceDimensions: 0 0 0
 --   id: 12
 --   favorable: true
 --   h11: 5
 --   h21: 20
---   basis indices: 0 1 2 3
+--   basisIndices: 0 1 2 3
 --   glsm: 1 1 1; 1 2 3
 
 -- Then need to be able to set fields
@@ -289,7 +289,7 @@ findTwoFaceInteriorDivisors CYPolytope := List => Q -> (
         )
     )
 
--- choosing basis indices: if any non-favorable rays, try to choose them!
+-- choosing basisIndices: if any non-favorable rays, try to choose them!
 -- then we can simply replace that generator with the g+1 that sum to it.
 
 findSuitableSet = (setstotry, Z) -> (
@@ -329,7 +329,7 @@ cySetGLSM = method()
 --     if q === null then error ("oops, can't find a good GLSM matrix"); -- hasn't happened yet. HAS NOW!!
 --     GLSM := (D_q)^-1 * D;
 --     cyData.cache#"glsm" = entries transpose GLSM;
---     cyData.cache#"basis indices" = q
+--     cyData.cache#"basisIndices" = q
 --     )
 cySetGLSM CYPolytope := Q -> (
     if Q.cache#?"glsm" then return;
@@ -352,8 +352,8 @@ cySetGLSM CYPolytope := Q -> (
         for j from 0 to g list (i,j)
         );
     GLSM := (D_good)^-1 * D;
-    Q.cache#"basis indices" = basind;
-    Q.cache#"toric basis indices" = good;
+    Q.cache#"basisIndices" = basind;
+    Q.cache#"toric basisIndices" = good;
     Q.cache#"glsm" = entries transpose GLSM;
     )
 
@@ -396,8 +396,8 @@ degrees CYPolytope := List => Q -> (
 
 basisIndices = method()
 basisIndices CYPolytope := List => Q -> (
-    if not Q.cache#?"basis indices" then cySetGLSM Q;
-    Q.cache#"basis indices"
+    if not Q.cache#?"basisIndices" then cySetGLSM Q;
+    Q.cache#"basisIndices"
     )
 
 isFavorable CYPolytope := Boolean => Q -> (
@@ -411,7 +411,7 @@ isFavorable CYPolytope := Boolean => Q -> (
 --     )
 
 annotatedFaces CYPolytope := Q -> (
-    if not Q.cache#?"annotated faces" then (
+    if not Q.cache#?"annotatedFaces" then (
         P2 := polytope(Q, "N");
         result := annotatedFaces P2;
         LPlist := latticePointList P2;
@@ -428,16 +428,16 @@ annotatedFaces CYPolytope := Q -> (
                 {f#0, sort for a in f#1 list lp2rays#a, sort for a in f#2 list lp2rays#a, f#3, f#4}
                 );
             );
-        Q.cache#"annotated faces" = result;
+        Q.cache#"annotatedFaces" = result;
         );
-    Q.cache#"annotated faces"
+    Q.cache#"annotatedFaces"
     )
 
 polytope(CYPolytope, String) := Polyhedron => (cyData, which) -> (
     if which === "N" then (
         if not cyData.cache#?"N polytope" then (
             LP := cyData#"rays";
-            LPdim := cyData.cache#"face dimensions";
+            LPdim := cyData.cache#"faceDimensions";
             verts := for i from 0 to #LP - 1 list if LPdim#0 == 0 then LP#i else continue;
             cyData.cache#"N polytope" = convexHull transpose matrix verts
             );
@@ -616,3 +616,72 @@ automorphismsAsPermutations CYPolytope := Q -> (
     --     );
     -- return isos;
     -- )                                                       
+
+toArray = method()
+toArray Thing := x -> x
+toArray List := x -> new Array from for x1 in x list toArray x1
+
+MongoCYPolytopeFields = {
+    "rays" => {value, toArray, List}
+    }
+
+-- These are the cache fields that we write to a string via 'dump'
+MongoCYPolytopeCache = {
+    -- these fields may or may not exist in a specific CYPolytope object.
+    "faceDimensions" => {value, toArray, List},
+    "id" => {value, identity, ZZ},
+    "favorable" => {value, identity, Boolean},
+    "h11" => {value, identity, ZZ},
+    "h21" => {value, identity, ZZ},
+    "basisIndices" => {value, toArray, List},
+    "glsm" => {value, toArray, List},
+    "annotatedFaces" => {value, toArray, List},
+    "automorphisms" => {value, toArray, List},
+    "autPermutations" => {value, toArray, List},
+    "triangulations" => {value, toArray, List}
+    }
+    
+dumpMongo = method()    
+dumpMongo CYPolytope := HashTable => (Q) -> (
+    computeBasics Q;
+    fields1 := for field in MongoCYPolytopeFields list (
+        k := field#0;
+        writerFunction := field#1#1;
+        if not Q#?k then error("expected key: "|k#0);
+        k => writerFunction(Q#k)
+        );
+    
+    fields2 := for field in MongoCYPolytopeCache list (
+        k := field#0;
+        writerFunction := field#1#1;
+        if not Q.cache#?k then continue;
+        k => writerFunction(Q.cache#k)
+        );
+    fields := join({"type" => "\"CYPolytope\""}, fields1, fields2);
+    new HashTable from fields
+    )
+
+toJson = method()
+toJson HashTable := H -> (
+    longer := select(sort keys H, f -> instance(H#f, Array));
+    shorter := select(sort keys H, f -> not instance(H#f, Array));
+    part1 := for x in shorter list (x|": "|toString H#x);
+    part2 := for x in longer list ("\n  "|x|": "|toString H#x);
+    "{" | concatenate between(", ", join(part1, part2)) | "}\n"
+    )
+toJson CYPolytope := Q -> toJson dumpMongo Q
+toJson List := L -> (
+    "[\n" |
+    concatenate between(",\n", for t in L list toJson t) |
+    "]\n"
+    )
+
+computeBasics = method()
+computeBasics CYPolytope := Q -> (
+    basisIndices Q;
+    isFavorable Q; -- compute h11, h21, favorability.
+    annotatedFaces Q; -- compute annotated faces
+    automorphisms Q;
+    automorphismsAsPermutations Q;
+    findAllFRSTs Q;
+    )

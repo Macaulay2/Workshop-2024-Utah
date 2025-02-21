@@ -974,7 +974,8 @@ restart
 
   check IntegerEquivalences -- 8 checks, finishes to completion.
   check DanilovKhovanskii -- 10 checks, finishes, 3 take some time
-  check StringTorics -- 35 tests, finishes to completion.  3 tests take > 10 sec.
+  check StringTorics -- 42 tests, finishes to completion.  1 test take > 10 sec.
+    -- however, one test seems to connect to KS database.
 
 restart
 needsPackage "StringTorics"

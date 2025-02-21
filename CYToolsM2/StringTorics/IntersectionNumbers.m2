@@ -473,10 +473,12 @@ TEST ///
 -*
   restart
   needsPackage "StringTorics"
-*-  
-  topes = kreuzerSkarke(7, Limit => 50);    
-  assert(#topes == 50)
-  topes_30
+*-
+  -- ks was obtained via:
+  --  topes = kreuzerSkarke(7, Limit => 50);    
+  --  assert(#topes == 50)
+  --  ks = topes_30
+  -- but this requires a network connection, so we don't do that here.
   -- Here it is:
   ks = KSEntry "4 10  M:33 10 N:12 8 H:7,29 [-44] id:30
    1   0   0   1  -1   1  -1  -1  -2   0
@@ -484,11 +486,10 @@ TEST ///
    0   0   2   0  -4   2  -2   2  -2   2
    0   0   0   2  -2   2  -2   0  -2   2
    "
---  A = matrix ks   
   Q = cyPolytope ks
   elapsedTime Xs1 = findAllCYs(Q, Automorphisms => false, NTFE => false, Ring => ZZ[a_0..a_6]);
   -- need a way to get one FRST, or perhaps a smaller number than "all".
-  Xs = findAllCYs Q;
+  elapsedTime Xs = findAllCYs Q;
   X = Xs#0
 
   toricMoriConeCap X
@@ -516,25 +517,31 @@ TEST ///
   debug needsPackage "StringTorics"
 *-
   debug needsPackage "StringTorics" -- for toRingElement
-  h11 = 20
-  topes = kreuzerSkarke(h11, Limit => 50);    
-  assert(#topes == 50)
-
-  -- BUG: this is not giving h11=20... reason: topes_30 not favorable!
-  A = matrix topes_25
+  --  h11 = 20
+  --  topes = kreuzerSkarke(h11, Limit => 50);    
+  --  assert(#topes == 50)
+  --  ks = topes_25
+  ks = KSEntry "4 8  M:16 8 N:27 11 H:20,12 [16] id:25
+    1    0    0    2    0    0   -1   -2
+    0    1    0    0    2    0   -1   -2
+    0    0    1    1    1    0   -2   -1
+    0    0    0    0    0    1   -1    0
+  "
+  
+  A = matrix ks
   P1 = convexHull A
   P2 = polar P1
   annotatedFaces P2
-  elapsedTime P = cyPolytope topes_25 -- reflexivePolytope A
-  isFavorable P
-  hh^(1,1) P == 20
-  hh^(1,2) P == 12
+  elapsedTime P = cyPolytope ks -- reflexivePolytope A
+  assert isFavorable P
+  assert(hh^(1,1) P == 20)
+  assert(hh^(1,2) P == 12)
   
   elapsedTime X = makeCY P
-  elapsedTime coo = intersectionNumbers X; -- 4 seconds at h11=20.  3.2 seconds of this is computing the intersection ring.
+  elapsedTime coo = intersectionNumbers X; -- now quite fast.  Previously: 4 seconds at h11=20.  3.2 seconds of this is computing the intersection ring.
   assert(#coo == 175)
 
-  RZ = ZZ[t_0..t_(h11-1)]
+  RZ = ZZ[t_0..t_(hh^(1,1) P - 1)]
   F = toRingElement(coo, RZ)
   assert(sort coo === sort toCOO F)
 ///

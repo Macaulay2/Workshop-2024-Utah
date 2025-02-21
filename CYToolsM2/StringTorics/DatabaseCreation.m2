@@ -79,21 +79,21 @@ processCYPolytopes = method(Options => options addToCYDatabase)
 addToCYDatabase(String, String, Sequence) := String => opts -> (dbfilenamePrefix, topesFilename, lohi) -> (
     -- dbfilenamePrefix will include lo,hi in the name of the created database.
     -- creates (or appends to) a database, and returns the name of the database file.
-    topes := elapsedTime value get topesFilename;
+    topes := value get topesFilename;
     (lo,hi) := lohi;
     if lo < 0 then error "expected range of non-negative integers";
     if hi >= #topes then hi = #topes-1; -- last one
     mytopes := take(topes, toList lohi);
     dbname := dbfilenamePrefix | "-range-" | lohi#0 | "-" | lohi#1 | ".dbm";
-    t := elapsedTiming addToCYDatabase(dbname, mytopes, opts);
-    << "filename " << dbname << " has been constructed in " << t#0 << "s" << endl;
+    t := addToCYDatabase(dbname, mytopes, opts);
+    << "filename " << dbname << " has been constructed in " << t#0 << "sec" << endl;
     dbname
     )
 
 addToCYDatabase(String, String, ZZ, ZZ) := opts -> (dbfilenamePrefix, topesFilename, whichpart, numparts) -> (
     -- dbfilenamePrefix will include lo,hi in the name of the created database.
     -- creates (or appends to) a database, and returns the name of the database file.
-    topes := elapsedTime value get topesFilename;
+    topes := value get topesFilename;
     nPerPart := ceiling(#topes / (numparts + 0.0)); -- all but the last...
     -- now recompute #parts...
     
@@ -159,7 +159,7 @@ createGroups(17101, 100)
 addToCYDatabase(String, CYPolytope) := opts -> (dbfilename, Q) -> (
     -- This version also finds "moriConeCap" which is a cone containing the actual mori cone: it is the
     -- intersection of all mori cones coming from triangulations equivalent to the given one.
-    elapsedTime Xs := findAllCYs Q; -- TODO: check: is findALlCYs still correct.
+    Xs := findAllCYs Q; -- TODO: check: is findALlCYs still correct.
     -- << "  " << #Xs << " triangulations total" << endl;
     -- if opts.NTFE then (
     --     elapsedTime H := partition(restrictTriangulation, Xs);
@@ -189,7 +189,7 @@ addToCYDatabase(String, String, List) := opts ->(dbfilename, dbQfilename, topeLa
     for lab in topeLabels do (
         << "polytope " << lab << endl;
         Q := cyPolytope(dbQfilename, lab);
-        elapsedTime addToCYDatabase(dbfilename, Q, opts);
+        addToCYDatabase(dbfilename, Q, opts);
         );
     )
 
@@ -2781,7 +2781,7 @@ cyPolytope(HashTable, ZZ):= CYPolytope => opts -> (vertexData, ind) -> (
   Q = cyPolytope(Ps#(Ss#13#0), ID => Ss#13#0)
   label Q === 899
   rays Q
-  Q.cache#"face dimensions"
+  Q.cache#"faceDimensions"
   Ps#899  
   netList annotatedFaces Q
   get (DIRNAME|"simplices_h11=2.dat")
@@ -2866,3 +2866,4 @@ end--
   elapsedTime mats7/(m -> numcols m)//tally  
   elapsedTime mats7a = mats7/(m -> entries transpose m); -- 3 sec
   elapsedTime mats7a/(m -> matrix m); -- 3 sec
+
