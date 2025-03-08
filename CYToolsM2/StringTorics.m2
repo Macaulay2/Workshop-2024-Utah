@@ -41,6 +41,7 @@ export {
 
     -- ReflexivePolytope
     "reflexivePolytope",
+    "computeBasics",
     
     -- CYPolytope, CalabiYauInToric
     "InteriorFacets",
@@ -52,6 +53,7 @@ export {
     "label",
     "findTwoFaceInteriorDivisors",
     "faceDimensions",
+    "faceDimension",
     
     "cyData",
     "makeCY",
@@ -86,16 +88,24 @@ export {
     "annotatedFaces",
     "latticePointsAndDimensions",
     "automorphisms",
+    "automorphismsAsPermutations",
 
-    -- current triangulation code
-    "findAllFRSTs",
-    "findAllCYs",
-    "findAllConnectedStarFine",
-    "findStarFineGraph",
-    "findAllSimplicialFans",
+    -- current triangulation code for ReflexivePolytope type...
     "isTriangulationOfPolytope",
+    "findAllSimplicialFans",
+    "findOneFRST",
+    "findAllFRSTs", -- fine regular, point triangulations
+    "findAllFRVTs", -- fine regular, but NOT point triangulations.
+    -- finding one triangulation
+    -- using opt level code to investigate nearby triangulations
+    "partitionFRSTsByDFaceEquivalence",
+    "findAllCYs",
+    "findAllConnectedStarFine", -- ??
+    "findStarFineGraph", -- ??
+
+
     
-    -- older triangulation code (still useful?)
+    -- older triangulation code (still useful?) 
     "Origin",
     "pointConfiguration",
     "regularStarTriangulation",
@@ -330,8 +340,8 @@ findEquivalence(CalabiYauInToric, CalabiYauInToric) := (X1, X2) -> (
     )
 
 load (currentFileDirectory | "StringTorics/MyPolyhedra.m2")
-load (currentFileDirectory | "StringTorics/ReflexivePolytopes.m2")
 load (currentFileDirectory | "StringTorics/CYPolytope.m2")
+load (currentFileDirectory | "StringTorics/ReflexivePolytopes.m2")
 load (currentFileDirectory | "StringTorics/CalabiYauInToric.m2")
 load (currentFileDirectory | "StringTorics/IntersectionNumbers.m2")
 load (currentFileDirectory | "StringTorics/Invariants.m2")
@@ -872,21 +882,54 @@ exampleP111122'44 = () -> (value /// () -> (
 -- This function finds all regular, simplicial fans with the given rays.
 -- If Fine => true is given, then only triangulations that use all of the rays are considered.
 -- Return value: a list of triangulations of the vector configuration.
-findAllSimplicialFans = method(Options => {Fine => true})
+
+-- TODO
+--  1. note: we want to call allTriangulations once, but for some
+--    reason, every now and then, it comes back with no triangulations.
+--  2. Using Homogenize=>false, RegularOnly=>true, (maybe Fine=>true), sometimes givevs no triangulations.
+--    So: we use ConnectedToRegular=>false, and check regularity at the end, if Regular is set to true.
+findAllSimplicialFans = method(Options => {Fine => true, RegularOnly => true})
+-- findAllSimplicialFans Matrix := List => opts -> (A) -> (
+--     Ts := allTriangulations(A, Homogenize => false, RegularOnly => true, Fine => opts.Fine); -- TODO: bug? if Fine => true, get crash?
+--     if #Ts === 0 or #Ts#0 == 0 then (
+--         count := 0;
+--         while count < 100 and (#Ts === 0 or #Ts#0 == 0) do (
+--             Ts = allTriangulations(A, Homogenize => false, RegularOnly => true, Fine => opts.Fine);
+--             count = count + 1;
+--             );
+--         --if #Ts == 0 then error "no triangulation could be found";
+--         << "WARNING: TOPCOM failed to find triangulations, then found them after " << 
+--         count << " attempt(s)" << endl;
+--         );
+--     Ts
+--     )
+
 findAllSimplicialFans Matrix := List => opts -> (A) -> (
-     Ts := allTriangulations(A, Homogenize => false, RegularOnly => true, Fine => opts.Fine); -- TODO: bug? if Fine => true, get crash?
-     if #Ts === 0 or #Ts#0 == 0 then (
-         count := 0;
-         while count < 100 and (#Ts === 0 or #Ts#0 == 0) do (
-             Ts = allTriangulations(A, Homogenize => false, RegularOnly => true, Fine => opts.Fine);
-             count = count + 1;
-             );
-         --if #Ts == 0 then error "no triangulation could be found";
-         << "WARNING: TOPCOM failed to find triangulations, then found them after " << 
+    Arays := entries transpose A;
+    Ts := topcomAllTriangulations(A,
+             Homogenize => false,
+             RegularOnly => false,
+             ConnectedToRegular => false, -- setting to true gives no triangulations some times.
+             Fine => opts.Fine); -- TODO: bug? if Fine => true, get crash?
+    if #Ts === 0 or #Ts#0 == 0 then (
+        count := 0;
+        while count < 100 and (#Ts === 0 or #Ts#0 == 0) do (
+            Ts = topcomAllTriangulations(A,
+                    Homogenize => false,
+                    RegularOnly => false,
+                    ConnectedToRegular => false,
+                    Fine => opts.Fine);
+            count = count + 1;
+            );
+        --if #Ts == 0 then error "no triangulation could be found";
+        << "WARNING: TOPCOM failed to find triangulations, then found them after " << 
            count << " attempt(s)" << endl;
-         );
-     Ts
-     )
+        );
+    if opts.RegularOnly then (
+        Ts = select(Ts, t -> isProjective normalToricVariety(Arays, t))
+        );
+    Ts
+    )
 
 
 -- Being rewritten 22 Aug 2023.
@@ -960,7 +1003,9 @@ beginDocumentation()
 -- . what else can be too big?
 
 load (currentFileDirectory | "StringTorics/doc.m2")
+load (currentFileDirectory | "StringTorics/DocCYPolytope.m2")
 load (currentFileDirectory | "StringTorics/test.m2")
+load (currentFileDirectory | "StringTorics/TestsCYPolytope.m2")
 
 end--
 
@@ -970,6 +1015,7 @@ restart
 restart
   installPackage "IntegerEquivalences" -- works, lots of warnings
   installPackage "DanilovKhovanskii"
+  installPackage "PALPInterface"
   installPackage "StringTorics"
 
   check IntegerEquivalences -- 8 checks, finishes to completion.

@@ -33,6 +33,26 @@ doc ///
           TO (degrees, CYPolytope)
           }@
     Text
+      @SUBSECTION "Reflexive polytopes"@
+    Text
+      In this package, a key type is @TO ReflexivePolytope@ (this supercedes @TO CYPolytope@.
+      We might still change the name to CanonicalPolytope).  Objects of this class
+      contain information about a reflexive polytope.  This is essentially
+      a reflexive polytope, but also computes and caches information about the Batryev
+      Calabi-Yau hypersurfaces that is independent of the FRST (i.e. fine regular star triangulation
+      of this reflexive polytope).  This includes the GLSM charge matrix, and a description of
+      the generators of the Picard group of the corresponding Calabi-Yau varieties.
+    Text
+      @UL {
+          TO ReflexivePolytope,
+          TO (latticePoints, ReflexivePolytope),
+          TO (annotatedFaces, ReflexivePolytope),
+          --TO (isFavorable, ReflexivePolytope),
+          TO (polar, ReflexivePolytope)
+          --TO (degrees, ReflexivePolytope)
+          --TO basisIndices,
+          }@
+    Text
       @SUBSECTION "Routines to access the Kreuzer-Skarke database"@
     Text
       @UL {
@@ -280,6 +300,52 @@ doc ///
 
 ///
   Key
+    annotatedFaces
+    (annotatedFaces, CYPolytope)
+    (annotatedFaces, Polyhedron)
+  Headline
+    a list of faces of a reflexive polytope together with lattice point information
+  Usage
+    annotatedFaces Q
+  Inputs
+    Q:{CYPolytope, Polyhedron}
+  Outputs
+    :List
+      each entry is a list containing: the dimension of the face, the indices of the
+      vertices, the indices of all (boundary) lattice points in the face, the number
+      of interior points in the face, and the number of interior points in the dual face
+  Description
+    Text
+      verts = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, 0, -1}, {0, -1, 0}, {-1, 0, 0}, {-1, 1, 0}}
+      QN = cyPolytope verts
+      netList annotatedFaces QN
+      vertices polytope(QN, "N")
+      vertices polytope(QN, "M")
+      latticePoints polytope(QN, "N")
+      latticePoints polytope(QN, "M")
+      polar QN
+      rays oo
+      netList annotatedFaces QN
+      netList annotatedFaces polar QN
+      PN = convexHull transpose matrix verts
+      PM = polar PN
+      vertices PM
+      
+      isReflexive P
+      vertices P -- notice these are in a different order
+
+      netList annotatedFaces Q
+      rays smoothFanoToricVariety(3, 12) -- this is how we obtained these vertices.
+    Example
+  Caveat
+  SeeAlso
+    latticePointList
+///
+
+
+
+///
+  Key
   Headline
   Usage
   Inputs
@@ -326,50 +392,6 @@ doc ///
       rays Q
       Q1 = cyPolytope matrix topes_40
       Q2 = cyPolytope rays Q1
-      verts = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, 0, -1}, {0, -1, 0}, {-1, 0, 0}, {-1, 1, 0}}
-      QN = cyPolytope verts
-      netList annotatedFaces QN
-      vertices polytope(QN, "N")
-      vertices polytope(QN, "M")
-      latticePoints polytope(QN, "N")
-      latticePoints polytope(QN, "M")
-      polar QN
-      rays oo
-      netList annotatedFaces QN
-      netList annotatedFaces polar QN
-      PN = convexHull transpose matrix verts
-      PM = polar PN
-      vertices PM
-      
-      isReflexive P
-      vertices P -- notice these are in a different order
-
-      netList annotatedFaces Q
-      rays smoothFanoToricVariety(3, 12) -- this is how we obtained these vertices.
-    Example
-  Caveat
-  SeeAlso
-///
-
-///
-  Key
-    annotatedFaces
-    (annotatedFaces, CYPolytope)
-    (annotatedFaces, Polyhedron)
-  Headline
-    a list of faces of a reflexive polytope together with lattice point information
-  Usage
-    annotatedFaces Q
-  Inputs
-    Q:CYPolytope
-      or @ofClass Polyhedron@
-  Outputs
-    :List
-      each entry is a list containing: the dimension of the face, the indices of the
-      vertices, the indices of all (boundary) lattice points in the face, the number
-      of interior points in the face, and the number of interior points in the dual face
-  Description
-    Text
       verts = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}, {-1, 0, -1}, {0, -1, 0}, {-1, 0, 0}, {-1, 1, 0}}
       QN = cyPolytope verts
       netList annotatedFaces QN
@@ -625,6 +647,192 @@ doc ///
       for a from -3 to 3 list cohomologyBasis(2, V, {-3,a-3})
       
 ///
+
+
+---------------------------------------------------
+-- Creating databases for ReflexivePolytope type --
+---------------------------------------------------
+doc ///
+  Key
+    "Creating a CYDatabase file for h11=2"
+  Headline
+    How to create a CYDatabase of reflexive polytopes and corresponding Calabi-Yau 3-folds
+  Description
+    Text
+      A CYDatabase file is a @TO Database@, which contains pre-computed information about
+      4-dimensional reflexive polytopes, and their triangulations.  The fact that it contains
+      precomputed features allows us to spend much less time scanning over many polytopes.
+
+      Here, we describe how to construct such a file.  We will construct the file for all examples
+      with $h^{1,1} = 2$.  There are not very many of these, but the same method works for
+      larger cases.
+    Example
+      topes = kreuzerSkarke(2, Limit => 1000);
+      assert(#topes == 36)
+      elapsedTime addToCYDatabase("can-delete-me-ntfe-h11-2.dbm", topes)
+    Text
+      Let's test that this was created correctly.  We see that in particular the
+      annotated faces (@TO (annotatedFaces, CYPolytope)@) has been computed (this is
+      one of the things that seems to take the longest.  That, and the list of triangulations.
+      For higher $h^{1,1}(X)$, we must arrange to not compute these, as there are too many triangulations.
+      This has not been done yet.
+
+      The ring of a @TO CalabiYauInToric@ is the intersection ring: a ring over $\ZZ$ in
+      $h^{1,1}(X)$ variables.  This is the same for all Calabi-Yaus with the same $h^{1,1}(X)$, so we
+      create one such ring, and use it for all constructed Calabi-Yau's.
+    Example
+      RZ = ZZ[a,b]
+      (Qs, Xs) = readCYDatabase("can-delete-me-ntfe-h11-2.dbm", Ring => RZ);
+      assert(keys Qs === toList(0..35))
+      sort keys Xs
+      #oo == 36
+    Text
+      The line above confirms that there are 36 constructed Calabi-Yau 3-fold hypersurfaces of
+      $h^{1,1} = 2$.  Note that each polytope only gives one triangulation.  As  $h^{1,1}$ increases,
+      the number of triangulations increases, and at some point, becomes astronomical.
+
+      For now, we take one, and look at some of its invariants.
+    Example
+      X = Xs#(0,0)
+      label X
+      hh^(1,1) X
+      hh^(1,2) X
+      cubicForm X
+      c2Form X
+      removeFile "can-delete-me-ntfe-h11-2.dbm"
+    Text
+      Now let's deal with a larger case, when we want to have multiple processes working on creating
+      databases, and then we will merge them together.
+    Pre
+      debug needsPackage "StringTorics"
+      DBNAME = "can-delete-me-cys-ntfe-h11-5.dbm"
+      topes = kreuzerSkarke(5, Limit => 20000); -- 4990 of these
+      assert(#topes == 4990)
+      "topes-h11-5.txt" << toExternalString topes << endl << close;
+      topes2 = value get "topes-h11-5.txt";
+      assert(topes === topes2)
+      createM2Lines("cys-h11-5", "topes-h11-5.txt", 4990, 22)
+      elapsedTime addToCYDatabase(DBNAME, topes) -- on Apple M4 Max, Jan 2025: 3.14 hours to create.
+    Text
+      Here we try to run lots of M2's to do this
+    Pre
+      needsPackage "StringTorics"
+      R = ZZ[a..f]
+      filename = elapsedTime processCYPolytopes("cys-h11-6", "topes-h11-6", 2, 3000)
+      filename = elapsedTime addToCYDatabase("cys-h11-6", "topes-h11-6", 2, 3000)
+      filename = elapsedTime addToCYDatabase("cys-h11-6", "topes-h11-6", 2999, 3000)
+      (Qs, Xs) = readCYDatabase(filename, Ring => ZZ[a_0..a_5]);
+
+       M2 --stop -e 'needsPackage "StringTorics"' -e 'lo=5' -e 'hi=8' -e 'processCYPolytopes("cys-h11-6", "topes-h11-6", (lo,hi))' -e 'exit 0'
+       M2 --silent --stop -e 'needsPackage "StringTorics"' -e 'lohi = (5,8)' -e 'processCYPolytopes("cys-h11-6", "topes-h11-6", lohi)' -e 'exit 0'
+
+      filename = elapsedTime processCYPolytopes("cys-h11-6", "topes-h11-6", (5,8))
+      (Qs, Xs) = readCYDatabase(filename, Ring => ZZ[a_0..a_5]);
+      
+      topes = kreuzerSkarke(5, Limit => 20000); -- 4990 of these
+      assert(#topes == 4990)
+      elapsedTime("topes-h11-5" << toExternalString topes << close)
+      elapsedTime get "topes-h11-5";
+      elapsedTime value oo;
+      oo === topes
+
+      topes = kreuzerSkarke(6, Limit => 20000); -- 17101 of these
+      assert(#topes == 17101)
+      elapsedTime("topes-h11-6" << toExternalString topes << close);
+      topes2 = elapsedTime value get "topes-h11-6";
+
+
+      
+      
+      DBNAME = "dbm-h11-6-range-5-20"
+      elapsedTime addToCYDatabase(DBNAME, topes_{5..20})
+      M2 --stop -e 'needsPackage "StringTorics" -e 'lo=5' -e 'hi=10' -e 'addToCYDatabase(DBNAME|"-range-"|lo|"-"|hi, topes
+
+      cyDatabase(DBNAMEPREFIX, topesFile, lo, hi);
+  SeeAlso
+    addToCYDatabase
+    readCYDatabase
+///
+
+///
+-- test: FRVTs -- fails some time...
+
+findAllFRVTs CYPolytope := List => Q -> (
+  cQ := chirotope(transpose matrix rays Q, Homogenize => false);
+  "foo-topcomfoo.in" << toString cQ << endl << close;
+  ctris := for L in lines get ("!chiro2allfinetriangs <foo-topcomfoo.in") list (
+      matches := regex("\\{\\{[0-9,\\{\\}]*", L);
+      if matches === null or #matches != 1 then error "my logic is wrong";
+      value substring(matches_0, L)
+      );
+  ctris)
+
+findAllFRVTs CYPolytope := List => Q -> (
+    alltris := topcomAllTriangulations(transpose matrix rays Q, ConnectedToRegular => false, Fine => true, Homogenize => false, RegularOnly => false);
+    -- now we need to choose the ones that are regular...
+    select(alltris, t -> isProjective normalToricVariety(rays Q, t))
+    )
+
+-- Returns: all regular fine simplicial fans of the rays of Q
+findAllFRVTs CYPolytope := List => Q -> (
+    A := transpose matrix rays Q;
+    findAllSimplicialFans A
+    )
+
+findAllFRVTs Qs#0
+for k in sort keys Qs list elapsedTime findAllFRVTs Qs#k -- these work for h11=2 examples...
+
+-- h11=3
+      topes = kreuzerSkarke(3, Limit => 1000);
+      assert(#topes == 244)
+      elapsedTime addToCYDatabase("can-delete-me-ntfe-h11-3.dbm", topes)
+
+      RZ = ZZ[a,b,c]
+      (Qs, Xs) = readCYDatabase("can-delete-me-ntfe-h11-3.dbm", Ring => RZ);
+      assert(keys Qs === toList(0..243))
+      sort keys Xs
+      #oo == 275
+
+      for k in drop(sort keys Qs,10) list elapsedTime (tris = findAllFRVTs Qs#k; print (k => #tris); tris)
+
+      findAllFRVTs Qs#101
+      findAllFRVTs Qs#0
+      findAllFRVTs Qs#1 -- fails
+        V = normalToricVariety(rays Qs#1, first oo)
+        isWellDefined V and isProjective V
+      tris = findAllFRVTs Qs#2 -- needs to use ConnectedToFalse => false, crashes otherwise...!
+      findAllFRVTs Qs#3
+      findAllFRSTs Qs#3
+      findAllFRVTs Qs#4
+      findAllFRVTs Qs#5
+      findAllFRVTs Qs#6
+      findAllFRVTs Qs#7
+      findAllFRVTs Qs#8
+
+      elapsedTime for k in sort keys Qs list k => elapsedTime findAllFRVTs Qs#k; -- 25 sec.
+      tally (oo/last)
+      ooo/last/length//tally
+      
+///
+
+///
+  restart
+  debug needsPackage "StringTorics"
+
+  topes = kreuzerSkarke(3, Limit => 1000);
+  assert(#topes == 244)
+  elapsedTime addReflexiveToCYDatabase("can-delete-me-reflexives-ntfe-h11-3.dbm", topes)
+
+  F = openDatabase "can-delete-me-reflexives-ntfe-h11-3.dbm"
+
+  topes = kreuzerSkarke(4, Limit => 10000);
+  assert(#topes == 1197)
+  elapsedTime addReflexiveToCYDatabase("can-delete-me-reflexives-ntfe-h11-4.dbm", topes)
+
+  F = openDatabase "can-delete-me-reflexives-ntfe-h11-3.dbm"
+
+  ///
+
 
 ///
 -- scratch work trying to understand cohomology for bicubics.

@@ -265,6 +265,7 @@ dump CYPolytope := String => {} >> opts -> (Q) -> (
     concatenate strs
     )
 
+-- used also in ReflexivePolytopes.m2
 getKeyPair = method()
 getKeyPair String := Sequence => str -> (
     str1 := replace("^ *", "", str);
@@ -292,6 +293,7 @@ findTwoFaceInteriorDivisors CYPolytope := List => Q -> (
 -- choosing basisIndices: if any non-favorable rays, try to choose them!
 -- then we can simply replace that generator with the g+1 that sum to it.
 
+-- used also in ReflexivePolytopes.m2
 findSuitableSet = (setstotry, Z) -> (
     for g in setstotry do if abs det(Z_g) == 1 then return g;
     null

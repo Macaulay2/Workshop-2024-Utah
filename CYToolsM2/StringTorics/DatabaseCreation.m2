@@ -68,6 +68,30 @@ addToCYDatabase(String, KSEntry) := CYPolytope => opts -> (dbfilename, ks) -> (
     Q
     )
 
+addReflexiveToCYDatabase = method(Options => options addToCYDatabase)
+addReflexiveToCYDatabase(String, KSEntry) := ReflexivePolytope => opts -> (dbfilename, ks) -> (
+    lab := label ks;
+    F := openDatabaseOut dbfilename;
+    if not F#?(toString lab) then (
+        << "computing for polytope " << lab << endl;
+        Q := reflexivePolytope(ks, ID => lab); -- note that the polytope data is really that of the dual to topes#i.
+        computeBasics Q;
+        -- now write it
+        F#(toString lab) = dump Q;
+        )
+    else (
+        Q = reflexivePolytope F#(toString lab);
+        );
+    close F;
+    -- TODO: add this back in...
+    --if opts#"CYs" then addToCYDatabase(dbfilename, Q, NTFE => opts.NTFE);
+    Q
+    )
+addReflexiveToCYDatabase(String, List) := opts ->(dbfilename, topes) -> (
+    for tope in topes do addReflexiveToCYDatabase(dbfilename, tope, opts);
+    )
+
+
 processCYPolytopes = method(Options => options addToCYDatabase)
 -- processCYPolytopes(String, ZZ, Sequence) := (dbfilenamePrefix, h11, lohi) -> (
 --     elapsedTime topes := kreuzerSkarke(h11, Limit => 200000);

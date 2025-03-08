@@ -217,7 +217,7 @@ abstractVariety(CalabiYauInToric, AbstractVariety) := opts -> (X, pt) -> (
 --    the triangles in this 2-face, 
 --    genus of this face}
 -- TODO: need also a function which returns just: triangles, genus information.
-restrictTriangulation = method()
+
 restrictTriangulation CalabiYauInToric := List => (X) -> (
     -- given X, we use its annotated faces and its triangulation, to write down the triangulations of the 2-faces
     -- of the corresponding reflexive polytope in the N lattice side.

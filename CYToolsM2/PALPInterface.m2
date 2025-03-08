@@ -27,12 +27,7 @@ export {
     "weightSystemPolytope"
     }
 
---programPaths#"PALP" = executableDir;
-PALP = findProgram("PALP", "poly.x -h")
-
---programPaths#"poly.x" = executableDir;
 POLYX = findProgram("poly.x", "poly.x -h")
-NEFX = findProgram("nef.x", "nef.x -h")
 
 -- translate Matrix into a String suitable for input to PALP
 -- warning: often, the convex hull of the columns must be reflexive.
@@ -54,11 +49,152 @@ fromPalpMatrix String := Matrix => str -> (
     matrix KSEntry str -- this will give a somewhat inscrutable error if the format is not correct
     )
 
-TEST ///
+normalForm = method()
+normalForm Matrix := Matrix => (M) -> (
+    "foo-normalForm-foo" << palpMatrix M << close;
+    cmd := " -N foo-normalForm-foo";
+    result := runProgram(POLYX, cmd);
+    print result#"output";
+    matrix KSEntry result#"output"
+    )
+
+---------------------------
+-- Weight systems code ----
+---------------------------
+weightSystemPolytope = method()
+weightSystemPolytope List := (wts) -> (
+    -- Note: wts#0 is the sum of the rest.
+    -- create it from the definition, using Polyhedra.
+    -- used to test the output of PALP...
+    --
+    wts0 := drop(wts, 1);
+    H := matrix{wts0};
+    d := #wts0-1;
+    halfspaces := -id_(ZZ^(d+1));
+    ones := matrix{(d+1):{1}};
+    Nabla := polyhedronFromHData(halfspaces, ones, H, matrix{{0}});
+    P := polar Nabla;
+    vP := vertices P;
+    if vP^{0} != 0 then error "my logic is wrong";
+    P0 := convexHull ((vP)^{1..numrows vP - 1});
+    convexHull matrix{latticePoints P0}
+    )
+
+getVerticesFromWS = method()
+getVerticesFromWS List := Matrix => wlist ->(
+    w1 := for i in wlist list(toString(i)|" ");
+    w := concatenate(drop(w1,-1),toString(wlist_(-1)));
+    
+    str1 := "!poly.x -v -r << FOO\n";
+    str2 := "\nFOO\n";
+    str3 := str1|w|str2;
+    PALPOutput := get str3;
+    L := lines PALPOutput;
+    L = drop(drop(L, 3), -2);
+    M := for ell in L list (
+        L0 := separate(" +", ell);
+        for x in L0 list if x!="" then value x else continue
+        );
+    if #M == 0 then return null;
+    matrix M)
+
+getVerticesFromWS(List, Nothing) := Matrix => wlist ->(
+    w1 := for i in wlist list(toString(i)|" ");
+    w := concatenate(drop(w1,-1),toString(wlist_(-1)));
+    
+    str1 := "!poly.x -v << FOO\n";
+    str2 := "\nFOO\n";
+    str3 := str1|w|str2;
+    PALPOutput := get str3;
+    L := lines PALPOutput;
+    << netList L << endl;
+    L = drop(drop(L, 3), -2);
+    M := for ell in L list (
+        L0 := separate(" +", ell);
+        for x in L0 list if x!="" then value x else continue
+        );
+    if #M == 0 then return null;
+    matrix M)
+
+getWSFromDim = method(Options => {Degrees => null})
+getWSFromDim ZZ := List => opts -> d -> (
+    drange := opts.Degrees;
+    str0 := toString(d);
+    str1 := if opts.Degrees === null then "!cws.x -w"|str0
+    else "!cws.x -w"|str0|" "|toString(drange_0)|" "|toString(drange_1);
+
+    PALPOutput := get str1;
+    L := lines PALPOutput;
+    L1 := if opts.Degrees === null then L else drop(L,-1);
+    M := for ell in L1 list(
+	L0 := separate(" +",ell);
+	L0Mod := take(L0, {0,d+1});
+	for x in L0Mod list value x
+	)
+    )
+
+beginDocumentation()
+
+doc ///
+  Key
+    (getVerticesFromWS, List)
+  Headline
+    vertices of polytope of a weight system
+  Usage
+    getVerticesFromWS q
+  Inputs
+    q:List
+      of integers: the first is the sum of the rest, and all but the first are positive integers in
+      ascending order
+  Outputs
+    :Matrix
+      over the integers, the columns are the vertices of $\Delta(q)$.
+  Description
+    Text
+        This function returns the vertices of the polytope $\Delta(q)$
+        (which appears only defined up to an integer change of basis).
+    Example
+        q = {3,4,5,14,21}
+          -- q = {40,41,486,1134,1701}
+        ws = prepend(sum q, q)
+        verts = getVerticesFromWS ws
+        needsPackage "Polyhedra"
+        P = convexHull verts
+        assert isReflexive P
+        assert(dim P == 4)
+        numcols  vertices P == 18
+        length latticePoints P == 54
+        nfverts = normalForm verts
+    Example
+        A = transpose LLL syz matrix{q}
+        B = convexHull latticePoints polar convexHull A
+        C = polar B
+        assert not isReflexive convexHull A 
+        assert isReflexive B
+        assert isReflexive C
+        nflll = normalForm lift(vertices B, ZZ)
+        assert(nfverts == nflll)
+  SeeAlso
+    getWSFromDim
+///
+
+
+
+
+
+
+
+
+
+
+
+
 -*
   restart
   needsPackage "PALPInterface"
 *-
+TEST ///
+  -- test of palpMatrix, fromPalpMatrix
   M = matrix{{1,1,1,1},{0,1,2,3}}
   str1 = palpMatrix M
   assert(M == fromPalpMatrix str1)
@@ -70,6 +206,59 @@ TEST ///
   M = transpose matrix {{1, 0, 0}, {-1, 0, 1}, {0, 1, 0}, {0, -1, 1}, {0, 0, 1}, {0, 0, -1}}
   assert(M == fromPalpMatrix palpMatrix M)
 ///
+
+TEST ///
+  --needsPackage "QuillenSuslin"
+  --A = ZZ[x]
+  --completeMatrix matrix(A, {{6,10,3*26, 3*39}})
+  A = matrix {{6, 10, 78, 117}, {0, 3, 0, 35}, {0, 0, 1, 0}, {1, 0, 0, 0}}
+
+  -- another way to generate invertible integer matrices
+  -- needsPackage "IntegerEquivalences"
+  -- A = extendToMatrix {6,10,3*26, 3*39}
+  A = matrix {{0, 0, -3, 2}, {-5, 3, 0, 0}, {-3, -6, 1, 0}, {-3, -2, -1, 1}}  
+
+  M = matrix KSEntry "4 12  M:24 12 N:15 12 H:11,19 [-16] id:13
+   1   0   0   1   1  -1   0  -2   4  -2   0   2
+   0   1   0   0  -1   0   0   3  -4   1  -1  -3
+   0   0   1  -1   0   0   0   1  -4   3  -1  -3
+   0   0   0   0   0   0   1  -1   1  -1   1   1
+   "
+   assert(normalForm M == M)
+   assert(normalForm (A*M) == M)
+///
+
+TEST ///
+  -- this polytope is in a hyperplane in one higher dimension...
+  P = polar weightSystemPolytope {3,1,1,1}
+  vertices P
+  isReflexive P
+  assert(#latticePoints P == 10)
+  --assert(vertices P == matrix(QQ, {{2, -1, -1}, {-1, 2, -1}, {-1, -1, 2}})) -- TODO: need better test here.
+  vertices polar P
+
+  -- TODO: what are these really supposed to be?
+  getVerticesFromWS({10,1,2,3,4})
+  polar weightSystemPolytope {10,1,2,3,4}
+  vertices oo
+  latticePoints oo
+  
+///
+
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+--- Below this line has not been re-vetted ---------------------------
+--- Todo: get everything below this line back into the package
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+--programPaths#"PALP" = executableDir;
+PALP = findProgram("PALP", "poly.x -h")
+
+--programPaths#"poly.x" = executableDir;
+NEFX = findProgram("nef.x", "nef.x -h")
+
+
+
 
 runPoly = method()
 runPoly(Matrix, String) := String => (M, opts) -> (
@@ -85,15 +274,6 @@ runNEF(Matrix, String) := String => (M, opts) -> (
     cmd := " -" | opts | " foo";
     result := runProgram(NEFX, cmd);
     result#"output"
-    )
-
-normalForm = method()
-normalForm Matrix := Matrix => (M) -> (
-    "foo" << palpMatrix M << close;
-    cmd := " -N foo";
-    result := runProgram(POLYX, cmd);
-    print result#"output";
-    matrix KSEntry result#"output"
     )
 
 TEST ///
@@ -218,24 +398,6 @@ getPolyhedralInfo Matrix := opts -> M -> (
     matrix KSEntry str
     )
 
-weightSystemPolytope = method()
-weightSystemPolytope List := (wts) -> (
-    -- Note: wts#0 is the sum of the rest.
-    -- create it from the definition, using Polyhedra.
-    -- used to test the output of PALP...
-    --
-    wts0 := drop(wts, 1);
-    H := matrix{wts0};
-    d := #wts0-1;
-    halfspaces := -id_(ZZ^(d+1));
-    ones := matrix{(d+1):{1}};
-    Nabla := polyhedronFromHData(halfspaces, ones, H, matrix{{0}});
-    P := polar Nabla;
-    vP := vertices P;
-    if vP^{0} != 0 then error "my logic is wrong";
-    P0 := convexHull ((vP)^{1..numrows vP - 1});
-    convexHull matrix{latticePoints P0}
-    )
 
 -*
   restart
@@ -249,11 +411,6 @@ TEST ///
   P2 = weightSystemPolytope {2,1,1}
   -- getVerticesFromWS {2,1,1}   -- hmm, this fails... too small?
 
-  P = polar weightSystemPolytope {3,1,1,1}
-  vertices P
-  assert(#latticePoints P == 10)
-  --assert(vertices P == matrix(QQ, {{2, -1, -1}, {-1, 2, -1}, {-1, -1, 2}})) -- TODO: need better test here.
-  vertices polar P
 
   Q = convexHull getVerticesFromWS {3,1,1,1}
 
@@ -311,63 +468,6 @@ TEST ///
 -- 
 
 
-getVerticesFromWS = method()
-
-
-getVerticesFromWS List := Matrix => wlist ->(
-    w1 := for i in wlist list(toString(i)|" ");
-    w := concatenate(drop(w1,-1),toString(wlist_(-1)));
-    
-    str1 := "!poly.x -v -r << FOO\n";
-    str2 := "\nFOO\n";
-    str3 := str1|w|str2;
-    PALPOutput := get str3;
-    L := lines PALPOutput;
-    L = drop(drop(L, 3), -2);
-    M := for ell in L list (
-        L0 := separate(" +", ell);
-        for x in L0 list if x!="" then value x else continue
-        );
-    if #M == 0 then return null;
-    matrix M)
-
-getVerticesFromWS(List, Nothing) := Matrix => wlist ->(
-    w1 := for i in wlist list(toString(i)|" ");
-    w := concatenate(drop(w1,-1),toString(wlist_(-1)));
-    
-    str1 := "!poly.x -v << FOO\n";
-    str2 := "\nFOO\n";
-    str3 := str1|w|str2;
-    PALPOutput := get str3;
-    L := lines PALPOutput;
-    << netList L << endl;
-    L = drop(drop(L, 3), -2);
-    M := for ell in L list (
-        L0 := separate(" +", ell);
-        for x in L0 list if x!="" then value x else continue
-        );
-    if #M == 0 then return null;
-    matrix M)
-
-getVerticesFromWS({10,1,2,3,4})
-
-getWSFromDim = method(Options => {Degrees => null})
-
-getWSFromDim ZZ := List => opts -> d -> (
-    drange := opts.Degrees;
-    str0 := toString(d);
-    str1 := if opts.Degrees === null then "!cws.x -w"|str0
-    else "!cws.x -w"|str0|" "|toString(drange_0)|" "|toString(drange_1);
-
-    PALPOutput := get str1;
-    L := lines PALPOutput;
-    L1 := if opts.Degrees === null then L else drop(L,-1);
-    M := for ell in L1 list(
-	L0 := separate(" +",ell);
-	L0Mod := take(L0, {0,d+1});
-	for x in L0Mod list value x
-	)
-    )
 
 ///
 -*
@@ -624,48 +724,6 @@ Description
     However, it has some generally useful functionality beyond that.
 ///
 
-doc ///
-  Key
-    (getVerticesFromWS, List)
-  Headline
-    vertices of polytope of a weight system
-  Usage
-    getVerticesFromWS q
-  Inputs
-    q:List
-      of integers: the first is the sum of the rest, and all but the first are positive integers in
-      ascending order
-  Outputs
-    :Matrix
-      over the integers, the columns are the vertices of $\Delta(q)$.
-  Description
-    Text
-        This function returns the vertices of the polytope $\Delta(q)$
-        (which appears only defined up to an integer change of basis).
-    Example
-        q = {3,4,5,14,21}
-          -- q = {40,41,486,1134,1701}
-        ws = prepend(sum q, q)
-        verts = getVerticesFromWS ws
-        needsPackage "Polyhedra"
-        P = convexHull verts
-        assert isReflexive P
-        assert(dim P == 4)
-        numcols  vertices P == 18
-        length latticePoints P == 54
-        nfverts = normalForm verts
-    Example
-        A = transpose LLL syz matrix{q}
-        B = convexHull latticePoints polar convexHull A
-        C = polar B
-        assert not isReflexive convexHull A 
-        assert isReflexive B
-        assert isReflexive C
-        nflll = normalForm lift(vertices B, ZZ)
-        assert(nfverts == nflll)
-  SeeAlso
-    getWSFromDim
-///
 
 TEST ///
 -*
