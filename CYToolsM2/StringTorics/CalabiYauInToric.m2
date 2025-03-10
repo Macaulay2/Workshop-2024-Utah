@@ -1,7 +1,9 @@
 --------------------------------------------------------------
--- CalabiYauInToric (soon to change back to CalabiYauInToric? ----------
+-- CalabiYauInToric                                 ----------
 --------------------------------------------------------------
-
+-- Currently: removing CYPolytopeData in favor of ReflexivePolytope
+-- steps:
+--  1. data cache should not have spaxces in key names (for simplicity of coding).
 CalabiYauInToric.synonym = "Calabi-Yau hypersurface in a normal toric variety"
 CalabiYauInToric.GlobalAssignHook = globalAssignFunction
 CalabiYauInToric.GlobalReleaseHook = globalReleaseFunction
@@ -12,16 +14,6 @@ net CalabiYauInToric := X -> net expression X
 describe CalabiYauInToric := X -> Describe (
     "A Calabi-Yau "|dim X|"-fold hypersurface with h11="|hh^(1,1) X|" and h21="|hh^(1,2) X |" in a "|(dim X + 1)|"-dimensional toric variety"
     )
-
-CYPolytope.synonym = "Calabi-Yau reflexive polytope"
-CYPolytope.GlobalAssignHook = globalAssignFunction
-CYPolytope.GlobalReleaseHook = globalReleaseFunction
-expression CYPolytope := X -> if hasAttribute (X, ReverseDictionary) 
-    then expression getAttribute (X, ReverseDictionary) else 
-    (describe X)#0
-describe CYPolytope := X -> Describe (expression CYPolytope) (
-    expression rays X, expression max X)
-
 
 CYDataFields = {
     -- first entry: true means it must exist and be in the main hash table
@@ -36,9 +28,9 @@ CYDataCache = {
     --   false: it might exist, and is in the cache table.
     "id" => {value, toString, ZZ},
     "c2" => {value, toString, List},
-    "intersection numbers" => {value, toString, List},
-    "toric intersection numbers" => {value, toString, List},
-    "toric mori cone cap" => {value, toString, List}
+    "intersectionNumbers" => {value, toString, List},
+    "toricIntersectionNumbers" => {value, toString, List},
+    "toricMoriConeCap" => {value, toString, List}
     }
 
 setCYIntersectionRing = (X, R) -> (
@@ -293,7 +285,7 @@ setToricMoriConeCap(CalabiYauInToric, List) := List => (Y, Xs) -> (
     --myXs := select(Xs, X0 -> restrictTriangulation X0 === myNTFE);
     if not isFavorable Y then null
     else
-        Y.cache#"toric mori cone cap" = sort entries transpose rays dualCone posHull matrix{for X in Xs list rays dualCone toricMoriCone X}
+        Y.cache#"toricMoriConeCap" = sort entries transpose rays dualCone posHull matrix{for X in Xs list rays dualCone toricMoriCone X}
     )
 setToricMoriConeCap CalabiYauInToric := List => Y -> (
     -- Xs are all of the CY3's equivalent to Y (including Y), possibly includes others too?
@@ -302,13 +294,13 @@ setToricMoriConeCap CalabiYauInToric := List => Y -> (
     Xs := findAllCYs(Q, NTFE => false, Automorphisms => false);
     myNTFE := restrictTriangulation Y;
     myXs := select(Xs, X0 -> restrictTriangulation X0 === myNTFE);
-    Y.cache#"toric mori cone cap" = sort entries transpose rays dualCone posHull matrix{for X in myXs list rays dualCone toricMoriCone X};
+    Y.cache#"toricMoriConeCap" = sort entries transpose rays dualCone posHull matrix{for X in myXs list rays dualCone toricMoriCone X};
     )
     
 toricMoriConeCap CalabiYauInToric := List => Y -> (
     if not isFavorable Y then return null;
-    if not Y.cache#?"toric mori cone cap" then setToricMoriConeCap Y;
-    Y.cache#"toric mori cone cap"
+    if not Y.cache#?"toricMoriConeCap" then setToricMoriConeCap Y;
+    Y.cache#"toricMoriConeCap"
     )
 
 ///

@@ -10,7 +10,7 @@ topologicalData = method()
 --         "h11" => hh^(1,1) cyPolytope X,
 --         "h21" => hh^(2,1) cyPolytope X,
 --         "c2" => c2 X,
---         "intersection numbers" => intersectionNumbers X
+--         "intersectionNumbers" => intersectionNumbers X
 --         }
 --     )
 
@@ -28,7 +28,7 @@ topologicalData CalabiYauInToric := TopologicalDataOfCY3 => X -> (
     --     "h11" => hh^(1,1) cyPolytope X,
     --     "h21" => hh^(2,1) cyPolytope X,
     --     "c2" => c2 X,
-    --     "intersection numbers" => intersectionNumbers X
+    --     "intersectionNumbers" => intersectionNumbers X
     --     }
     -- )
 

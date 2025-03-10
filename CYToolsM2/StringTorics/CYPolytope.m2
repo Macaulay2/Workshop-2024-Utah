@@ -28,6 +28,15 @@
 -- This will all change with the introduction of cyPolytopeFromRays, and a function
 -- which makes it easy to collect the rays from the vertices of a polytope.
 
+CYPolytope.synonym = "Calabi-Yau reflexive polytope"
+CYPolytope.GlobalAssignHook = globalAssignFunction
+CYPolytope.GlobalReleaseHook = globalReleaseFunction
+expression CYPolytope := X -> if hasAttribute (X, ReverseDictionary) 
+    then expression getAttribute (X, ReverseDictionary) else 
+    (describe X)#0
+describe CYPolytope := X -> Describe (expression CYPolytope) (
+    expression rays X, expression max X)
+
 CYPolytopeFields = {
     "rays" => {value, toString, List}
     }

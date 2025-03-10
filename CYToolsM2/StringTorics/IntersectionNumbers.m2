@@ -170,20 +170,17 @@ computeC2(List, List, HashTable) := (toricIntersectionNumbers, basIndices, nonfa
 -- computeIntersectionNumbers: An internal function for intersectionNumbers. toricIntersectionNumbers, and c2.
 computeIntersectionNumbers = method()
 computeIntersectionNumbers CalabiYauInToric := X -> (
-    if not X.cache#?"toric intersection numbers" then  (
+    if not X.cache#?"toricIntersectionNumbers" then  (
         Q := cyPolytope X;
         basIndices := basisIndices Q;
         A := transpose matrix rays Q;
         nonfavs := hashTable findTwoFaceInteriorDivisors Q;
         T2 := restrictTriangulation X;
         result := computeToricIntersectionNumbers(A, T2);
-        X.cache#"toric intersection numbers" = result;
-        --X.cache#"intersection numbers" = toBasisIntersectionNumbers(result, Q.cache#"toric basis indices");
-        X.cache#"intersection numbers" = toBasisIntersectionNumbers(result, basIndices, nonfavs);
+        X.cache#"toricIntersectionNumbers" = result;
+        X.cache#"intersectionNumbers" = toBasisIntersectionNumbers(result, basIndices, nonfavs);
         X.cache#"c2" = computeC2(result, basIndices, nonfavs);
-        --X.cache#"c2" = computeC2(result, basIndices);
         );
-    --{result, toBasisIntersectionNumbers(result, basIndices)}
     )
 
 --------------------------------------------
@@ -191,14 +188,13 @@ computeIntersectionNumbers CalabiYauInToric := X -> (
 --------------------------------------------
 intersectionNumbers CalabiYauInToric := X -> (
     computeIntersectionNumbers X;
-    X.cache#"intersection numbers"
-    --intersectionNumbersOfCY(ambient X, basisIndices X)
+    X.cache#"intersectionNumbers"
     )
 
 toricIntersectionNumbers = method()
 toricIntersectionNumbers CalabiYauInToric := X -> (
     computeIntersectionNumbers X;
-    X.cache#"toric intersection numbers"
+    X.cache#"toricIntersectionNumbers"
     )
 
 c2 = method();
