@@ -72,8 +72,6 @@ TEST ///
   Q = cyPolytope(tope, ID => 40)  
   assert isFavorable Q
   basisIndices Q
-  Q.cache#"toric basisIndices"
-  Q.cache#"basisIndices"
   transpose matrix degrees Q
   X = makeCY Q
   toricIntersectionNumbers X
@@ -96,7 +94,7 @@ TEST ///
   assert(hh^(1,2) Q2 == 27)
   -- the following will need to change...
   assert(basisIndices Q2 === {0, 1, 2, 3, 4, (9, 0), (9, 1)}) -- this could change if the algorithm changes.
-  Q2.cache#"toric basisIndices" === {0, 1, 2, 3, 4, 9}
+  -- Q2.cache#"toric basisIndices" === {0, 1, 2, 3, 4, 9} -- we don't compute or use this ...
   findTwoFaceInteriorDivisors Q2
   netList annotatedFaces Q2
   assert(
@@ -113,19 +111,20 @@ TEST ///
       )
   Xs = findAllCYs Q2; -- what if I only want the NTFE ones?  FIX.
   #Xs
-  (netList toricIntersectionNumbers Xs#0, netList intersectionNumbers Xs#0)
-  c2 Xs#0 -- fix me
-  intersectionNumbers Xs#0 -- fix me
-  ring cubicForm Xs#0 === ring c2Form Xs#0
-  c2Form Xs#0
+
+  X = makeCY Q2
+  
+  (netList toricIntersectionNumbers X, netList intersectionNumbers X)
+  c2 X -- fix me
+  intersectionNumbers X -- fix me
+  ring cubicForm X === ring c2Form X
+  c2Form X
   
   vertices polytope(Q2, "M")
   vertices polytope(Q2, "N") -- notice these are NOT in the order of the rays of Q2!
   transpose matrix degrees Q2
-  
   transpose matrix rays Q2
-  
-  cubicForm Xs#0
+  cubicForm X
 ///
 
 -*
@@ -146,7 +145,7 @@ TEST ///
   -- X = calabiYau(A, Lattice => "M") -- A must define a reflexive polytope.
 
   V = ambient X
-  aX = abstractVariety(X, base(a,b,c,d,e))
+  aX = abstractVariety(X, base(symbol a,b,c,d,e))
   intersectionRing aX -- defines integral.
   intersectionRing V -- defines integral.
   topX = topologicalData X

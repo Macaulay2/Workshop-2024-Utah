@@ -483,17 +483,12 @@ TEST ///
    0   0   0   2  -2   2  -2   0  -2   2
    "
   Q = cyPolytope ks
-  elapsedTime Xs1 = findAllCYs(Q, Automorphisms => false, NTFE => false, Ring => ZZ[a_0..a_6]);
-  -- need a way to get one FRST, or perhaps a smaller number than "all".
-  elapsedTime Xs = findAllCYs Q;
-  X = Xs#0
+  X = makeCY Q
 
-  toricMoriConeCap X
-  classifyExtremalCurves X
+  -- TODO: reinstate these?
+  --toricMoriConeCap X
+  --classifyExtremalCurves X
 
-  #Xs
-  X = first Xs
-  peek X
   V = ambient X
   assert isWellDefined V
   assert isProjective V

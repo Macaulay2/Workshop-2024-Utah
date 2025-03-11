@@ -1004,6 +1004,7 @@ beginDocumentation()
 
 load (currentFileDirectory | "StringTorics/doc.m2")
 load (currentFileDirectory | "StringTorics/DocCYPolytope.m2")
+load (currentFileDirectory | "StringTorics/DocDatabases.m2")
 load (currentFileDirectory | "StringTorics/test.m2")
 load (currentFileDirectory | "StringTorics/TestsCYPolytope.m2")
 

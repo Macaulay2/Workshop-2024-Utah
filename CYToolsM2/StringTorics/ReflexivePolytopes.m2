@@ -39,9 +39,9 @@ ReflexivePolytopeCache = {
     }
 
 reflexivePolytope = method(Options => {
-        ID => null
-        }
-    )
+        ID => null,
+        InteriorFacets => false
+        }) -- TODO: remove InteriorFaces.  That should be in construction of CY's.
 
 -- `reflexivePolytope` Polyhedron: create a ReflexivePolytope object from a Polyhedra Polyhedron object
 reflexivePolytope Polyhedron := ReflexivePolytope => opts -> P2 -> (
@@ -80,7 +80,7 @@ dump ReflexivePolytope := String => {} >> opts -> (Q) -> (
 
 reflexivePolytope String := ReflexivePolytope => opts -> str -> (
     L := lines str;
-    if L#0 != "ReflexiveData" then error "string is not in proper format";
+    if L#0 != "ReflexiveData" then error ("string is not in proper format, received: "|L#0);
     fields := hashTable for i from 1 to #L-1 list getKeyPair L#i;
     -- First get the main elements (these are required!):
     required := for field in ReflexivePolytopeFields list (
@@ -107,6 +107,22 @@ reflexivePolytope Matrix := ReflexivePolytope => opts -> vertices -> (
     P2 := convexHull vertices;
     reflexivePolytope(P2, opts)
     )
+
+cyPolytope List := CYPolytope => opts -> vertices -> (
+    return reflexivePolytope(vertices, opts);
+    error "calling cyPolytope List";
+    cyPolytope(transpose matrix vertices, opts)
+    )
+cyPolytope Matrix := CYPolytope => opts -> vertices -> (
+    return reflexivePolytope(vertices, opts);
+    error "calling cyPolytope Matrix";
+    P2 := convexHull vertices;
+    cyPolytope(P2, opts)
+    )
+cyPolytope KSEntry := opts -> tope -> reflexivePolytope(tope, opts)
+cyPolytope String := opts -> str -> reflexivePolytope(str, opts)
+    
+
 
 reflexivePolytope KSEntry := ReflexivePolytope => opts -> tope -> (
     -- KSEntry is a Kreuzer-Skarke polytope entry, returned from
@@ -451,38 +467,24 @@ partitionFRSTsByDFaceEquivalence(ZZ, ReflexivePolytope) := HashTable => opts -> 
     )
 
 -- TODO: working on this.  Use partitionFRSTsByDFaceEquivalence above to help here.
--- findAllCYs ReflexivePolytope := List => opts -> Q -> (
---     Ts := findAllFRSTs Q;
---     RZ := if opts#Ring === null then (
---         a := getSymbol "a";
---         h11 := hh^(1,1) Q;
---         ZZ[a_1 .. a_h11]
---         )
---     else (
---         opts#Ring
---         );
--- --    Xs := for i from 0 to #Ts - 1 list calabiYau(Q, Ts#i, Ring => RZ); -- we set the ID below.
---     -- If NTFE and UseAutomorphisms:
---     gPerms := if opts.Automorphisms then 
---                  automorphismsAsPermutations Q
---               else 
---                  {splice{0..#rays Q - 1}}; -- only the identity permutation
---     -- f is the function we use to partition the Xs.
---     f := if opts.NTFE then 
---              (tri -> normalizeByAutomorphisms(gPerms, restrictTriangulation(2, Q, tri)))
---          else 
---              (tri -> normalizeByAutomorphisms(gPerms, tri));
---     H := partition(f, Ts);
---     return H;
---     -- count := 0;
---     -- Xs = for k in sort keys H list (
---     --     X := H#k#0; -- take the first one
---     --     X.cache#"id" = count;
---     --     count = count+1;
---     --     X);
---     -- Xs
---     )
-
+findAllCYs ReflexivePolytope := List => opts -> Q -> (
+    RZ := if opts#Ring === null then (
+        a := getSymbol "a";
+        h11 := hh^(1,1) Q;
+        ZZ[a_1 .. a_h11]
+        )
+    else (
+        opts#Ring
+        );
+    H := partitionFRSTsByDFaceEquivalence(dim Q - 2, Q);
+    count := 0;
+    Xs := for k in sort keys H list (
+        -- TODO: this is perhaps a good place to compute toricMoriConeCap...
+        X := calabiYau(Q, H#k#0, Ring => RZ, ID => count); -- take the first one
+        count = count+1;
+        X);
+    Xs
+    )
 
 -- REMOVE
 -- findAllFRVTs ReflexivePolytope := List => Q -> (

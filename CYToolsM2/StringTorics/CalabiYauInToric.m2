@@ -1,7 +1,6 @@
 --------------------------------------------------------------
 -- CalabiYauInToric                                 ----------
 --------------------------------------------------------------
--- Currently: removing CYPolytopeData in favor of ReflexivePolytope
 -- steps:
 --  1. data cache should not have spaxces in key names (for simplicity of coding).
 CalabiYauInToric.synonym = "Calabi-Yau hypersurface in a normal toric variety"
@@ -18,7 +17,7 @@ describe CalabiYauInToric := X -> Describe (
 CYDataFields = {
     -- first entry: true means it must exist and be in the main hash table
     --   false: it might exist, and is in the cache table.
-    "polytope data" => {value, Q -> toString Q.cache#"id", CYPolytope},
+    "polytopeData" => {value, Q -> toString Q.cache#"id", ReflexivePolytope},
     "triangulation" => {value, toString, List}
     }
 
@@ -51,9 +50,20 @@ setCYIntersectionRing = (X, R) -> (
 calabiYau = method(Options => {ID => null, Ring => null})
 -- TODO, BUG!! The triang needs to indices in the Q rays.
 calabiYau(CYPolytope, List) := CalabiYauInToric => opts -> (Q, triang) -> (
+    error "use ReflexivePolytope, not CYPolytope...";
     X := new CalabiYauInToric from {
         symbol cache => new CacheTable,
-        "polytope data" => Q,
+        "polytopeData" => Q,
+        "triangulation" => triang
+        };
+    if opts.ID =!= null then X.cache#"id" = opts.ID;
+    setCYIntersectionRing(X, opts#Ring);
+    X
+    )
+calabiYau(ReflexivePolytope, List) := CalabiYauInToric => opts -> (Q, triang) -> (
+    X := new CalabiYauInToric from {
+        symbol cache => new CacheTable,
+        "polytopeData" => Q,
         "triangulation" => triang
         };
     if opts.ID =!= null then X.cache#"id" = opts.ID;
@@ -69,17 +79,17 @@ picardRing CalabiYauInToric := X -> X.cache.PicardRing
 
 cyData(String, Function) :=
 calabiYau(String, Function) := CalabiYauInToric => opts -> (str, F) -> (
-    -- F is a function which takes an id of a CYPolytope and returns the CYPolytope
+    -- F is a function which takes an id of a ReflexivePolytope and returns the ReflexivePolytope
     -- The string is the value taken from a CY database .
     L := lines str;
-    if L#0 != "CYData" then error "string is not in proper format";
+    if L#0 != "CYData" then error("string is not in proper format: "|L#0);
     fields := hashTable for i from 1 to #L-1 list getKeyPair L#i;
     -- First get the main elements (these are required!):
-    polytopeid := value fields#"polytope data";
+    polytopeid := value fields#"polytopeData";
     required := for field in CYDataFields list (
         k := field#0;
-        if k === "polytope data" then (
-            "polytope data" => F polytopeid
+        if k === "polytopeData" then (
+            "polytopeData" => F polytopeid
             )
         else (
             readFcn := field#1#0;
@@ -117,15 +127,23 @@ dump CalabiYauInToric := String => {} >> opts -> X -> (
 
 makeCY = method(Options => {ID => null, Ring => null})
 makeCY CYPolytope := CalabiYauInToric => opts -> Q -> (
+    error "makeCY CYPolytope: use ReflexivePolytope instead";
     P2 := polytope Q;
     (LP,tri) := regularStarTriangulation(dim P2-2,P2);
     if rays Q =!= LP then error "I have a lattice point mismatch";
     cyData(Q, tri, opts)
     )    
+makeCY ReflexivePolytope := CalabiYauInToric => opts -> Q -> (
+    P2 := polytope Q;
+    (LP,tri) := regularStarTriangulation(dim P2-2,P2);
+    if rays Q =!= LP then error "I have a lattice point mismatch";
+    calabiYau(Q, tri, opts)
+    )    
 
 makeCY(List, List) := CalabiYauInToric =>  opts -> (pts, triangulation) -> (
+    error "is anyone using me?  This function is messed up...";
     -- We keep the translation around?
-    Q := cyPolytope pts;
+    Q := ReflexivePolytope pts; -- TODO: is this correct?  Don't we want to grab the vertices??
     -- now we need the translation from old vertices to new.
     H := hashTable for i from 0 to #rays Q - 1 list (rays Q)#i => i;
     mapping := hashTable for i from 0 to #pts-1 list (
@@ -138,13 +156,13 @@ makeCY(List, List) := CalabiYauInToric =>  opts -> (pts, triangulation) -> (
         sort for t1 in drop(t,1) list mapping#t1
         );
     Q.cache#"vertex translation" = mapping;
-    cyData(Q, tri, opts)
+    calabiYau(Q, tri, opts)
     )
 
 
 normalToricVariety CalabiYauInToric := opts -> X -> (
     if not X.cache.?NormalToricVariety then X.cache.NormalToricVariety = (
-        Q := X#"polytope data";
+        Q := X#"polytopeData";
         T := X#"triangulation";
         GLSM := transpose matrix degrees Q;
         normalToricVariety(rays Q, T, opts, WeilToClass => matrix GLSM)
@@ -164,7 +182,7 @@ max CalabiYauInToric := X -> X#"triangulation"
 triangulation CalabiYauInToric := Triangulation => opts -> X -> (
     if not opts.Homogenize then error "Homogenize flag is not used in this method";
     if not X.cache#?"triangulation" then (
-        rys := X#"polytope data"#"rays";
+        rys := X#"polytopeData"#"rays";
         d := #rys#0;
         B := (transpose matrix rys) | matrix{d:{0}};
         X.cache#"triangulation" = triangulation(B, for t in X#"triangulation" list append(t, #rys)); -- TODO: BUG?? where is "triangulation" key? In cache??
@@ -172,7 +190,8 @@ triangulation CalabiYauInToric := Triangulation => opts -> X -> (
     X.cache#"triangulation"
     )
 
-cyPolytope CalabiYauInToric := opts -> X -> X#"polytope data"
+cyPolytope CalabiYauInToric := opts -> X -> X#"polytopeData"
+reflexivePolytope CalabiYauInToric := opts -> X -> X#"polytopeData"
 dim CalabiYauInToric := X -> dim ambient X - 1
 polytope CalabiYauInToric := X -> polytope cyPolytope X
 polytope(CalabiYauInToric, String) := (X, which) -> polytope(cyPolytope X, which)
@@ -183,11 +202,12 @@ ambient CalabiYauInToric := X -> normalToricVariety X
 
 label = method()
 label CYPolytope := Q -> if Q.cache#?"id" then Q.cache#"id" else ""
-label CalabiYauInToric := X -> (label cyPolytope X, if X.cache#?"id" then X.cache#"id" else "")
+label ReflexivePolytope := Q -> if Q.cache#?"id" then Q.cache#"id" else ""
+label CalabiYauInToric := X -> (label reflexivePolytope X, if X.cache#?"id" then X.cache#"id" else "")
 
-hh(Sequence, CalabiYauInToric) := (pq, X) -> hh^pq cyPolytope X
+hh(Sequence, CalabiYauInToric) := (pq, X) -> hh^pq reflexivePolytope X
 
-isFavorable CalabiYauInToric := Boolean => X -> isFavorable cyPolytope X
+isFavorable CalabiYauInToric := Boolean => X -> isFavorable reflexivePolytope X
 
 abstractVariety CalabiYauInToric := opts -> X -> (
     -- Store this with X.
@@ -213,7 +233,7 @@ abstractVariety(CalabiYauInToric, AbstractVariety) := opts -> (X, pt) -> (
 restrictTriangulation CalabiYauInToric := List => (X) -> (
     -- given X, we use its annotated faces and its triangulation, to write down the triangulations of the 2-faces
     -- of the corresponding reflexive polytope in the N lattice side.
-    Q := cyPolytope X;
+    Q := reflexivePolytope X;
     F := annotatedFaces Q;
     twofaces := for x in F list if x#0 =!= 2 then continue else {x#1, x#2, x#4};
     T := max X; -- triangulation
@@ -231,7 +251,7 @@ restrictTriangulation(ZZ, CalabiYauInToric) := List => (d, X) -> (
     -- given X, we use its annotated faces and its triangulation, to
     -- write down the triangulations of the dim d-faces of the
     -- corresponding reflexive polytope in the N lattice side.
-    Q := cyPolytope X;
+    Q := reflexivePolytope X;
     F := annotatedFaces Q;
     dfaces := for x in F list if x#0 =!= d then continue else x#2;
     T := max X; -- triangulation

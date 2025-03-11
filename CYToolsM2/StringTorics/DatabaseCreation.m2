@@ -44,37 +44,13 @@ addToCYDatabase = method(Options => {NTFE => true, "CYs" => true})
 -- Under default conditions, all NTFE triangulations are found, and all corresponding CY's
 -- are placed into the data base.
 -- This function returns the CYPolytope found or created.
-addToCYDatabase(String, KSEntry) := CYPolytope => opts -> (dbfilename, ks) -> (
-    lab := label ks;
-    F := openDatabaseOut dbfilename;
-    if not F#?(toString lab) then (
-        << "computing for polytope " << lab << endl;
-        Q := cyPolytope(ks, ID => lab); -- note that the polytope data is really that of the dual to topes#i.
-        -- now fill it with data we want
-        basisIndices Q; -- compute them
-        isFavorable Q; -- compute h11, h21, favorability.
-        annotatedFaces Q; -- compute annotated faces
-        automorphisms Q;
-        automorphismsAsPermutations Q;
-        findAllFRSTs Q;
-        -- now write it
-        F#(toString lab) = dump Q;
-        )
-    else (
-        Q = cyPolytope F#(toString lab);
-        );
-    close F;
-    if opts#"CYs" then addToCYDatabase(dbfilename, Q, NTFE => opts.NTFE);
-    Q
-    )
-
-addReflexiveToCYDatabase = method(Options => options addToCYDatabase)
-addReflexiveToCYDatabase(String, KSEntry) := ReflexivePolytope => opts -> (dbfilename, ks) -> (
+addToCYDatabase(String, KSEntry) := ReflexivePolytope => opts -> (dbfilename, ks) -> (
     lab := label ks;
     F := openDatabaseOut dbfilename;
     if not F#?(toString lab) then (
         << "computing for polytope " << lab << endl;
         Q := reflexivePolytope(ks, ID => lab); -- note that the polytope data is really that of the dual to topes#i.
+        -- now fill it with data we want
         computeBasics Q;
         -- now write it
         F#(toString lab) = dump Q;
@@ -83,13 +59,32 @@ addReflexiveToCYDatabase(String, KSEntry) := ReflexivePolytope => opts -> (dbfil
         Q = reflexivePolytope F#(toString lab);
         );
     close F;
-    -- TODO: add this back in...
-    --if opts#"CYs" then addToCYDatabase(dbfilename, Q, NTFE => opts.NTFE);
+    if opts#"CYs" then addToCYDatabase(dbfilename, Q, NTFE => opts.NTFE);
     Q
     )
-addReflexiveToCYDatabase(String, List) := opts ->(dbfilename, topes) -> (
-    for tope in topes do addReflexiveToCYDatabase(dbfilename, tope, opts);
-    )
+
+-- addReflexiveToCYDatabase = method(Options => options addToCYDatabase)
+-- addReflexiveToCYDatabase(String, KSEntry) := ReflexivePolytope => opts -> (dbfilename, ks) -> (
+--     lab := label ks;
+--     F := openDatabaseOut dbfilename;
+--     if not F#?(toString lab) then (
+--         << "computing for polytope " << lab << endl;
+--         Q := reflexivePolytope(ks, ID => lab); -- note that the polytope data is really that of the dual to topes#i.
+--         computeBasics Q;
+--         -- now write it
+--         F#(toString lab) = dump Q;
+--         )
+--     else (
+--         Q = reflexivePolytope F#(toString lab);
+--         );
+--     close F;
+--     -- TODO: add this back in...
+--     --if opts#"CYs" then addToCYDatabase(dbfilename, Q, NTFE => opts.NTFE);
+--     Q
+--     )
+-- addReflexiveToCYDatabase(String, List) := opts ->(dbfilename, topes) -> (
+--     for tope in topes do addReflexiveToCYDatabase(dbfilename, tope, opts);
+--     )
 
 
 processCYPolytopes = method(Options => options addToCYDatabase)
@@ -180,7 +175,32 @@ createGroups(17101, 100)
 --     close F;    
 --     )
 
-addToCYDatabase(String, CYPolytope) := opts -> (dbfilename, Q) -> (
+-- addToCYDatabase(String, CYPolytope) := opts -> (dbfilename, Q) -> (
+--     -- This version also finds "moriConeCap" which is a cone containing the actual mori cone: it is the
+--     -- intersection of all mori cones coming from triangulations equivalent to the given one.
+--     Xs := findAllCYs Q; -- TODO: check: is findALlCYs still correct.
+--     -- << "  " << #Xs << " triangulations total" << endl;
+--     -- if opts.NTFE then (
+--     --     elapsedTime H := partition(restrictTriangulation, Xs);
+--     --     << "  " << #(keys H) << " NTFE triangulations" << endl;
+--     --     Xs = (keys H)/(k -> H#k#0); -- only take one triangulation that matches
+--     --     Xs = for k in keys H list (
+--     --         X := H#k#0;
+--     --         setToricMoriConeCap(X, H#k);
+--     --         X
+--     --         )
+--     --     -- let's relabel these Xs?
+--     --     );
+--     F := openDatabaseOut dbfilename;
+--     for X in Xs do (
+--         setToricMoriConeCap X;
+--         computeIntersectionNumbers X; -- this should load all of the data we want
+--         F#(toString label X) = dump X;
+--         );
+--     close F;    
+--     )
+
+addToCYDatabase(String, ReflexivePolytope) := opts -> (dbfilename, Q) -> (
     -- This version also finds "moriConeCap" which is a cone containing the actual mori cone: it is the
     -- intersection of all mori cones coming from triangulations equivalent to the given one.
     Xs := findAllCYs Q; -- TODO: check: is findALlCYs still correct.
@@ -304,8 +324,8 @@ readCYDatabase String := Sequence => opts -> (dbname) -> (
       labs := (keys F)/value;
       Qlabels := sort select(labs, lab -> instance(lab, ZZ));
       Xlabels := sort select(labs, lab -> instance(lab, Sequence));
-      Qs := hashTable for lab in Qlabels list lab => cyPolytope F#(toString lab);
-      Xs := hashTable for lab in Xlabels list lab => cyData(F#(toString lab), i -> Qs#i, opts);
+      Qs := hashTable for lab in Qlabels list lab => reflexivePolytope F#(toString lab);
+      Xs := hashTable for lab in Xlabels list lab => calabiYau(F#(toString lab), i -> Qs#i, opts);
     close F;
     (Qs, Xs)
     )
@@ -315,7 +335,7 @@ readCYPolytopes String := HashTable => dbname -> (
     F := openDatabase dbname;
       labs := (keys F)/value;
       Qlabels := sort select(labs, lab -> instance(lab, ZZ));
-      Qs := hashTable for lab in Qlabels list lab => cyPolytope F#(toString lab);
+      Qs := hashTable for lab in Qlabels list lab => reflexivePolytope F#(toString lab);
     close F;
     Qs
     )
@@ -325,7 +345,7 @@ readCYs(String, HashTable) := HashTable => opts -> (dbname, Qs) -> (
     F := openDatabase dbname;
       labs := (keys F)/value;
       Xlabels := sort select(labs, lab -> instance(lab, Sequence));
-      Xs := hashTable for lab in Xlabels list lab => cyData(F#(toString lab), i -> Qs#i, opts);
+      Xs := hashTable for lab in Xlabels list lab => calabiYau(F#(toString lab), i -> Qs#i, opts);
     close F;
     Xs
     )
