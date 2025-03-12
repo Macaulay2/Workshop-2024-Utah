@@ -106,7 +106,7 @@ doc ///
     readCYDatabase
 ///
 
-doc ///
+/// -- working on this one 12 Mar 2025.
   Key
     readCYDatabase
     (readCYDatabase, String)
@@ -119,7 +119,6 @@ doc ///
   Inputs
     dbname:String
       a file name, containing a CY Database
-    readCYDatabase => Ring
   Outputs
     :Sequence
       of two item: the first is a hash table of all ReflexivePolytope's.
