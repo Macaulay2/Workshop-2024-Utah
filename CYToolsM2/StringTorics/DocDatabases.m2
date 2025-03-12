@@ -66,7 +66,7 @@ doc ///
       createM2Lines("cys-h11-5", "topes-h11-5.txt", 4990, 22)
       elapsedTime addToCYDatabase(DBNAME, topes) -- on Apple M4 Max, Jan 2025: 3.14 hours to create.
     Text
-      Here we try to run lots of M2's to do this
+      Here we try to run lots of M2's to do this.
     Pre
       needsPackage "StringTorics"
       R = ZZ[a..f]
@@ -104,4 +104,92 @@ doc ///
   SeeAlso
     addToCYDatabase
     readCYDatabase
+///
+
+doc ///
+  Key
+    readCYDatabase
+    (readCYDatabase, String)
+    [readCYDatabase, Ring]
+  Headline
+    read in all ReflexivePolytope's and CalabiYauInToric's
+  Usage
+    (Qs, Xs) = readCYDatabase dbname
+    (Qs, Xs) = readCYDatabase(dbname, Ring => ZZ[t_1..t_n])
+  Inputs
+    dbname:String
+      a file name, containing a CY Database
+    readCYDatabase => Ring
+  Outputs
+    :Sequence
+      of two item: the first is a hash table of all ReflexivePolytope's.
+      The second is a hash table of all CalabiYauInToric's
+  Description
+    Text
+    Example
+      (Qs, Xs) = readCYDatabase("cy3-h11-3.dbm", Ring => (R = ZZ[a,b,c]));
+      #(keys Qs) == 244
+      #(keys Xs) == 275
+    Example
+      readCYPolytopes "cy3-h11-3.dbm";
+      readCYs("cy3-h11-3.dbm", Qs, Ring => R);
+  SeeAlso
+    
+///
+
+
+
+///
+restart
+needsPackage "StringTorics"
+-- code to create a data base for a specific h11.
+-- 1. first creation.
+-- 2. adding new data when we make it later.
+
+    ------------
+    -- Step 1 --
+    -- create text files of the h11=d polytopes, 1 <= d <= 7 (only 5 so far).
+    ------------
+    topes = kreuzerSkarke(3, Limit => 20000);
+    assert(#topes == 244)
+    "topes-h11-3.txt" << toExternalString topes << endl << close;
+
+    topes = kreuzerSkarke(4, Limit => 20000);
+    assert(#topes == 1197)
+    "topes-h11-4.txt" << toExternalString topes << endl << close;
+
+    topes = kreuzerSkarke(5, Limit => 20000);
+    assert(#topes == 4990)
+    "topes-h11-5.txt" << toExternalString topes << endl << close;
+
+    topes = kreuzerSkarke(6, Limit => 200000);
+    assert(#topes == 17101)
+    "topes-h11-6.txt" << toExternalString topes << endl << close;
+
+    topes = kreuzerSkarke(7, Limit => 200000);
+    assert(#topes == 50376)
+    "topes-h11-7.txt" << toExternalString topes << endl << close;
+    
+    elapsedTime value get "topes-h11-7.txt"; -- < .2 sec
+
+   ------------
+   -- Step 2 --
+   ------------
+   -- h11=3
+   createCYDatabaseFiles("cy3-h11-3", "topes-h11-3.txt", 15)
+   -- now wait for all 15 of these M2 processes to stop (they discplay when the are done).
+   combineCYDatabaseFiles("cy3-h11-3", "topes-h11-3.txt", 15)
+
+   -- h11=4
+   createCYDatabaseFiles("cy3-h11-4", "topes-h11-4.txt", 15)    
+   combineCYDatabaseFiles("cy3-h11-4", "topes-h11-4.txt", 15)
+
+   -- h11=5
+   createCYDatabaseFiles("cy3-h11-5", "topes-h11-5.txt", 15)    
+   combineCYDatabaseFiles("cy3-h11-5", "topes-h11-5.txt", 15)
+
+   -- h11=6
+   createCYDatabaseFiles("cy3-h11-6", "topes-h11-6.txt", 15)    
+   combineCYDatabaseFiles("cy3-h11-6", "topes-h11-6.txt", 15)
+   
 ///

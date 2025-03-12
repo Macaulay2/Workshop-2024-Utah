@@ -18,7 +18,9 @@ hodgeNumbers KSEntry := (ks) -> (
     (value substring(str, ans#1#0, ans#1#1),
         value substring(str, ans#2#0, ans#2#1))
     )
-
+------------------------------------------------
+-- Combining several Database files into one ---
+------------------------------------------------
 combineCYDatabases = method()
 combineCYDatabases(Database, Database) := (db1, db2) -> (
     -- appends all keys of db2 to db1
@@ -43,7 +45,7 @@ addToCYDatabase = method(Options => {NTFE => true, "CYs" => true})
 -- Actually, it only looks at the ID label in the 'ks' entry, not at the polytope itself.
 -- Under default conditions, all NTFE triangulations are found, and all corresponding CY's
 -- are placed into the data base.
--- This function returns the CYPolytope found or created.
+-- This function returns the ReflexivePolytope found or created.
 addToCYDatabase(String, KSEntry) := ReflexivePolytope => opts -> (dbfilename, ks) -> (
     lab := label ks;
     F := openDatabaseOut dbfilename;
@@ -63,38 +65,6 @@ addToCYDatabase(String, KSEntry) := ReflexivePolytope => opts -> (dbfilename, ks
     Q
     )
 
--- addReflexiveToCYDatabase = method(Options => options addToCYDatabase)
--- addReflexiveToCYDatabase(String, KSEntry) := ReflexivePolytope => opts -> (dbfilename, ks) -> (
---     lab := label ks;
---     F := openDatabaseOut dbfilename;
---     if not F#?(toString lab) then (
---         << "computing for polytope " << lab << endl;
---         Q := reflexivePolytope(ks, ID => lab); -- note that the polytope data is really that of the dual to topes#i.
---         computeBasics Q;
---         -- now write it
---         F#(toString lab) = dump Q;
---         )
---     else (
---         Q = reflexivePolytope F#(toString lab);
---         );
---     close F;
---     -- TODO: add this back in...
---     --if opts#"CYs" then addToCYDatabase(dbfilename, Q, NTFE => opts.NTFE);
---     Q
---     )
--- addReflexiveToCYDatabase(String, List) := opts ->(dbfilename, topes) -> (
---     for tope in topes do addReflexiveToCYDatabase(dbfilename, tope, opts);
---     )
-
-
-processCYPolytopes = method(Options => options addToCYDatabase)
--- processCYPolytopes(String, ZZ, Sequence) := (dbfilenamePrefix, h11, lohi) -> (
---     elapsedTime topes := kreuzerSkarke(h11, Limit => 200000);
---     mytopes := take(topes, toList lohi);
---     dbname := dbfilenamePrefix | "-" | lohi#0 | "-" | lohi#1 | ".dbm";
---     elapsedTime createCYDatabase(dbname, mytopes);
---     )
-
 addToCYDatabase(String, String, Sequence) := String => opts -> (dbfilenamePrefix, topesFilename, lohi) -> (
     -- dbfilenamePrefix will include lo,hi in the name of the created database.
     -- creates (or appends to) a database, and returns the name of the database file.
@@ -104,8 +74,8 @@ addToCYDatabase(String, String, Sequence) := String => opts -> (dbfilenamePrefix
     if hi >= #topes then hi = #topes-1; -- last one
     mytopes := take(topes, toList lohi);
     dbname := dbfilenamePrefix | "-range-" | lohi#0 | "-" | lohi#1 | ".dbm";
-    t := addToCYDatabase(dbname, mytopes, opts);
-    << "filename " << dbname << " has been constructed in " << t#0 << "sec" << endl;
+    t := elapsedTiming addToCYDatabase(dbname, mytopes, opts);
+    << "filename " << dbname << " has been constructed in " << t#0 << " sec" << endl;
     dbname
     )
 
@@ -131,7 +101,7 @@ addToCYDatabase(String, String, ZZ, ZZ) := opts -> (dbfilenamePrefix, topesFilen
 createGroups = (numtotal, numgroups) -> (
     q := numtotal // numgroups;
     r := numtotal % numgroups;
-    print (q,r);
+    --print (q,r);
     set1 := for i from 0 to r-1 list (i*(q+1), i*(q+1) + q);
     set2 := for j from 0 to numgroups-r-1 list (r*(q+1) + j*q, r*(q+1) + j*q + q-1);
     join(set1, set2)
@@ -140,11 +110,12 @@ createGroups = (numtotal, numgroups) -> (
 cmdLine = ///M2 --silent --stop -e 'needsPackage "StringTorics"' -e 'lohi = (LO,HI)' -e 'addToCYDatabase("DBNAMEPREFIX", "TOPESFILE", lohi)' -e 'exit 0' &///
 createM2Lines = (dbfilenamePrefix, topesFilename, numtotal, numgroups) -> (
     sets := createGroups(numtotal, numgroups);
-    for s in sets do print (
+    cmds := for s in sets list (
         replace("TOPESFILE", topesFilename,
         replace("DBNAMEPREFIX", dbfilenamePrefix,
         replace("HI", toString s#1, 
-            replace("LO", toString s#0, cmdLine)))))
+            replace("LO", toString s#0, cmdLine)))));
+    concatenate between("\n", cmds)
     )
 
 ///
@@ -153,52 +124,6 @@ debug needsPackage "StringTorics"
 createM2Lines("AFile", "BFile", 40, 11)
 createGroups(17101, 100)
 ///
-
---addToCYDatabase = method(Options => {NTFE => false})
-
--- Delete this older version (which doesn't compute toric mori cone caps)
--- This only adds the CY's coming from Q.
--- addToCYDatabase(String, CYPolytope) := opts -> (dbfilename, Q) -> (
---     elapsedTime Xs := findAllCYs Q; -- TODO: check: is findALlCYs still correct.
---     << "  " << #Xs << " triangulations total" << endl;
---     if opts.NTFE then (
---         elapsedTime H := partition(restrictTriangulation, Xs);
---         << "  " << #(keys H) << " NTFE triangulations" << endl;
---         Xs = (keys H)/(k -> H#k#0); -- only take one triangulation that matches
---         -- let's relabel these Xs
---         );
---     F := openDatabaseOut dbfilename;
---     for X in Xs do (
---         computeIntersectionNumbers X; -- this should load all of the data we want
---         F#(toString label X) = dump X;
---         );
---     close F;    
---     )
-
--- addToCYDatabase(String, CYPolytope) := opts -> (dbfilename, Q) -> (
---     -- This version also finds "moriConeCap" which is a cone containing the actual mori cone: it is the
---     -- intersection of all mori cones coming from triangulations equivalent to the given one.
---     Xs := findAllCYs Q; -- TODO: check: is findALlCYs still correct.
---     -- << "  " << #Xs << " triangulations total" << endl;
---     -- if opts.NTFE then (
---     --     elapsedTime H := partition(restrictTriangulation, Xs);
---     --     << "  " << #(keys H) << " NTFE triangulations" << endl;
---     --     Xs = (keys H)/(k -> H#k#0); -- only take one triangulation that matches
---     --     Xs = for k in keys H list (
---     --         X := H#k#0;
---     --         setToricMoriConeCap(X, H#k);
---     --         X
---     --         )
---     --     -- let's relabel these Xs?
---     --     );
---     F := openDatabaseOut dbfilename;
---     for X in Xs do (
---         setToricMoriConeCap X;
---         computeIntersectionNumbers X; -- this should load all of the data we want
---         F#(toString label X) = dump X;
---         );
---     close F;    
---     )
 
 addToCYDatabase(String, ReflexivePolytope) := opts -> (dbfilename, Q) -> (
     -- This version also finds "moriConeCap" which is a cone containing the actual mori cone: it is the
@@ -237,87 +162,49 @@ addToCYDatabase(String, String, List) := opts ->(dbfilename, dbQfilename, topeLa
         );
     )
 
-createCYDatabase = method(Options => {
-        Limit => 100000,
-        NTFE => true,
-        "CYs" => true})
-createCYDatabase(String, ZZ, List) := opts -> (dbfileprefix, h11, range) -> (
-    topes := kreuzerSkarke(h11, Limit => opts.Limit);
-    (lo, hi) := toSequence range;
-    hi = hi-1;
-    filename := dbfileprefix | "-range-"|lo|"-"|hi|".dbm";
-    addToCYDatabase(filename, topes_{lo..hi}, NTFE => opts.NTFE, "CYs" => opts#"CYs")
+-- Options => {
+--         Limit => 100000,
+--         "CYs" => true})
+
+------------------------------
+-- Top level functions -------
+-- createCYDatabaseFiles  ----
+-- combineCYDatabaseFiles ----
+------------------------------
+createCYDatabaseFiles = method()
+combineCYDatabaseFiles = method()
+
+createCYDatabaseFiles(String, String, ZZ) := (prefix, topesfile, ncores) -> (
+    -- set file names based on prefix
+    topes := value get topesfile;
+    str := createM2Lines(prefix, topesfile, #topes, ncores);
+    << "-- starting " << ncores << " jobs ------" << endl;
+    run str; -- hard to tell when this is done!
     )
--- createCYDatabase = method()
 
--- createCYDatabase(String, List) := (dbfilename, topes) -> (
---     -- open data base file
---     F := openDatabaseOut dbfilename;
---     -- loop through topes, create CYPolytope, populate it, write it to data base.
---     elapsedTime for i from 0 to #topes - 1 do elapsedTime (
---         lab := label topes_i;
---         if lab === null then lab = i; -- else print "using label";
---         << "computing for polytope " << lab << endl;
---         V := cyPolytope(topes#i, ID => lab); -- note that the polytope data is really that of the dual to topes#i.
---         -- now fill it with data we want
---         basisIndices V; -- compute them
---         isFavorable V; -- compute h11, h21, favorability.
---         annotatedFaces V; -- compute annotated faces
---         automorphisms V;
---         -- now write it
---         F#(toString lab) = dump V;
---         );
---     close F;
---     )
+-- run this after all "ncores" processes have completed.
+combineCYDatabaseFiles(String, String, ZZ) := (prefix, topesfile, ncores) -> (
+    -- set file names based on prefix
+    fileglob := prefix|"-range*";
+    dbname := prefix|".dbm";
+    topes := value get topesfile;
+    files := lines(get("!ls "|fileglob)); -- uses output of `run str`.
+    combineCYDatabases({dbname} | files);
+    run ("rm "|fileglob); -- remove all these constructed files (but not dbname!)
 
+   -- now we test if all the polytopes were actually included.
+   F := openDatabase dbname;
+   handled := for x in sort keys F list (y := value x; if instance(y, ZZ) then y else continue);
+   if handled =!= toList(0..#topes-1) then (
+       << "----WARNING: not all polytopes were constructed for some reason----" << end;
+       );
+   close F;
+   dbname
+   )
 
--- addToCYDatabase(String, CYPolytope) := opts -> (dbfilename, Q) -> (
---     elapsedTime Xs := findAllCYs Q; -- TODO: check: is findALlCYs still correct.
---     << "  " << #Xs << " triangulations total" << endl;
---     if opts.NTFE then (
---         elapsedTime H := partition(restrictTriangulation, Xs);
---         << "  " << #(keys H) << " NTFE triangulations" << endl;
---         Xs = (keys H)/(k -> H#k#0); -- only take one triangulation that matches
---         -- let's relabel these Xs
---         );
---     F := openDatabaseOut dbfilename;
---     for X in Xs do (
---         computeIntersectionNumbers X; -- this should load all of the data we want
---         F#(toString label X) = dump X;
---         );
---     close F;    
---     )
-
--- addToCYDatabase(String, CYPolytope) := opts -> (dbfilename, Q) -> (
---     -- This version also finds "moriConeCap" which is a cone containing the actual mori cone: it is the
---     -- intersection of all mori cones coming from triangulations equivalent to the given one.
---     elapsedTime Xs := findAllCYs Q; -- TODO: check: is findALlCYs still correct.
---     << "  " << #Xs << " triangulations total" << endl;
---     if opts.NTFE then (
---         elapsedTime H := partition(restrictTriangulation, Xs);
---         << "  " << #(keys H) << " NTFE triangulations" << endl;
---         Xs = (keys H)/(k -> H#k#0); -- only take one triangulation that matches
---         Xs = for k in keys H list (
---             X := H#k#0;
---             setToricMoriConeCap(X, H#k);
---             X
---             )
---         -- let's relabel these Xs?
---         );
---     F := openDatabaseOut dbfilename;
---     for X in Xs do (
---         computeIntersectionNumbers X; -- this should load all of the data we want
---         F#(toString label X) = dump X;
---         );
---     close F;    
---     )
-
--- addToCYDatabase(String, Database, ZZ) := opts -> (dbfilename, topesDB, i) -> (
---     <<  "-- doing polytope " << i << endl;
---     Q := cyPolytope(topesDB#(toString i), ID => i);
---     addToCYDatabase(dbfilename, Q, opts);
---     )
-
+----------------------------------------
+-- Reading already existing databases --
+----------------------------------------
 readCYDatabase = method(Options => {Ring => null})
 readCYDatabase String := Sequence => opts -> (dbname) -> (
     F := openDatabase dbname;
