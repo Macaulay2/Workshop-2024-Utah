@@ -41,7 +41,7 @@ combineCYDatabases List := (dbL) -> (
 
 addToCYDatabase = method(Options => {NTFE => true, "CYs" => true})
 
--- This function adds the CYPolytope 'ks' to the database, if it is not there yet.
+-- This function adds the ReflexivePolytope 'ks' to the database, if it is not there yet.
 -- Actually, it only looks at the ID label in the 'ks' entry, not at the polytope itself.
 -- Under default conditions, all NTFE triangulations are found, and all corresponding CY's
 -- are placed into the data base.
@@ -240,21 +240,21 @@ readCYs(String, HashTable) := HashTable => opts -> (dbname, Qs) -> (
 -------------------------------------------------------
 -- Read one example from a database or database file --
 -------------------------------------------------------
-cyPolytope(String, ZZ) := CYPolytope => opts -> (dbfilename, topeid) -> (
+cyPolytope(String, ZZ) := ReflexivePolytope => opts -> (dbfilename, topeid) -> (
     db := openDatabase dbfilename;
     Q := cyPolytope(db, topeid, opts);
     close db;
     Q
     )
 
-cyPolytope(Database, ZZ) := CYPolytope => opts -> (db, topeid) -> (
+cyPolytope(Database, ZZ) := ReflexivePolytope => opts -> (db, topeid) -> (
     k := toString topeid;
     if not db#?k then error("polytope with label "|k|" does not exist");
-    cyPolytope(db#k, opts)
+    reflexivePolytope(db#k, opts)
     )
 
 -- Check: this is not quite correct.
-calabiYau(Database, CYPolytope, Sequence) := CalabiYauInToric => opts -> (db, Q, lab) -> (
+calabiYau(Database, ReflexivePolytope, Sequence) := CalabiYauInToric => opts -> (db, Q, lab) -> (
     -- lab should be (polytopelab, triangulationlabel).
     -- polytopelab should match label of Q.
     if first lab =!= label Q then error "incorrect label";
@@ -265,7 +265,7 @@ calabiYau(Database, CYPolytope, Sequence) := CalabiYauInToric => opts -> (db, Q,
 
 calabiYau(Database, Sequence) := CalabiYauInToric => opts -> (db, lab) -> (
     -- lab should be (polytopelab, triangulationlabel).
-    -- first retrieve CYPolytope, and then CalabiYauInToric.
+    -- first retrieve ReflexivePolytope, and then CalabiYauInToric.
     if #lab < 2 then error "expected well-formed label";
     Q := cyPolytope(db, first lab);
     k := toString lab;
@@ -273,7 +273,7 @@ calabiYau(Database, Sequence) := CalabiYauInToric => opts -> (db, lab) -> (
     calabiYau(db#k, lab -> Q, opts)
     )
 
-calabiYau(String, CYPolytope, Sequence) := CalabiYauInToric => opts -> (dbfilename, Q, lab) -> (
+calabiYau(String, ReflexivePolytope, Sequence) := CalabiYauInToric => opts -> (dbfilename, Q, lab) -> (
     db := openDatabase dbfilename;
     X := calabiYau(db, Q, lab, opts);
     close db;

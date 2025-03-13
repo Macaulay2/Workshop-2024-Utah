@@ -106,6 +106,25 @@ doc ///
     readCYDatabase
 ///
 
+///
+   -- working on whether our creation of Q, X from the data base is
+   -- doing more work than should be.  i.e. we should just grab data
+   -- from the database, not doing any further computation (the N
+   -- polytope in particular should not be created, I would hope...
+   restart
+   needsPackage "StringTorics"
+   F = openDatabase "can-delete-me-ntfe-h11-2.dbm"
+   F#"0"
+   Q = reflexivePolytope F#"0"
+   peek Q
+   peek Q.cache
+   read
+
+   Q = cyPolytope(F, 3)
+   peek Q.cache
+   X = calabiYau(F, (3,0))
+ ///
+
 /// -- working on this one 12 Mar 2025.
   Key
     readCYDatabase
