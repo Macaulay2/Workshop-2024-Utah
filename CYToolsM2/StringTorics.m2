@@ -1019,11 +1019,13 @@ restart
   installPackage "IntegerEquivalences" -- works, lots of warnings
   installPackage "DanilovKhovanskii"
   installPackage "PALPInterface"
-  installPackage "StringTorics"
-
+  elapsedTime installPackage "StringTorics"  -- 44.4909s elapsed TODO: improve this!
+  
   check IntegerEquivalences -- 8 checks, finishes to completion.
   check DanilovKhovanskii -- 10 checks, finishes, 3 take some time
-  check StringTorics -- 42 tests, finishes to completion.  1 test take > 10 sec.
+  time check "StringTorics" -- used 53.257s (cpu); 23.9121s (thread); 0s (gc)
+  elapsedTime check "StringTorics" -- 39.87 sec
+    -- currently: 43 tests, finishes to completion.  Longest test: 6.2 sec
     -- however, one test seems to connect to KS database.
 
 restart

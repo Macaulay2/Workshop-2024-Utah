@@ -156,7 +156,7 @@ faceDimension(ReflexivePolytope, ZZ) := ZZ => (Q, indx) -> (
     LPdims#indx
     )
 
-dim ReflexivePolytope := ZZ => Q -> dim polytope(Q, "N")
+dim ReflexivePolytope := ZZ => Q -> rank matrix vertices Q
 
 computeRaysAndDimensions = method(Options => { InteriorFacets => false })
 computeRaysAndDimensions ReflexivePolytope := opts -> Q -> (

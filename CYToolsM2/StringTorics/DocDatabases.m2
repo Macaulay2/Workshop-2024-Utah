@@ -14,10 +14,11 @@ doc ///
 
       Here, we describe how to construct such a file.  We will construct the file for all examples
       with $h^{1,1} = 2$.  There are not very many of these, but the same method works for
-      larger cases.
+      larger cases.  We limit the number below, in order to make the
+      example run faster.  You would generally not place a limit.
     Example
-      topes = kreuzerSkarke(2, Limit => 1000);
-      assert(#topes == 36)
+      topes = kreuzerSkarke(2, Limit => 10);
+      assert(#topes == 10) -- without the limit, it would be 36.
       elapsedTime addToCYDatabase("can-delete-me-ntfe-h11-2.dbm", topes)
     Text
       Let's test that this was created correctly.  We see that in particular the
@@ -32,11 +33,11 @@ doc ///
     Example
       RZ = ZZ[a,b]
       (Qs, Xs) = readCYDatabase("can-delete-me-ntfe-h11-2.dbm", Ring => RZ);
-      assert(keys Qs === toList(0..35))
+      assert(keys Qs === toList(0..9))
       sort keys Xs
-      #oo == 36
+      #oo == 10
     Text
-      The line above confirms that there are 36 constructed Calabi-Yau 3-fold hypersurfaces of
+      The line above confirms that there are 10 constructed Calabi-Yau 3-fold hypersurfaces of
       $h^{1,1} = 2$.  Note that each polytope only gives one triangulation.  As  $h^{1,1}$ increases,
       the number of triangulations increases, and at some point, becomes astronomical.
 
@@ -68,6 +69,7 @@ doc ///
     Text
       Here we try to run lots of M2's to do this.
     Pre
+      -- TODO: this is WRONG!!
       needsPackage "StringTorics"
       R = ZZ[a..f]
       filename = elapsedTime processCYPolytopes("cys-h11-6", "topes-h11-6", 2, 3000)
@@ -209,5 +211,11 @@ needsPackage "StringTorics"
    -- h11=6
    createCYDatabaseFiles("cy3-h11-6", "topes-h11-6.txt", 15)    
    combineCYDatabaseFiles("cy3-h11-6", "topes-h11-6.txt", 15)
-   
+
+   time (Qs, Xs) = readCYDatabase "cy3-h11-6.dbm"; -- this is
+   Q = cyPolytope("cy3-h11-6.dbm", 11)
+   keys Q.cache -- "N polytope" is not here!
+   member("N polytope", keys Q.cache)
+   X = calabiYau("cy3-h11-6.dbm", Q, (11,0))
+   member("N polytope", keys Q.cache) -- now it is here!
 ///

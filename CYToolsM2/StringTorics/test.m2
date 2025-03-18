@@ -109,9 +109,11 @@ TEST ///
       {1, -1, 0, 0}, 
       {-1, 1, 0, 0}}
       )
-  Xs = findAllCYs Q2; -- what if I only want the NTFE ones?  FIX.
-  #Xs
-
+  -- this commented out block takes too long
+  -- elapsedTime Xs = findAllCYs Q2; -- what if I only want the NTFE ones?  FIX.
+  -- #Xs
+  -- # Q2.cache#"vtriangulations"
+  -- # Q2.cache#"ptriangulations"
   X = makeCY Q2
   
   (netList toricIntersectionNumbers X, netList intersectionNumbers X)
@@ -1090,7 +1092,9 @@ assert(h21OfCY(polar P) == 90)
   restart
   needsPackage "StringTorics"
 *-
-TEST ///  
+TEST ///
+  -- TODO: add some asserts to this test
+  -- TODO: I commented out delaunaySubdivision call (too long for a test)
   debug needsPackage "StringTorics"
   A = transpose matrix {{-1,-1,2},{-1,0,1},{-1,1,1},{0,-1,2},{0,1,1},{1,-1,3},{1,0,-1},{1,1,-2}}
   tri = regularFineTriangulation A
@@ -1101,8 +1105,8 @@ TEST ///
   C = transpose matrix latticePointList polar convexHull A
   tri = regularFineTriangulation C
 
-  elapsedTime delaunaySubdivision C -- takes 20 seconds?! (now 8 seconds)
-  isRegularTriangulation tri
+  -- elapsedTime delaunaySubdivision C -- takes 20 seconds?! (now 8 seconds)
+  elapsedTime isRegularTriangulation tri
   P2 = polar convexHull A
   regularStarTriangulation P2
   volume P2
@@ -1193,7 +1197,7 @@ TEST /// -- medium size (h^11 = 15) example
   tri = tri_1/(x -> append(x, numcols A - 1))
   isFine(A, tri)
   isStar(A, tri)
-  wts = regularTriangulationWeights(A, tri)
+  elapsedTime wts = regularTriangulationWeights(A, tri)
   elapsedTime regularSubdivision(A, matrix{wts}) -- this is slower than we would like
   assert(oo == tri) -- both oo, tri should be already sorted.
 
@@ -1202,7 +1206,7 @@ TEST /// -- medium size (h^11 = 15) example
   for c in circs0 list bistellarFlip(tri, c)
   bistellarFlip(tri, circs0_1)
   
-  elapsedTime tris = generateTriangulations(A, tri, Limit => 50);
+  elapsedTime tris = generateTriangulations(A, tri, Limit => 10);
   tris/isFine_A//tally
   tris/isStar_A//tally
   elapsedTime(tris/regularTriangulationWeights_A);

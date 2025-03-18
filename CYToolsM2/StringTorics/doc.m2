@@ -631,11 +631,12 @@ doc ///
       S = ring V
       describe S
       cohomologyBasis(2, V, {-4,0})
-      cohoms = hashTable flatten for a from -6 to 6 list for b from -6 to 6 list elapsedTime (a,b) => (hh^*(OO_X(a,b)))
-      matrix for a from -6 to 6 list for b from -6 to 6 list (cohoms#(a,b))_0
-      matrix for a from -6 to 6 list for b from -6 to 6 list (cohoms#(a,b))_1
-      matrix for a from -6 to 6 list for b from -6 to 6 list (cohoms#(a,b))_2
-      matrix for a from -6 to 6 list for b from -6 to 6 list (cohoms#(a,b))_3
+      (lo,hi) = (-4, 4)
+      elapsedTime cohoms = hashTable flatten for a from lo to hi list for b from lo to hi list elapsedTime (a,b) => (hh^*(OO_X(a,b)))
+      matrix for a from lo to hi list for b from lo to hi list (cohoms#(a,b))_0
+      matrix for a from lo to hi list for b from lo to hi list (cohoms#(a,b))_1
+      matrix for a from lo to hi list for b from lo to hi list (cohoms#(a,b))_2
+      matrix for a from lo to hi list for b from lo to hi list (cohoms#(a,b))_3
       for a from 0 to 10 list a => hh^*(OO_X(0,a))
       
       cohomologyBasis(2, V, {-6,3})
@@ -1238,7 +1239,8 @@ doc ///
 ------------------------------------------------
 -- Database creation and retrieval functions ---
 ------------------------------------------------
-doc ///
+-- TODO: remove this node, as it has moved to DocCYPolytope.m2
+///
   Key
     "Creating a CYDatabase file"
   Headline
