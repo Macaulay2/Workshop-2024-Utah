@@ -1,7 +1,7 @@
 newPackage(
        "NumberFields",
     Version => "0.0.0", 
-        Date => "July 11th, 2024",
+        Date => "April 7th, 2025",
         Authors => {
             {Name=>"Jack J Garzella", Email=>"jgarzell@ucsd.edu", HomePage=>"https://mathweb.ucsd.edu/~jjgarzel"},
             {Name=>"Nicholas Gaubatz", Email=>"nmg0029@auburn.edu", HomePage=>"https://nicholasgaubatz.github.io/"},
