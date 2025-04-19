@@ -482,7 +482,8 @@ normalizeByAutomorphisms(List, List) := (gPerms, T) -> (
         )
     )
 
-findAllCYs = method(Options => {Ring => null, NTFE => true, Automorphisms => true}) -- opts.Ring: ZZ[h11 variables].
+makeCYs = method(Options => {Ring => null, PicardRing => null, NTFE => true, Automorphisms => true, Limit => infinity}) -- opts.Ring same as opts.PicardRing: ZZ[h11 variables].
+findAllCYs = method(Options => options makeCYs)
 findAllCYs CYPolytope := List => opts -> Q -> (
     Ts := findAllFRSTs Q;
     RZ := if opts#Ring === null then (

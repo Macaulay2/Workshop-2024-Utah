@@ -1,7 +1,7 @@
 newPackage(
         "StringTorics",
-        Version => "0.7", -- bumped on 12 April.
-        Date => "12 April 2024",
+        Version => "0.8", -- bumped on 18 April 2025
+        Date => "18 April 2025",
         Authors => {
             {Name => "Mike Stillman", 
             Email => "mike@math.cornell.edu", 
@@ -57,6 +57,7 @@ export {
     
     "cyData",
     "makeCY",
+    "makeCYs",
     "calabiYau", -- versions might include:
        -- calabiYau(CYPolytope, Triangulation, Ring => RZ, Label => (a,i))
        -- The following are all taking the CY3 from a database:
@@ -1006,6 +1007,7 @@ beginDocumentation()
 
 load (currentFileDirectory | "StringTorics/doc.m2")
 load (currentFileDirectory | "StringTorics/DocCYPolytope.m2")
+load (currentFileDirectory | "StringTorics/DocCalabiYauInToric.m2")
 load (currentFileDirectory | "StringTorics/DocDatabases.m2")
 load (currentFileDirectory | "StringTorics/test.m2")
 load (currentFileDirectory | "StringTorics/TestsCYPolytope.m2")
@@ -1021,10 +1023,11 @@ restart
   installPackage "PALPInterface"
   elapsedTime installPackage "StringTorics"  -- 44.4909s elapsed TODO: improve this!
   
-  check IntegerEquivalences -- 8 checks, finishes to completion.
-  check DanilovKhovanskii -- 10 checks, finishes, 3 take some time
-  time check "StringTorics" -- used 53.257s (cpu); 23.9121s (thread); 0s (gc)
-  elapsedTime check "StringTorics" -- 39.87 sec
+  check IntegerEquivalences -- 8 checks, finishes to completion, 1 takes 6.6 sec
+  check DanilovKhovanskii -- 10 checks, finishes, 3 take some time (3.9sec, 4.9sec, 16.5 sec).  One test error (#8) (hmmm, I see 9 checks, not 10...)
+    -- the error is because we use ReflexivePolytope...
+  time check "StringTorics" -- used 53.257s (cpu); 23.9121s (thread); 0s (gc) (one uses 5 sec, 6.6 sec, 4.5 sec, 4.1 sec)) Now 68 sec... 
+  elapsedTime check "StringTorics" -- 39.87 sec.  
     -- currently: 43 tests, finishes to completion.  Longest test: 6.2 sec
     -- however, one test seems to connect to KS database.
 

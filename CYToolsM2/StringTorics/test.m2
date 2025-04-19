@@ -69,9 +69,11 @@ TEST ///
    0   0   1  -1   0  -1   0  -1   1   0   1  -1   1
    0   0   0   0   1   1   2   1  -2  -1  -2   0   0
    "
-  Q = cyPolytope(tope, ID => 40)  
+
+  Q = reflexivePolytope tope
+  assert(label Q === 40)
   assert isFavorable Q
-  basisIndices Q
+  basisIndices Q === {0, 1, 2, 3, 4, 5, 6} -- I suppose this could change at some point.
   transpose matrix degrees Q
   X = makeCY Q
   toricIntersectionNumbers X
@@ -88,11 +90,11 @@ TEST ///
    0   0   0   2   2   2  -4
    "
 
-  Q2 = cyPolytope nonfavTope   
+  Q2 = reflexivePolytope nonfavTope
+  assert(label Q2 === 9)
   assert not isFavorable Q2
   assert(hh^(1,1) Q2 == 7)
   assert(hh^(1,2) Q2 == 27)
-  -- the following will need to change...
   assert(basisIndices Q2 === {0, 1, 2, 3, 4, (9, 0), (9, 1)}) -- this could change if the algorithm changes.
   -- Q2.cache#"toric basisIndices" === {0, 1, 2, 3, 4, 9} -- we don't compute or use this ...
   findTwoFaceInteriorDivisors Q2
@@ -136,13 +138,12 @@ TEST ///
 *-
 ///
   -- Checking on the interface of the package.
-  debug needsPackage "StringTorics"
   topes = kreuzerSkarke(5, Limit => 10000);
   #topes == 4990
   A = matrix topes_40 -- this will be vertices of a polytope in the M lattice 
   -- We need to get to a triangulation of the dual polytope...
-  X0 = cyPolytope topes_40
-  X = makeCY(X0, Ring => (RZ = ZZ[s_1..s_5]))
+  Q = reflexivePolytope topes_40
+  X = makeCY(Q, PicardRing => (RZ = ZZ[s_1..s_5]))
 
   -- X = calabiYau(A, Lattice => "M") -- A must define a reflexive polytope.
 
@@ -1334,20 +1335,28 @@ TEST ///
 
 ///
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-  
 ///
-  -- THIS TEST CURRENTLY FAILS (Aug 2022).
+  -- THIS TEST CURRENTLY FAILS (Aug 2022). FAILS 2025 too
   -- Non favorable example.
   -- Either implement functionality for this situation, or give reasonable error messages!
   -- XXX start here Aug 2022.
   -- this is an h11=5 polytope.  Let's make sure everything seems ok with it 
   -- reason: it is seemingly becoming an h11=4 polytope?
   -- Actually: it is a torsion grading.
--*
-  restart
-*-  
-  needsPackage "StringTorics"
-  topes = kreuzerSkarke(5, Limit => 50);
-  A = matrix topes_1
+
+  tope = KSEntry "4 5  M:29 5 N:9 5 H:5,29 [-48] id:1
+   1   0   2   3  -9
+   0   1   3   2 -10
+   0   0   4   0  -8
+   0   0   0   4  -4
+   "
+  -- topes = kreuzerSkarke(5, Limit => 50);
+  -- tope = topes_1
+  A = matrix tope
   P = convexHull A  
   assert isReflexive P
   h11OfCY P == 5
@@ -1366,16 +1375,15 @@ TEST ///
   picardGroup V
   h11OfCY P
 
-  Q = cyPolytope topes_1
-  -- Q = reflexivePolytope A -- really the dual of A.
+  Q = reflexivePolytope tope
   vertices polytope Q
   netList annotatedFaces Q -- annotated faces of the dual of A.
   peek Q.cache
-  assert(h11OfCY Q == 5)
-  assert(h21OfCY Q == 29)
+  assert(hh^(1,1) Q == 5)
+  assert(hh^(1,2) Q == 29)
   assert(dim Q == 4)
   assert not isFavorable Q -- i.e. whether the dual has any points interior to a 2-face, whose dual does too.
-  isFavorable polar Q
+  assert not isFavorable polar Q
   X = makeCY Q -- BUG/TODO: should allow CoefficientRing at least...
   V = ambient X -- TODO: need a way to make this directly from Q...
   Xs = findAllFRSTs Q -- only one here, not surprisingly...
@@ -1400,17 +1408,25 @@ TEST ///
   restart
   needsPackage "StringTorics"
 *-
-  topes = kreuzerSkarke(6, Limit => 10)  
-  Q = cyPolytope(topes_7, ID => 7)
+  --topes = kreuzerSkarke(6, Limit => 10)  
+  tope = KSEntry "4 7  M:31 7 N:11 6 H:6,30 [-48] id:7
+   1   0   2   1   3  -3  -5
+   0   1   3   0   2  -4  -2
+   0   0   4   0   4  -4  -4
+   0   0   0   2   2   0  -4
+  "
+  Q = reflexivePolytope tope
+  label Q === 7
   X = makeCY Q
   assert isFavorable Q
-  elapsedTime Xs = findAllCYs Q;
-  assert(#Xs == 21)
+  elapsedTime Xs = findAllCYs(Q, NTFE => false, Automorphisms => false); -- too long... (13 sec or so)
+  assert(#Xs == 21) -- wrong? TODO: BUG. Should give I think 21?
   PXs = partition(X -> restrictTriangulation X, Xs)
   assert(#keys PXs == 4) -- at most 4 different topologies
 
   sampleXs = for k in keys PXs list PXs#k#0; -- a list of 4 CY's that have the 4 different topologies.
-  sampleXsGV = for X in sampleXs list partitionGVConeByGV(X, DegreeLimit => 20)  
+  sampleXsGV = for X in sampleXs list partitionGVConeByGV(X, DegreeLimit => 20)
+  -- folloing line FAILS
   for p in subsets({0,1,2,3}, 2) list p => findLinearMaps(sampleXsGV#(p#0), sampleXsGV#(p#1))
 
   -- this shows that 2 of the 4 are likely the same.  We next compute the topology of these 4 X's
@@ -1658,19 +1674,18 @@ TEST ///
   -- Test the routines of this package on the example X given here (h11=3, h12=69)
   topes = kreuzerSkarke(3, Limit => 50);    
   A = matrix topes_30
-  P = cyPolytope(topes_30, ID => 30)
-  hh^(1,1) P == 3
-  hh^(1,2) P == 69
+  P = reflexivePolytope(topes_30, ID => 30)
+  assert(hh^(1,1) P == 3)
+  assert(hh^(1,2) P == 69)
   X = makeCY(P, Ring => (RZ = ZZ[x,y,z]), ID => 0)
-  -- findAllFRSTs P
-  -- X = cyData(P, first oo, ID => 0)
+  assert(# findAllFRSTs P === 2)
  
   assert(hh^(1,1) X == 3)
   assert(hh^(1,2) X == 69)
   assert(dim X == 3)
   elapsedTime topologicalData X
   dump X
-  dump cyPolytope X
+  dump reflexivePolytope X
   elapsedTime restrictTriangulation X
 
   assert(dim X  == 3)

@@ -108,6 +108,7 @@ reflexivePolytope Matrix := ReflexivePolytope => opts -> vertices -> (
     reflexivePolytope(P2, opts)
     )
 
+-- cyPolytope: Deprecated
 cyPolytope List := CYPolytope => opts -> vertices -> (
     return reflexivePolytope(vertices, opts);
     error "calling cyPolytope List";
@@ -121,15 +122,13 @@ cyPolytope Matrix := CYPolytope => opts -> vertices -> (
     )
 cyPolytope KSEntry := opts -> tope -> reflexivePolytope(tope, opts)
 cyPolytope String := opts -> str -> reflexivePolytope(str, opts)
-    
-
 
 reflexivePolytope KSEntry := ReflexivePolytope => opts -> tope -> (
     -- KSEntry is a Kreuzer-Skarke polytope entry, returned from
     --   ReflexivePolytopesDB functions.
     P1 := convexHull matrix tope;
     P2 := polar P1;
-    reflexivePolytope(P2, opts)
+    reflexivePolytope(P2, opts, ID => label tope)
     )
 
 vertices ReflexivePolytope := Q -> Q#"vertices"
@@ -467,14 +466,18 @@ partitionFRSTsByDFaceEquivalence(ZZ, ReflexivePolytope) := HashTable => opts -> 
     )
 
 -- TODO: working on this.  Use partitionFRSTsByDFaceEquivalence above to help here.
+makeCYs ReflexivePolytope :=
 findAllCYs ReflexivePolytope := List => opts -> Q -> (
-    RZ := if opts#Ring === null then (
+    if opts#PicardRing =!= null and opts#Ring =!= null then error "can't set both PicardRing, Ring, they are synonyms!";
+    optsRing := if opts#PicardRing =!= null then opts#PicardRing else opts#Ring;
+    
+    RZ := if optsRing === null then (
         a := getSymbol "a";
         h11 := hh^(1,1) Q;
         ZZ[a_1 .. a_h11]
         )
     else (
-        opts#Ring
+        optsRing
         );
     H := partitionFRSTsByDFaceEquivalence(dim Q - 2, Q);
     count := 0;

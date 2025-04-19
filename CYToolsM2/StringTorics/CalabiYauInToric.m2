@@ -47,7 +47,7 @@ setCYIntersectionRing = (X, R) -> (
         );
     )
 
-calabiYau = method(Options => {ID => null, Ring => null})
+calabiYau = method(Options => {ID => null, Ring => null, PicardRing => null})
 -- TODO, BUG!! The triang needs to indices in the Q rays.
 calabiYau(CYPolytope, List) := CalabiYauInToric => opts -> (Q, triang) -> (
     error "use ReflexivePolytope, not CYPolytope...";
@@ -61,13 +61,16 @@ calabiYau(CYPolytope, List) := CalabiYauInToric => opts -> (Q, triang) -> (
     X
     )
 calabiYau(ReflexivePolytope, List) := CalabiYauInToric => opts -> (Q, triang) -> (
+    optRing := if opts#Ring =!= null and opts#PicardRing =!= null then
+        error "PicardRing and Ring are synonomous, can't provide both!";
+   optsRing := if opts#PicardRing =!= null then opts#PicardRing else opts#Ring;
     X := new CalabiYauInToric from {
         symbol cache => new CacheTable,
         "polytopeData" => Q,
         "triangulation" => triang
         };
     if opts.ID =!= null then X.cache#"id" = opts.ID;
-    setCYIntersectionRing(X, opts#Ring);
+    setCYIntersectionRing(X, optsRing);
     X
     )
 
@@ -125,19 +128,20 @@ dump CalabiYauInToric := String => {} >> opts -> X -> (
     concatenate strs
     )
 
-makeCY = method(Options => {ID => null, Ring => null})
+makeCY = method(Options => options calabiYau)
+makeCY ReflexivePolytope := CalabiYauInToric => opts -> Q -> (
+    P2 := polytope Q;
+    (LP,tri) := regularStarTriangulation(dim P2-2,P2);
+    if rays Q =!= LP then error "I have a lattice point mismatch";
+    calabiYau(Q, tri, opts)
+    )    
+
 makeCY CYPolytope := CalabiYauInToric => opts -> Q -> (
     error "makeCY CYPolytope: use ReflexivePolytope instead";
     P2 := polytope Q;
     (LP,tri) := regularStarTriangulation(dim P2-2,P2);
     if rays Q =!= LP then error "I have a lattice point mismatch";
     cyData(Q, tri, opts)
-    )    
-makeCY ReflexivePolytope := CalabiYauInToric => opts -> Q -> (
-    P2 := polytope Q;
-    (LP,tri) := regularStarTriangulation(dim P2-2,P2);
-    if rays Q =!= LP then error "I have a lattice point mismatch";
-    calabiYau(Q, tri, opts)
     )    
 
 makeCY(List, List) := CalabiYauInToric =>  opts -> (pts, triangulation) -> (

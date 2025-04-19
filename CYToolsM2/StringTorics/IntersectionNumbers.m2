@@ -213,15 +213,15 @@ c2 CalabiYauInToric := X -> (
 TEST ///
 -*
   restart
-  debug needsPackage "StringTorics"
+  needsPackage "StringTorics"
 *-
   vs = {{-1, -1, -1, 0}, {-1, -1, 0, 0}, {-1, -1, 1, -1}, {-1, 0, -1, 0}, {0, -1, 2, -1}, {0, 0, -1, 0}, {0, 1, -1, 0}, {1, 1, -1, 1}, {1, 1, 0, 1}}
   cones4 = {{0, 1, 2, 3}, {0, 1, 2, 4}, {0, 1, 3, 7}, {0, 1, 4, 7}, {0, 2, 3, 5}, {0, 2, 4, 5}, {0, 3, 5, 7}, {0, 4, 5, 7}, {1, 2, 3, 8}, {1, 2, 4, 8}, {1, 3, 7, 8}, {1, 4, 7, 8}, {2, 3, 5, 6}, {2, 3, 6, 8}, {2, 4, 5, 6}, {2, 4, 6, 8}, {3, 5, 6, 7}, {3, 6, 7, 8}, {4, 5, 6, 7}, {4, 6, 7, 8}}
-  Q = cyPolytope(vs, ID => 1000)
+  Q = reflexivePolytope(vs, ID => 1000)
   rays Q == vs
   X = calabiYau(Q, cones4, ID => 0)
-  rays X == vs
-  max X == cones4
+  assert(rays X == vs)
+  assert(max X == cones4)
 
   debug needsPackage "StringTorics" -- for toRingElement??  TODO: export that?
   elapsedTime intersectionNumbers X
@@ -523,7 +523,7 @@ TEST ///
   P1 = convexHull A
   P2 = polar P1
   annotatedFaces P2
-  elapsedTime P = cyPolytope ks -- reflexivePolytope A
+  elapsedTime P = reflexivePolytope ks -- reflexivePolytope A
   assert isFavorable P
   assert(hh^(1,1) P == 20)
   assert(hh^(1,2) P == 12)

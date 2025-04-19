@@ -2672,7 +2672,7 @@ cyPolytope(HashTable, ZZ):= CYPolytope => opts -> (vertexData, ind) -> (
 -- This function should not change the order of points?  But it does.
 
 ///
-
+  -- This is for reading from (I think) non-documented database type from CYTools
   restart
   debug needsPackage "StringTorics"
   DIRNAME = "~/Dropbox/Collaboration/Physics-Liam/Inequivalent CYs/cy_classes/"
@@ -2725,6 +2725,7 @@ cyPolytope(HashTable, ZZ):= CYPolytope => opts -> (vertexData, ind) -> (
 ///
 
 makeCY(ZZ, Sequence, MutableHashTable, MutableHashTable) := opts -> (labX, PSs, Qs, Xs) -> (
+    error "deprecated, either rewrite me, or remove me";
     if Xs#?labX then return Xs#labX;
     (Ps, Ss) := PSs;
     polytopeid := Ss#labX#0;

@@ -1,3 +1,24 @@
+-- missing doc:
+-- CYPolytope:
+--  annotatedFaces
+--  basisIndices
+--  isFavorable
+--  polar
+--  degrees
+
+-- ReflexivePolytope
+--  polar
+--  makeCY
+--  findAllCYs
+--  (makeCY, makeAllCYs)?
+
+-- regularFineStarTriangulation
+
+-- Database doc
+-- seems a bunch are missing
+
+-- Cohomology
+
 doc ///
    Key
      StringTorics
@@ -160,17 +181,6 @@ doc ///
   SeeAlso
       CalabiYauInToric
       cyPolytope
-///
-
-doc ///
-  Key
-    CalabiYauInToric
-  Headline
-    a Calabi-Yau 3-fold hypersurface in a simplicial toric variety
-  Description
-    Text
-  SeeAlso
-    CYPolytope
 ///
 
 -- Creation of a CYPolytope
@@ -604,7 +614,7 @@ doc ///
       We now create the Calabi-Yau. The ring here should be in $h^(1,1)(X)$ variables (over the integers, or
       the rationals.
     Example
-      X = makeCY(Q, Ring => RZ)
+      X = makeCY(Q, PicardRing => RZ)
       normalToricVariety(X, CoefficientRing => ZZ/32003)
       dim X
       describe X
@@ -803,7 +813,7 @@ for k in sort keys Qs list elapsedTime findAllFRVTs Qs#k -- these work for h11=2
       We now create the Calabi-Yau. The ring here should be in $h^(1,1)(X)$ variables (over the integers, or
       the rationals.
     Example
-      X = makeCY(Q, Ring => RZ)
+      X = makeCY(Q, PicardRing => RZ)
       V = normalToricVariety(X, CoefficientRing => ZZ/32003)
       dim X
       describe X
@@ -878,7 +888,7 @@ o67_{1}
       topes = kreuzerSkarke(3, Limit => 100);
       Q = cyPolytope(topes_50, ID => 50)
       RZ = ZZ[x,y,z]
-      X = makeCY(Q, Ring => RZ, ID => 0)
+      X = makeCY(Q, PicardRing => RZ, ID => 0)
       label X
       V = normalToricVariety(X, CoefficientRing => ZZ/101)
       V === ambient X
@@ -914,7 +924,7 @@ o67_{1}
       max V0
       RZ = ZZ[a,b,c,d]
       Q1 = cyPolytope(rays V0, ID => 0)
-      X = makeCY(Q1, ID => 0, Ring => RZ)
+      X = makeCY(Q1, ID => 0, PicardRing => RZ)
       V = normalToricVariety(X, CoefficientRing => ZZ/101)
       isWellDefined V
       L = OO_X(2,1,-1,-2)
@@ -964,7 +974,7 @@ o67_{1}
 -- Usage #1.
   Q = cyPolytope(tope, ID => label)
   Xs = findAllCYs(Q, Ring => RZ) -- labels them
-  X = makeCY(Q, ID => lab, Ring => RZ)
+  X = makeCY(Q, ID => lab, PicardRing => RZ)
   -- given an X = Xs_0 say
   -- really want line bundles on X, cohomology on X.  But might also want equations.  Where to put those?
   
