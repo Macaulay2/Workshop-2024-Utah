@@ -44,14 +44,13 @@ export{
    "isFieldAutomorphism",
    "isNumberField",
    "polredbest",
-   "getGaloisGroup",
+   "galoisGroup",
    "isGNormal",
    "getAllSubgroups",
    "getNormalSubgroups",
    "getFixedFields",
    "vectorToFieldEl",
    "fieldBaseChangeCharZero",
-   "galoisGroup"
 
    --"matrixFromRingMap"
 };
@@ -186,7 +185,7 @@ numberField(RingElement) := opts -> f1 -> (
 )
 
 
-
+-- Understand these better
 numberField(Ring) := opts -> R1 -> (
     if opts.Verbose then print ("Starting NumberFieldConstructor, verifying validity :" | toString(opts.Verify));
     -*if R1===QQ then return new NumberField from {
@@ -332,6 +331,7 @@ basis2(NumberField) := opts -> nf -> (
     first entries ((pushFwd nf)#1)
 );
 
+-- Check if this give the number field as a vectorspace over Q?
 vectorSpace = method(Options=>{})
 vectorSpace(NumberField) := opts -> nf -> (
     --nf#cache#pushFwd#0
@@ -363,15 +363,13 @@ numberFieldExtension(RingMap) := opts -> phi1 -> (
 );
 
 --net NumberFieldExtension := nfe -> (nfe#cache#String)
-
+-- Unsure how this is used - Toshi
 numberFieldExtension(RingElement) := opts -> f1 -> (
     if not (gens ring f1 == 1) then error "Expected a polynomial in a single variable";
     baseField := numberField coefficientRing ring f1;
-    
-
 );
 
---this only checks the flag.  In the future, we should have this check the subclass thing
+--this only checks the flag.  In the future, we should maybe have this see if we can subclass ring to a number field
 isNumberField = method(Options =>{});
 isNumberField(Ring) := opts -> R1 -> (
     if R1#?cache then (
@@ -399,6 +397,7 @@ matrixFromNumberFieldMap(RingMap) := opts -> phi1 ->(
 --target(NumberFieldExtension) := phi1 -> (target phi1);
 map(NumberFieldExtension) := opts -> phi1 -> (phi1);
 
+
 degree(NumberFieldExtension) := nfe -> (
     if (nfe#cache#?degree) then return nfe#cache#degree;
     rk := rank((pushFwd(map(target nfe, source nfe, matrix nfe)))#0);
@@ -406,6 +405,7 @@ degree(NumberFieldExtension) := nfe -> (
     rk
 )
 
+-- Norm and Trace aren't used, but I do recall them being useful from number theory in Gordan's Class
 norm(RingElement) := (elt) ->(
     S := ring elt;
     return det pushFwd(map(S^1, S^1, {{elt}}));
@@ -419,27 +419,22 @@ trace(RingElement) := (elt) -> (
 --*************************
 
 isGalois = method(Options =>{})
--- I've added a isGalois function for number fields, though it could likely be optimized as it calls getGaloisGroup. (Toshi)
--- isGalois(NumberField) := opts -> K -> {
---     mapList := compositums(K,K);
---     degs := apply(mapList, x -> x#3);
---     L := all(degs, d -> d == degs#0);
---     L
--- }
+-- I've added a isGalois function for number fields, though it could likely be optimized as it calls galoisGroup. (Toshi)
+-- This is bad. We may want to have galoisGroup get the galois closure of a field first.
 isGalois(NumberField) := opts -> (nF) -> (
-    if length getGaloisGroup(nF) == degree nF then (
+    if length galoisGroup(nF) == degree nF then (
         return true;
     );
     return false;
 )
 
-isGalois(NumberFieldExtension) := opts -> iota -> (
-     myMapList := {}; --replace with Jack's function when ready
-    --assuming iota : K -> L, myMapList is a list of maps L -> L_i where 
-    --L_i is one of the components of L **_K L.
+-- isGalois(NumberFieldExtension) := opts -> iota -> (
+--      myMapList := {}; --replace with Jack's function when ready
+--     --assuming iota : K -> L, myMapList is a list of maps L -> L_i where 
+--     --L_i is one of the components of L **_K L.
     
-    --check if all degrees are the same, and equal to 1.
-)
+--     --check if all degrees are the same, and equal to 1.
+-- )
 
 isGalois(RingMap) := opts -> iota -> (
    isGalois(numberFieldExtension iota)
@@ -576,6 +571,7 @@ splittingField(RingElement) := opts -> f1 -> (
     answer
 )
 
+-- Investigate - Toshi
 isLinear = method(Options=>{})
 isLinear(Ideal) := opts -> (J1) -> (
     if J1 == 0 then return true;
@@ -583,13 +579,14 @@ isLinear(Ideal) := opts -> (J1) -> (
     length(idealGens)<=1 and max(degree(idealGens#0))<=1
 )
 
+-- Is this necessary?
 syntheticDivision = method(Options=>{})
 syntheticDivision(RingElement, RingElement) := (f1, g1) -> ( --compute f1 / g1, where g1 = x-a, and where g1 divides f1
 
 )
 
+-- Do we want to see if we can extend to isomorphic fields?
 isFieldAutomorphism = method(Options=>{})
-
 isFieldAutomorphism(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
     R1 := NF1;
     C1 := coefficientRing R1;
@@ -611,6 +608,7 @@ isFieldAutomorphism(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
 
 ringMapFromMatrix(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
 *-
+-- Turns a matrix into a ringmap. What are NF1 and sigma? - Toshi
 ringMapFromMatrix = (NF1, sigma1) -> (
     R1 := NF1;
     C1 := coefficientRing R1;
@@ -736,11 +734,13 @@ polynomialFieldChange(RingElement, RingMap) := opts -> (f1,psi1) -> (
     (myVars, myCoeffs) := coefficients f1;
     error "This is not finished yet.";
 )
-
+-- This gets the roots of a polynomial
 getRoots = method(Options =>{Strategy=>decompose});
 getRoots(RingElement) := opts -> (f1) -> (
     R1 := ring f1;
     if not (R1#?cache) then R1#cache = new CacheTable from {};
+    -- For the cache, for each f1, should we store its roots in R1?
+    -- if (nF#cache#?galoisGroup) then return nF#cache#galoisGroup;
     linearTerms := {};
     local i;
     local newLinTerm;
@@ -794,6 +794,8 @@ getRoots(RingElement) := opts -> (f1) -> (
 
 minimalPolynomial = method(Options => {Variable=>null})
 minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the possible minimal polynomial degrees based on the degree
+    if not(f1#?cache) then f1#cache = new CacheTable from {};
+    if (f1#cache#?minimalPolynomial) then return f1#cache#minimalPolynomial;
     R1 := ring f1;        
     D := degree R1;
     local y;
@@ -819,6 +821,7 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the 
     for i1 from 1 to (pow1) do (
         M1 |= y^i1;
     );
+    f1#cache#minimalPolynomial = (entries (M1*(gens(kernel(A1)))))#0#0;
     (entries (M1*(gens(kernel(A1)))))#0#0
 )
 
@@ -859,7 +862,7 @@ minimalPolynomial(List) := opts -> L1 -> (
     apply(L1, i -> minimalPolynomial(i))
 )
 --from rationalpoints2
-
+-- This gets a "nicer" simple extension than the one we calculate.
 polredbest = method(Options => {Strategy=>null});
 polredbest(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
@@ -911,7 +914,7 @@ pariCompositum = method(Options => {Strategy=>null});
 
 --Change these to number fields
 --For now assume simple extensions, make them more general later
--- Need to get 
+-- Need to add the proper morphisms from original into the compositum.
 pariCompositum(QuotientRing, QuotientRing) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
     -- gp := null;
@@ -975,6 +978,7 @@ pariCompositum(QuotientRing, QuotientRing) := opts -> (P, Q) -> (
     -- return (sum apply(d1+1, i -> coeffs_i*P_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*0_0^i));
 );
 
+-- Gets simple extensions
 simpleExtension = method(Options => {Strategy=>null});
 simpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
@@ -1054,9 +1058,9 @@ simpleExtension(Ring) := opts -> nf ->(
     return ((ring p) / p , phi2*(inverse phi));
 )
 
-getGaloisGroup= method(Options => {Strategy=>null});
+galoisGroup= method(Options => {Strategy=>null});
 --Returns Permutations, corresponding roots, and galois group as matrix 
-getGaloisGroup(NumberField) :=  opts ->(nF) -> (
+galoisGroup(NumberField) :=  opts ->(nF) -> (
     if not(nF#?cache) then nF#cache = new CacheTable from {};
     if (nF#cache#?galoisGroup) then return nF#cache#galoisGroup;
     u := local u; 
@@ -1164,6 +1168,8 @@ isGNormal(List, List) :=  opts -> (G, H) ->(
     );
     return true;
 )
+-- Gets all subgroups given the matrices of a Galois group
+-- Todo: Make it work for different representations 
 getAllSubgroups = method(Options =>{});
 getAllSubgroups(List) := opts -> (G) -> (
     x := local x;
@@ -1199,7 +1205,7 @@ getNormalSubgroups(List) := opts -> (G) -> (
 getFixedFields = method();
 getFixedFields(NumberField) := (nF) -> (
     G := null;
-    G = getGaloisGroup(nF);
+    G = galoisGroup(nF);
     NG := null; --have to write this function; should return a list of normal 
     --   subgroups of G(these groups are lists of matrices).
     NG = getNormalSubgroups(G);
@@ -1361,7 +1367,6 @@ compositums(NumberFieldExtension,NumberFieldExtension) := opts -> (iota,kappa) -
     -- a slight hack to package the data
     inds := toList(0..(length(sorted)-1));
     infoList := apply(inds, i -> (sorted#i,K1maps#i,K2maps#i,degs#i));
-
     infoList
 
 )
@@ -1447,6 +1452,33 @@ doc ///
             g = minimalPolynomial f
             L = {x, x^2, x^2+x};
             L1 = minimalPolynomial L
+///
+
+doc ///
+    Key
+        galoisGroup
+        (galoisGroup, NumberField)
+    Headline
+        computes the Galois Group of a number field.
+    Usage
+        G = galoisGroup NF
+    Inputs
+        NF: NumberField
+            the number field whose galois group the method computes.
+    Outputs
+        permsList: RingElement
+            minimal polynomial
+        rootList: List
+            list of roots that give an ordering for the roots that the permsList permutes
+        groupMatrices: List
+            list of matrices that represent the action of each element of the group element as a permutation matrix. Respects the ordering from rootList
+    Description
+        Text
+            This method computes galois group of $\mathbb{K}$ a  field extension of $\mathbb{Q}$. If the $\mathbb{K}$ isn't galois, then we take the galois closure of $\mathbb{K}$.
+        Example
+            R = QQ[w,v]/ ideal(w^3-2,v^2+v+1)
+            NF = numberField(R)
+            galoisGroup NF
 ///
 
 --*****************************
