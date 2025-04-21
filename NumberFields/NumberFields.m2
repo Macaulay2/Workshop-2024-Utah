@@ -50,7 +50,8 @@ export{
    "getNormalSubgroups",
    "getFixedFields",
    "vectorToFieldEl",
-   "fieldBaseChangeCharZero"
+   "fieldBaseChangeCharZero",
+   "galoisGroup"
 
    --"matrixFromRingMap"
 };
@@ -913,11 +914,11 @@ pariCompositum = method(Options => {Strategy=>null});
 -- Need to get 
 pariCompositum(QuotientRing, QuotientRing) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
-    gp := null;
-    try (gp = findProgram("gp", "gp --version")) else (gp = null);
-    if gp === null then{
-        return (p, 1);
-    };
+    -- gp := null;
+    -- try (gp = findProgram("gp", "gp --version")) else (gp = null);
+    -- if gp === null then{
+    --     return (p, 1);
+    -- };
     P1 := simpleExtension(P);
     Q1 := simpleExtension(Q);
     --
@@ -1056,6 +1057,8 @@ simpleExtension(Ring) := opts -> nf ->(
 getGaloisGroup= method(Options => {Strategy=>null});
 --Returns Permutations, corresponding roots, and galois group as matrix 
 getGaloisGroup(NumberField) :=  opts ->(nF) -> (
+    if not(nF#?cache) then nF#cache = new CacheTable from {};
+    if (nF#cache#?galoisGroup) then return nF#cache#galoisGroup;
     u := local u; 
     R1 := nF[u];
     numVars := length flatten entries basis  nF;
@@ -1134,6 +1137,7 @@ getGaloisGroup(NumberField) :=  opts ->(nF) -> (
     );
     -- print(allMaps);
     -- print allPerms;
+    nF#cache#galoisGroup = (allPerms, flatten rootList, group finiteAction(allMaps, QQ [x_1..x_numVars]));
     return (allPerms, flatten rootList, group finiteAction(allMaps, QQ [x_1..x_numVars]));
 )
 vectorToFieldEl = method(Options =>{});
