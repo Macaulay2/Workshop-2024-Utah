@@ -863,7 +863,14 @@ polredbest = method(Options => {Strategy=>null});
 polredbest(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
-    gp := findProgram("gp", "gp --version");
+    -- Code to not use gp when can't find. Maybe a global flag?
+    gp := null;
+    try (gp = findProgram("gp", "gp --version")) else (gp = null);
+    if gp === null then{
+        return (p, 1);
+    };
+    -- Such code ends here to not use gp when can't find
+
     R := ring p;
     k := coefficientRing R;
     d := (degree p)_0;
@@ -903,10 +910,14 @@ pariCompositum = method(Options => {Strategy=>null});
 
 --Change these to number fields
 --For now assume simple extensions, make them more general later
-
+-- Need to get 
 pariCompositum(QuotientRing, QuotientRing) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
-
+    gp := null;
+    try (gp = findProgram("gp", "gp --version")) else (gp = null);
+    if gp === null then{
+        return (p, 1);
+    };
     P1 := simpleExtension(P);
     Q1 := simpleExtension(Q);
     --
