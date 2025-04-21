@@ -869,7 +869,6 @@ polredbest(RingElement) := opts -> p -> (
     d := (degree p)_0;
     UID := temporaryFileName();
     UID2 := temporaryFileName();
-
     INPUT := UID|".gp";
     OUTPUT := UID|"-output";
     OUTPUT2 := UID2|"-output";
@@ -877,29 +876,27 @@ polredbest(RingElement) := opts -> p -> (
     F << "allocatemem("|toString PARISIZE|")\n"
       << "[f,a]=polredbest("|toString p|", 1)\n"
       << "for(d=0,poldegree(f),write1(\""|OUTPUT|"\",polcoeff(f,d),\",\"))\n"
-      << "for(d=0,poldegree(a),write1(\""|OUTPUT2|"\",polcoeff(a,d),\",\"))\n"
+      << "write1(\""|OUTPUT2|"\",Vec(lift(a)),\",\")\n"
      << "quit()" << close;
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
-
     coeffs := value("{"|get OUTPUT|"}");
-    -- print("{"|get OUTPUT2|"}");
-    -- coeffsDefEl := value("{"|get OUTPUT2|"}");
-    -- print()
-    -- print("{"|get OUTPUT|"}");
-    -- print(get OUTPUT2);
-    curList := toList(get OUTPUT2);
-    print(curList);
-
-    curList =drop(drop(curList,4),-2);
-    print(curList);
-
-    -- curList = concatenate("{",curList,"}");
-    definingEl:= concatenate(curList);
-    print(definingEl);
-    coeffsDefEl:= value(definingEl);
+    definingEl := toList(get OUTPUT2);
+    definingEl =drop(drop(definingEl,1),-2);
+    definingEl = concatenate definingEl;
+    definingEl = value("{"|definingEl|"}");
+    definingEl = reverse definingEl;
     removeFile \ {INPUT, OUTPUT, OUTPUT2};
-    return (sum apply(d+1, i -> coeffs_i*R_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i));
+    p1 := sum apply(d+1, i -> coeffs_i*R_0^i);
+    root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
+    -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
+
+    return (p1,root );
 );
+-- We expect a list like {"2", "3", "4"} and this make the int 234.
+listToInt = method(Options => {Strategy=>null});
+listToInt(List) := opts -> (parser) -> (
+    return sum apply(length(parser), i -> value(parser_i)*10^(length(parser)-i-1));
+)
 
 --Work in progress
 pariCompositum = method(Options => {Strategy=>null});
@@ -909,10 +906,10 @@ pariCompositum = method(Options => {Strategy=>null});
 
 pariCompositum(QuotientRing, QuotientRing) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
+
     P1 := simpleExtension(P);
     Q1 := simpleExtension(Q);
     --
-    
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     gp := findProgram("gp", "gp --version");
@@ -928,8 +925,7 @@ pariCompositum(QuotientRing, QuotientRing) := opts -> (P, Q) -> (
     OUTPUT := UID|"-output";
     OUTPUT2 := UID2|"-output";
     OUTPUT3 := UID3|"-output";
-
-    print(replace("a_1","x",toString (ideal P1_0)_0));
+    -- print(replace("a_1","x",toString (ideal P1_0)_0));
     F := openOut INPUT;
     -- F << "allocatemem("|toString PARISIZE|")\n"
     --   << "write1(\""|OUTPUT|"\",2,\",\")\n"
@@ -941,14 +937,14 @@ pariCompositum(QuotientRing, QuotientRing) := opts -> (P, Q) -> (
       << "quit()" << close;
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
         --   << "for(a=0,length(L),for(b=0,poldegree(L[a][1]),write1(\""|OUTPUT|"\",polcoeff(L[a][1],b),\",\")))\n"
-    print("{"|get OUTPUT|"}");
+    -- print("{"|get OUTPUT|"}");
     coeffs := value("{"|get OUTPUT|"}");
-    print(coeffs);
+    -- print(coeffs);
     a := local a;
     R := QQ[a];
     d:= length(coeffs);
-    print(R_0);
-    print(d);
+    -- print(R_0);
+    -- print(d);
     -- coeffsDefEl := value("{"|get OUTPUT2|"}");
     -- print()
     -- print("{"|get OUTPUT|"}");
@@ -972,7 +968,9 @@ simpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};
+
     if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
+
     K := nf;
     D := degree K;
     --We find an element that produces a degree D field extension.
@@ -1031,9 +1029,11 @@ simpleExtension(Ring) := opts -> nf ->(
         );
         count = count+1;
     );
+
     nf#cache#simpleExtension = (simpleExt, phi);
     --Takes the simple extension given by our algorithm and runs polredbest on it.
     --Returns the pol to mod by and the a primitive root.
+    print(((gens ideal(simpleExt))_0)_0);
     (p, root) := polredbest(((gens ideal(simpleExt))_0)_0);
     --Map from our ring into polredbest ring by sending a_1 to element
     phi2 = map((ring p) / p, source phi, {root} );
