@@ -877,23 +877,26 @@ polredbest(RingElement) := opts -> p -> (
     F << "allocatemem("|toString PARISIZE|")\n"
       << "[f,a]=polredbest("|toString p|", 1)\n"
       << "for(d=0,poldegree(f),write1(\""|OUTPUT|"\",polcoeff(f,d),\",\"))\n"
-=      << "quit()" << close;
+      << "for(d=0,poldegree(a),write1(\""|OUTPUT2|"\",polcoeff(a,d),\",\"))\n"
+     << "quit()" << close;
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
 
     coeffs := value("{"|get OUTPUT|"}");
-    coeffsDefEl := value("{"|get OUTPUT2|"}");
+    -- print("{"|get OUTPUT2|"}");
+    -- coeffsDefEl := value("{"|get OUTPUT2|"}");
     -- print()
     -- print("{"|get OUTPUT|"}");
     -- print(get OUTPUT2);
-    -- curList := toList(get OUTPUT2);
-    -- curList =drop(drop(curList,4),-2);
-    -- for i from 0 to length curList do {
+    curList := toList(get OUTPUT2);
+    print(curList);
 
-    -- }
-    -- curList = concatenate("{",,"}");
-    -- definingEl:= concatenate(curList);
-    -- print(definingEl);
+    curList =drop(drop(curList,4),-2);
+    print(curList);
 
+    -- curList = concatenate("{",curList,"}");
+    definingEl:= concatenate(curList);
+    print(definingEl);
+    coeffsDefEl:= value(definingEl);
     removeFile \ {INPUT, OUTPUT, OUTPUT2};
     return (sum apply(d+1, i -> coeffs_i*R_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i));
 );
