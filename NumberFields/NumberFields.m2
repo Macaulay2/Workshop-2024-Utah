@@ -48,7 +48,7 @@ export{
    "isGNormal",
    "getAllSubgroups",
    "getNormalSubgroups",
-   "getFixedFields",
+   "fixedFields",
    "vectorToFieldEl",
    "fieldBaseChangeCharZero",
 
@@ -794,8 +794,8 @@ getRoots(RingElement) := opts -> (f1) -> (
 
 minimalPolynomial = method(Options => {Variable=>null})
 minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the possible minimal polynomial degrees based on the degree
-    if not(f1#?cache) then f1#cache = new CacheTable from {};
-    if (f1#cache#?minimalPolynomial) then return f1#cache#minimalPolynomial;
+    -- if not(f1#?cache) then f1#cache = new CacheTable from {};
+    -- if (f1#cache#?minimalPolynomial) then return f1#cache#minimalPolynomial;
     R1 := ring f1;        
     D := degree R1;
     local y;
@@ -821,7 +821,7 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the 
     for i1 from 1 to (pow1) do (
         M1 |= y^i1;
     );
-    f1#cache#minimalPolynomial = (entries (M1*(gens(kernel(A1)))))#0#0;
+    -- f1#cache#minimalPolynomial = (entries (M1*(gens(kernel(A1)))))#0#0;
     (entries (M1*(gens(kernel(A1)))))#0#0
 )
 
@@ -1202,8 +1202,10 @@ getNormalSubgroups(List) := opts -> (G) -> (
     return normalGroups;
 );
 
-getFixedFields = method();
-getFixedFields(NumberField) := (nF) -> (
+fixedFields = method();
+fixedFields(NumberField) := (nF) -> (
+    if not(nF#?cache) then nF#cache = new CacheTable from {};
+    if (nF#cache#?fixedFields) then return nF#cache#fixedFields;
     G := null;
     G = galoisGroup(nF);
     NG := null; --have to write this function; should return a list of normal 
@@ -1261,6 +1263,7 @@ getFixedFields(NumberField) := (nF) -> (
         --We create a ring with indeterminates for each min polynomial in allMinPoly, then add the field that is this ring mod all the min polynomials
 
     );
+    nF#cache#fixedFields = allFixed;
     return allFixed;
 )
 
