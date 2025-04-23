@@ -422,7 +422,7 @@ isGalois = method(Options =>{})
 -- I've added a isGalois function for number fields, though it could likely be optimized as it calls galoisGroup. (Toshi)
 -- This is bad. We may want to have galoisGroup get the galois closure of a field first.
 isGalois(NumberField) := opts -> (nF) -> (
-    if length galoisGroup(nF) == degree nF then (
+    if length (galoisGroup(nF))_2 == degree nF then (
         return true;
     );
     return false;
@@ -1207,11 +1207,10 @@ fixedFields(NumberField) := (nF) -> (
     if not(nF#?cache) then nF#cache = new CacheTable from {};
     if (nF#cache#?fixedFields) then return nF#cache#fixedFields;
     G := null;
-    G = galoisGroup(nF);
+    G = (galoisGroup(nF))_2;
     NG := null; --have to write this function; should return a list of normal 
     --   subgroups of G(these groups are lists of matrices).
     NG = getNormalSubgroups(G);
-
     allFixed := {};
     H := null;
     allFixedVectors := null;

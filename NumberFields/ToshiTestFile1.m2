@@ -9,6 +9,8 @@ loadPackage("InvariantRing", Reload=>true)
 
 
 R = QQ[w,v]/ ideal(w^3-2,v^2+v+1)
+NF = numberField(R)
+galoisGroup NF
 R = QQ[x]/ideal(x^2-2)
 NF = numberField(R)
 galoisGroup NF
