@@ -29,7 +29,7 @@ export{
    "splittingField",
    "compositums",
    "simpleExtension",
-   "pariCompositum",
+   "compositumPari",
    "getRoots",
    "ringElFromMatrix",
    "ringElFromMatrix2",
@@ -51,10 +51,13 @@ export{
    "fixedFields",
    "vectorToFieldEl",
    "fieldBaseChangeCharZero",
+   "gp"
 
    --"matrixFromRingMap"
 };
 
+global gp;
+try (gp = findProgram("gp", "gp --version")) else (gp = null);
 --NumberField = new Type of QuotientRing
 NumberField = QuotientRing
 
@@ -325,9 +328,9 @@ degree(NumberField) := nf -> (
     )
 )
 
---this gives the basis for the numberField over QQ
-basis2 = method(Options=>{})
-basis2(NumberField) := opts -> nf -> (
+--this gives the basis for the numberField over QQ. Note this isn't used or exported anywhere.
+basisOverQQ = method(Options=>{})
+basisOverQQ(NumberField) := opts -> nf -> (
     first entries ((pushFwd nf)#1)
 );
 
@@ -571,6 +574,44 @@ splittingField(RingElement) := opts -> f1 -> (
     answer
 )
 
+splittingField = method(Options => {Strategy=>null});
+splittingField(RingElement) := opts -> p -> (
+    PARISIZE := 8000000;
+    setPariSize := n -> (PARISIZE = n);  
+    -- Code to not use gp when can't find. Maybe a global flag?
+    if gp === null then{
+        return (p, 1);
+    };
+    -- Such code ends here to not use gp when can't find
+
+    R := ring p;
+    k := coefficientRing R;
+    d := (degree p)_0;
+    UID := temporaryFileName();
+    UID2 := temporaryFileName();
+    INPUT := UID|".gp";
+    OUTPUT := UID|"-output";
+    OUTPUT2 := UID2|"-output";
+    F := openOut INPUT;
+    F << "allocatemem("|toString PARISIZE|")\n"
+      << "[f,a]=polredbest("|toString p|", 1)\n"
+      << "for(d=0,poldegree(f),write1(\""|OUTPUT|"\",polcoeff(f,d),\",\"))\n"
+      << "write1(\""|OUTPUT2|"\",Vec(lift(a)),\",\")\n"
+     << "quit()" << close;
+    assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
+    coeffs := value("{"|get OUTPUT|"}");
+    definingEl := toList(get OUTPUT2);
+    definingEl =drop(drop(definingEl,1),-2);
+    definingEl = concatenate definingEl;
+    definingEl = value("{"|definingEl|"}");
+    definingEl = reverse definingEl;
+    removeFile \ {INPUT, OUTPUT, OUTPUT2};
+    p1 := sum apply(d+1, i -> coeffs_i*R_0^i);
+    root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
+    -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
+
+    return (p1,root );
+);
 -- Investigate - Toshi
 isLinear = method(Options=>{})
 isLinear(Ideal) := opts -> (J1) -> (
@@ -748,7 +789,7 @@ getRoots(RingElement) := opts -> (f1) -> (
     local newCoeffs2;
     local newVars;
     local newVars2;
-
+    1/0;
     if #(gens R1) != 1 then error "getRoots: expected a polynomial in a single variable";
     if opts.Strategy === decompose then (
         (S,M, MInv) := (flattenRing (R1,Result=>3));
@@ -868,8 +909,6 @@ polredbest(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
-    gp := null;
-    try (gp = findProgram("gp", "gp --version")) else (gp = null);
     if gp === null then{
         return (p, 1);
     };
@@ -910,24 +949,21 @@ listToInt(List) := opts -> (parser) -> (
 )
 
 --Work in progress
-pariCompositum = method(Options => {Strategy=>null});
+compositumPari = method(Options => {Strategy=>null});
 
 --Change these to number fields
 --For now assume simple extensions, make them more general later
 -- Need to add the proper morphisms from original into the compositum.
-pariCompositum(QuotientRing, QuotientRing) := opts -> (P, Q) -> (
+compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
-    -- gp := null;
-    -- try (gp = findProgram("gp", "gp --version")) else (gp = null);
-    -- if gp === null then{
-    --     return (p, 1);
-    -- };
+    if gp === null then{
+        return (P,Q);
+    };
     P1 := simpleExtension(P);
     Q1 := simpleExtension(Q);
     --
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
-    gp := findProgram("gp", "gp --version");
     -- k1 := coefficientRing P;
     -- k2 := coefficientRing Q;
     -- d1 := (degree ideal P)_0;
@@ -980,7 +1016,7 @@ pariCompositum(QuotientRing, QuotientRing) := opts -> (P, Q) -> (
 
 -- Gets simple extensions
 simpleExtension = method(Options => {Strategy=>null});
-simpleExtension(Ring) := opts -> nf ->(
+simpleExtension(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};
@@ -1047,9 +1083,12 @@ simpleExtension(Ring) := opts -> nf ->(
     );
 
     nf#cache#simpleExtension = (simpleExt, phi);
+    if gp === null then{
+        return (simpleExt, phi);
+    };
     --Takes the simple extension given by our algorithm and runs polredbest on it.
     --Returns the pol to mod by and the a primitive root.
-    print(((gens ideal(simpleExt))_0)_0);
+    -- print(((gens ideal(simpleExt))_0)_0);
     (p, root) := polredbest(((gens ideal(simpleExt))_0)_0);
     --Map from our ring into polredbest ring by sending a_1 to element
     phi2 = map((ring p) / p, source phi, {root} );
@@ -1060,6 +1099,7 @@ simpleExtension(Ring) := opts -> nf ->(
 
 galoisGroup= method(Options => {Strategy=>null});
 --Returns Permutations, corresponding roots, and galois group as matrix 
+-- VERY SLOW!!!! Maybe integrate this with Pari?
 galoisGroup(NumberField) :=  opts ->(nF) -> (
     if not(nF#?cache) then nF#cache = new CacheTable from {};
     if (nF#cache#?galoisGroup) then return nF#cache#galoisGroup;
@@ -1075,7 +1115,7 @@ galoisGroup(NumberField) :=  opts ->(nF) -> (
         minPol := minimalPolynomial(r0);
         M0 := map(R1,ring minPol,{(gens R1)_0});
         -- print ring minPol;
-        -- print ring M0(minPol);
+        print getRoots(M0(minPol));
 
         rootList = append(rootList, getRoots(M0(minPol)));
     );
@@ -1144,6 +1184,19 @@ galoisGroup(NumberField) :=  opts ->(nF) -> (
     nF#cache#galoisGroup = (allPerms, flatten rootList, group finiteAction(allMaps, QQ [x_1..x_numVars]));
     return (allPerms, flatten rootList, group finiteAction(allMaps, QQ [x_1..x_numVars]));
 )
+
+-- This implementation is for if a user has used "toField" on a numberField object...
+galoisGroup(PolynomialRing) :=  opts ->(K) -> (
+    -- We get the coefficient ring of K and return the corresp number field's galois group. 
+    if isNumberField coefficientRing K then(
+        return galoisGroup(coefficientRing K)
+    );
+    return 
+
+)
+
+-- Let us have a numberfield. Take the vectorspace structure over Q it possesses. 
+-- Convert the vector using the basis of the generators of nF to a NF element.
 vectorToFieldEl = method(Options =>{});
 vectorToFieldEl(NumberField, Vector) := opts -> (nF, v) -> (
     b := flatten entries basis nF;
@@ -1189,7 +1242,7 @@ getAllSubgroups(List) := opts -> (G) -> (
     );
     return allSubgroupList;
 );
-
+-- We can get this with Pari
 getNormalSubgroups = method(Options =>{});
 getNormalSubgroups(List) := opts -> (G) -> (
     normalGroups := {};
@@ -1201,7 +1254,8 @@ getNormalSubgroups(List) := opts -> (G) -> (
     );
     return normalGroups;
 );
-
+-- Gets all the fixed fields of a numberField.
+-- We can integrate this with Pari
 fixedFields = method();
 fixedFields(NumberField) := (nF) -> (
     if not(nF#?cache) then nF#cache = new CacheTable from {};
@@ -1270,27 +1324,27 @@ fixedFields(NumberField) := (nF) -> (
 --******Compositums
 --********************************
 
-asExtensionOfBase = method(Options => {})
-asExtensionOfBase(NumberFieldExtension) := opts -> iota -> (
---
---    -- get source and target
---    s := ring(source iota);
---    t := ring(target iota);
---    -- get ideal from target
---    --I := ideal target; 
---    -- calculate numgens of ideal
---    n := numgens t;
---    -- create polynomial ring in numbgens variables
---    polyring := s[b_1..b_n];
---    -- create map by assigning generators to other generators
---    extensionMap := map(iota);
---    images := (entries  (matrix extensionMap))#0;
---    m := map(t,polyring,join(images, gens(t)));
---    -- take the kernel
---    k := kernel m;
---    -- return quotient by kernel
---    polyring / k
-)
+-- asExtensionOfBase = method(Options => {})
+-- asExtensionOfBase(NumberFieldExtension) := opts -> iota -> (
+-- --
+-- --    -- get source and target
+-- --    s := ring(source iota);
+-- --    t := ring(target iota);
+-- --    -- get ideal from target
+-- --    --I := ideal target; 
+-- --    -- calculate numgens of ideal
+-- --    n := numgens t;
+-- --    -- create polynomial ring in numbgens variables
+-- --    polyring := s[b_1..b_n];
+-- --    -- create map by assigning generators to other generators
+-- --    extensionMap := map(iota);
+-- --    images := (entries  (matrix extensionMap))#0;
+-- --    m := map(t,polyring,join(images, gens(t)));
+-- --    -- take the kernel
+-- --    k := kernel m;
+-- --    -- return quotient by kernel
+-- --    polyring / k
+-- )
 
 --loadPackage ("NumberFields", Reload=>true)
 
@@ -1483,6 +1537,82 @@ doc ///
             galoisGroup NF
 ///
 
+doc ///
+    Key
+        simpleExtension
+        (simpleExtension, NumberField)
+    Headline
+        Given a NumberField, computes a simple extension. If the user has Pari, then runs Pari to create a nicer simple extension.
+    Usage
+        (S, phi) = simpleExtension NF
+    Inputs
+        NF: NumberField
+            the number field whose galois group the method computes.
+    Outputs
+        S: NumberField
+            The simpleExtension related to NF
+        phi:
+            The isomorphism from NF to S.
+    Description
+        Text
+            This method computes a simple extension of $NF := \mathbb{Q}[x_1,...,x_n]$, as well as a map phi such that phi:NF -> S.
+        Example
+            R = QQ[w,v]/ ideal(w^3-2,v^2+v+1)
+            NF = numberField(R)
+            simpleExtension NF
+///
+-- Should we include the injection morphisms for the numberField into the top field? 
+-- Should we include details relating to the coressponding normal subgroup?
+-- Note lots of our group operations are factorial which is suboptimal
+doc ///
+    Key
+        fixedFields
+        (fixedFields, NumberField)
+    Headline
+        Given a NumberField, computes all of the fixed fields.
+    Usage
+        F = fixedFields NF
+    Inputs
+        NF: NumberField
+            the number field which we find the fixed fields of.
+    Outputs
+        F: List
+            A list of number fields that are fixed by NF
+    Description
+        Text
+            This method takes a number field and finds all the fixed fields. We first calculate the galois group, 
+            then we take all the normal subgroups. For each of these, we construct the fixed field by looking at the
+            eigenvectors(fixed field elements!) of the normal subgroup. We then throw these into our list.
+        Example
+            R = QQ[w,v]/ ideal(w^3-2,v^2+v+1)
+            NF = numberField(R)
+            fixedFields NF 
+///
+
+
+doc ///
+    Key
+        getNormalSubgroups
+        (getNormalSubgroups, List)
+    Headline
+        Given a group, finds all of its subgroups. This is in general expensive
+    Usage
+        AllH = getNormalSubgroups G
+    Inputs
+        G: List
+            A list of matrices defining a group.
+    Outputs
+        AllH: List
+            A list of subgroups of G.
+    Description
+        Text
+            Takes all subgroups of a group. Both the group and its subgroups are represented as lists.
+        Example
+            R = QQ[w,v]/ ideal(w^3-2,v^2+v+1)
+            NF = numberField(R)
+            G = galoisGroup NF
+            allH = getNormalSubgroups G#2  
+///
 --*****************************
 --Tests
 --*****************************
@@ -1534,7 +1664,7 @@ TEST /// --Test #3
 ///
 
 --this checks "matrixFromNumberFieldMap", "ringElFromMatrix","matrixFromRingEl"
-TEST /// --Test #5
+TEST /// --Test #4
     R = numberField(QQ[a]/ideal(a^4+a^3+a^2+a+1))
     b = (gens(R))#0
     h3 = map(R, R, {b^3})
@@ -1548,6 +1678,9 @@ TEST /// --Test #5
     cx = matrixFromRingEl(R, x)
     dx = ringElFromMatrix(R, M*cx*Mi)
     assert(dx == h3(x))
+///
+TEST /// --Test #5
+    assert(1 == 0)
 ///
 
 -*TEST /// --Test #1
