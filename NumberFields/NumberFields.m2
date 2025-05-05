@@ -51,13 +51,19 @@ export{
    "fixedFields",
    "vectorToFieldEl",
    "fieldBaseChangeCharZero",
-   "gp"
+   "gp",
+   "UsePari"
 
    --"matrixFromRingMap"
 };
 
 global gp;
 try (gp = findProgram("gp", "gp --version")) else (gp = null);
+global defaultPariStrat;
+defaultPariStrat = true;
+if gp === null then {
+    defaultPariStrat = false;
+}
 --NumberField = new Type of QuotientRing
 NumberField = QuotientRing
 
@@ -574,12 +580,12 @@ splittingField(RingElement) := opts -> f1 -> (
     answer
 )
 
-splittingField = method(Options => {Strategy=>null});
+splittingField = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 splittingField(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
-    if gp === null then{
+    if UsePari === false then{
         return (p, 1);
     };
     -- Such code ends here to not use gp when can't find
@@ -782,6 +788,7 @@ getRoots(RingElement) := opts -> (f1) -> (
     if not (R1#?cache) then R1#cache = new CacheTable from {};
     -- For the cache, for each f1, should we store its roots in R1?
     -- if (nF#cache#?galoisGroup) then return nF#cache#galoisGroup;
+    print(f1);
     linearTerms := {};
     local i;
     local newLinTerm;
@@ -789,7 +796,7 @@ getRoots(RingElement) := opts -> (f1) -> (
     local newCoeffs2;
     local newVars;
     local newVars2;
-    1/0;
+    -- 1/0;
     if #(gens R1) != 1 then error "getRoots: expected a polynomial in a single variable";
     if opts.Strategy === decompose then (
         (S,M, MInv) := (flattenRing (R1,Result=>3));
@@ -797,7 +804,13 @@ getRoots(RingElement) := opts -> (f1) -> (
         
         for i from 0 to ((length primeFactors)-1) do(
             if (degree primeFactors#i_0)#0 == 1 then (
-                linearTerms = append(linearTerms, (gens R1)_0 - MInv(primeFactors#i_0));
+                -- This gets the multiplicative coefficient in front of 
+                -- The prime factors will be linear terms that are of form Au - B where A,B are in the number field.
+                -- Mycoeff is the A term, multCoef is 1/A. 
+                -- We append to linear terms u-B/A
+                myCoeff := (coefficients (MInv(primeFactors#i)_0))_1_0_0;
+                multCoef := ringElFromMatrix (coefficientRing R1, inverse  (matrixFromRingEl (lift(myCoeff, coefficientRing R1)))) ;
+                linearTerms = append(linearTerms, (gens R1)_0 - multCoef* MInv(primeFactors#i_0));
             );
         );
         return linearTerms;
@@ -904,12 +917,12 @@ minimalPolynomial(List) := opts -> L1 -> (
 )
 --from rationalpoints2
 -- This gets a "nicer" simple extension than the one we calculate.
-polredbest = method(Options => {Strategy=>null});
+polredbest = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 polredbest(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
-    if gp === null then{
+    if UsePari === false then{
         return (p, 1);
     };
     -- Such code ends here to not use gp when can't find
@@ -949,14 +962,14 @@ listToInt(List) := opts -> (parser) -> (
 )
 
 --Work in progress
-compositumPari = method(Options => {Strategy=>null});
+compositumPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 
 --Change these to number fields
 --For now assume simple extensions, make them more general later
 -- Need to add the proper morphisms from original into the compositum.
 compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
-    if gp === null then{
+    if usePari === false  then{
         return (P,Q);
     };
     P1 := simpleExtension(P);
@@ -1015,7 +1028,7 @@ compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
 );
 
 -- Gets simple extensions
-simpleExtension = method(Options => {Strategy=>null});
+simpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 simpleExtension(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
@@ -1083,7 +1096,7 @@ simpleExtension(NumberField) := opts -> nf ->(
     );
 
     nf#cache#simpleExtension = (simpleExt, phi);
-    if gp === null then{
+    if  not (opts.UsePari === false) then{
         return (simpleExt, phi);
     };
     --Takes the simple extension given by our algorithm and runs polredbest on it.
