@@ -581,44 +581,44 @@ splittingField(RingElement) := opts -> f1 -> (
     answer
 )
 
-splittingField = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
-splittingField(RingElement) := opts -> p -> (
-    PARISIZE := 8000000;
-    setPariSize := n -> (PARISIZE = n);  
-    -- Code to not use gp when can't find. Maybe a global flag?
-    if usePari === false then{
-        return (p, 1);
-    };
-    -- Such code ends here to not use gp when can't find
+-- splittingField = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
+-- splittingField(RingElement) := opts -> p -> (
+--     PARISIZE := 8000000;
+--     setPariSize := n -> (PARISIZE = n);  
+--     -- Code to not use gp when can't find. Maybe a global flag?
+--     if usePari === false then{
+--         return (p, 1);
+--     };
+--     -- Such code ends here to not use gp when can't find
 
-    R := ring p;
-    k := coefficientRing R;
-    d := (degree p)_0;
-    UID := temporaryFileName();
-    UID2 := temporaryFileName();
-    INPUT := UID|".gp";
-    OUTPUT := UID|"-output";
-    OUTPUT2 := UID2|"-output";
-    F := openOut INPUT;
-    F << "allocatemem("|toString PARISIZE|")\n"
-      << "[f,a]=polredbest("|toString p|", 1)\n"
-      << "for(d=0,poldegree(f),write1(\""|OUTPUT|"\",polcoeff(f,d),\",\"))\n"
-      << "write1(\""|OUTPUT2|"\",Vec(lift(a)),\",\")\n"
-     << "quit()" << close;
-    assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
-    coeffs := value("{"|get OUTPUT|"}");
-    definingEl := toList(get OUTPUT2);
-    definingEl =drop(drop(definingEl,1),-2);
-    definingEl = concatenate definingEl;
-    definingEl = value("{"|definingEl|"}");
-    definingEl = reverse definingEl;
-    removeFile \ {INPUT, OUTPUT, OUTPUT2};
-    p1 := sum apply(d+1, i -> coeffs_i*R_0^i);
-    root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
-    -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
+--     R := ring p;
+--     k := coefficientRing R;
+--     d := (degree p)_0;
+--     UID := temporaryFileName();
+--     UID2 := temporaryFileName();
+--     INPUT := UID|".gp";
+--     OUTPUT := UID|"-output";
+--     OUTPUT2 := UID2|"-output";
+--     F := openOut INPUT;
+--     F << "allocatemem("|toString PARISIZE|")\n"
+--       << "[f,a]=polredbest("|toString p|", 1)\n"
+--       << "for(d=0,poldegree(f),write1(\""|OUTPUT|"\",polcoeff(f,d),\",\"))\n"
+--       << "write1(\""|OUTPUT2|"\",Vec(lift(a)),\",\")\n"
+--      << "quit()" << close;
+--     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
+--     coeffs := value("{"|get OUTPUT|"}");
+--     definingEl := toList(get OUTPUT2);
+--     definingEl =drop(drop(definingEl,1),-2);
+--     definingEl = concatenate definingEl;
+--     definingEl = value("{"|definingEl|"}");
+--     definingEl = reverse definingEl;
+--     removeFile \ {INPUT, OUTPUT, OUTPUT2};
+--     p1 := sum apply(d+1, i -> coeffs_i*R_0^i);
+--     root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
+--     -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
 
-    return (p1,root );
-);
+--     return (p1,root );
+-- );
 -- Investigate - Toshi
 isLinear = method(Options=>{})
 isLinear(Ideal) := opts -> (J1) -> (
@@ -963,7 +963,7 @@ polredbest(RingElement) := opts -> p -> (
     root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
     -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
 
-    return (p1,root );
+    return (p1,root);
 );
 -- We expect a list like {"2", "3", "4"} and this make the int 234.
 listToInt = method(Options => {Strategy=>null});
@@ -979,7 +979,7 @@ compositumPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 -- Need to add the proper morphisms from original into the compositum.
 compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
-    if UsePari === false  then{
+    if usePari === false  then{
         return (P,Q);
     };
     P1 := simpleExtension(P);
