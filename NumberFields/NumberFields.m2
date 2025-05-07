@@ -28,6 +28,7 @@ export{
    "splittingField",
    "compositums",
    "simpleExtension",
+   "internalSimpleExtension",--turn this off later
 --    Merge this into compositum
    "compositumPari",
    "getRoots",
@@ -197,7 +198,7 @@ numberField(RingElement) := opts -> f1 -> (
 
 -- Understand these better
 numberField(Ring) := opts -> R1 -> (
-    if opts.Verbose then print ("Starting NumberFieldConstructor, verifying validity :" | toString(opts.Verify));
+    if opts.Verbose or (debugLevel > 1) then print ("Starting NumberFieldConstructor, verifying validity :" | toString(opts.Verify));
     -*if R1===QQ then return new NumberField from {
             ring => R1, 
             pushFwd => pushFwd(map(QQ[],QQ)),
@@ -207,19 +208,22 @@ numberField(Ring) := opts -> R1 -> (
     local outputRing;
     local outputPsi;
     local outputPsiInv;
-    if R1 === QQ then (
+    -*if R1 === QQ then (
         --outputRing = new NumberField from QQ;
         outputRing = QQ[];
         outputRing#cache = new CacheTable from {};
         outputRing#cache#pushFwd = pushFwd(map(QQ[],QQ));
         outputRing#cache#String = "QQ, rational numbers";
-    );
+    );*-
     
     if opts.Verify and not isPrime (ideal 0_R1) then error("Expected a field.");
     if opts.Verify and not dim R1 == 0 then error("Expected a field.");
     
     if opts.Verify and char R1 != 0 then error("Expected characteristic 0.");
-    (outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
+
+    --(outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
+    (outputRing, outputPsi) = simpleExtension(R1, Variable=>opts.Variable);
+    1/0;
     iota := map(outputRing,QQ); 
     local myPushFwd;
     if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");    
@@ -929,7 +933,7 @@ minimalPolynomial(List) := opts -> L1 -> (
 -- This gets a "nicer" simple extension than the one we calculate.
 polredbest = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 polredbest(RingElement) := opts -> p -> (
-    PARISIZE := 8000000;
+    PARISIZE := 800000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
     -- print(usePari);
@@ -958,9 +962,9 @@ polredbest(RingElement) := opts -> p -> (
     definingEl = drop(drop(definingEl,1),-2);
     definingEl = concatenate definingEl;
     definingEl = value("{"|definingEl|"}");
-    definingEl = reverse definingEl;
-    removeFile \ {INPUT, OUTPUT, OUTPUT2};
+    definingEl = reverse definingEl;    
     p1 := sum apply(d+1, i -> coeffs_i*R_0^i);
+    removeFile \ {INPUT, OUTPUT, OUTPUT2};
     root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
     -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
 
@@ -1038,15 +1042,112 @@ compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     -- return (sum apply(d1+1, i -> coeffs_i*P_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*0_0^i));
 );
 
+internalSimpleExtension = method(Options => {Strategy=>null, usePari=>defaultPariStrat, Variable=>null});
+
+internalSimpleExtension(NumberField) := opts -> nf ->(
+    --We first get the degree of K as a field extension over Q and store it as D. 
+    --K := ring nf;
+    if not(nf#?cache) then nf#cache = new CacheTable from {};
+    if (debugLevel > 1) then print ("internalSimpleExtension:  starting, using usePari=>"|toString(defaultPariStrat));
+
+    if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
+    
+    K := nf;
+    D := degree K;
+    --We find an element that produces a degree D field extension.
+    d := 0;
+    c := 0;
+    local r;
+    local h;
+    local R1;
+    local phi;
+    local phi2;
+    
+    local tempField;
+    count := 0;
+    primitiveElement := 0; -- Uncomment along with below chunk to get a simpler primitive element
+    while d < D do 
+    (
+        -- Uncomment the following along with primitiveElement := 0 above to get a simpler primitive element
+        (if primitiveElement==0 then (
+            primitiveElement = sum gens K;
+         )
+        else if (count < 10) then (
+            primitiveElement += (random(gens K))#0; -- Randomly shuffles the list of generators of K and then takes the first element
+         )
+         else (
+            primitiveElement = random(1, K); -- Get a random homogeneous RingElement from K1 of degree 1
+         )
+        );
+        r = primitiveElement;
+        --        
+        local myVar;
+        if (opts.Variable === null) then (myVar = local ww) else (myVar = opts.Variable);
+        
+        if (opts.Strategy===kernel) then (            
+            R1 = QQ[myVar];
+            phi = map( K, R1, {r});
+            --if  isPrime (kernel phi) then 
+            --( --we shouldn't do it this way
+                --I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), R1);
+                if (debugLevel > 1) then print "internalSimpleExtension: Strategy=>kernel, computing kernel";
+                I := kernel phi;
+                tempField = R1/I;
+                --simpleExt = numberField(tempField, Verify=>false);                
+                d = degree tempField;
+                if (debugLevel > 1) then print "internalSimpleExtension: computing degree";
+--                if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));
+                if (d == D) then phi = (map(K, tempField, {r}));
+            --); 
+        )
+        else if (opts.Strategy===null) then (--I'm surprised that this is slower
+            h = minimalPolynomial(r, Variable=>myVar);
+            R1 = ring h;
+            tempField = R1/(ideal h);
+            --simpleExt = numberField(tempField, Verify=>false);
+            d = degree tempField;
+--            if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));            
+            if (d == D) then phi = (map(K, tempField, {r}));
+        )
+        else (
+            error "simpleExt: invalid strategy";
+        );
+        count = count+1;
+    );
+     if (debugLevel > 1) then print ("simpleExtension:  made initial simple extension"|toString(tempField)| " , now running polredbest from Pari if applicable.");
+
+    if (debugLevel > 1) then print "internalSimpleExtension: computing inverse";
+    
+    inversePhi := inverse phi;
+    if  (opts.usePari === false) then{        
+        nf#cache#internalSimpleExtension = (tempField, phi, inversePhi);
+        return (tempField, phi, inversePhi);
+    };
+    --Takes the simple extension given by our algorithm and runs polredbest on it.
+    --Returns the pol to mod by and the a primitive root.
+    -- print(((gens ideal(simpleExt))_0)_0);
+    --1/0;
+    if (debugLevel > 1) then print "internalSimpleExtension: pari is installed, running polredbest";
+    (p, root) := polredbest(((gens ideal(tempField))_0)_0);
+    --Map from our ring into polredbest ring by sending a_1 to element
+    phi2 = map((ring p) / p, source phi, {root} );
+    finalPhi := phi2*inversePhi;
+    finalInversePhi := phi*(inverse phi2);
+    --nf#cache#simpleExtension = (numberField(tempField, Verify=>false), phi2*(inverse phi));
+    --Invert phi and use this to construct a map from polredbestring to origRing.
+    return ((ring p) / p , finalPhi, finalInversePhi);
+    
+)
+
 -- Gets simple extensions
-simpleExtension = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
+simpleExtension = method(Options => {Strategy=>null, usePari=>defaultPariStrat, Variable=>null});
 simpleExtension(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};
     if (debugLevel > 1) then print ("simpleExtension:  starting, using usePari=>"|toString(defaultPariStrat));
 
-    if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
+    if (nf#cache#?internalSimpleExtension) then return nf#cache#internalSimpleExtension;
     
     K := nf;
     D := degree K;
@@ -1078,10 +1179,10 @@ simpleExtension(NumberField) := opts -> nf ->(
         );
         r = primitiveElement;
         --
-
-        if (opts.Strategy===kernel) then (
-            aa := local aa;
-            R1 = QQ[aa];
+        local myVar;
+        if (opts.Variable === null) then (myVar = local aa) else (myVar = opts.Variable);
+        if (opts.Strategy===kernel) then (            
+            R1 = QQ[myVar];
             phi = map( K, R1, {r});
             if  isPrime (kernel phi) then ( --we shouldn't do it this way
                 I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), R1);
@@ -1093,7 +1194,7 @@ simpleExtension(NumberField) := opts -> nf ->(
             );
         )
         else if (opts.Strategy===null) then (--I'm surprised that this is slower
-            h = minimalPolynomial(r, Variable=> local aa);
+            h = minimalPolynomial(r, Variable=> myVar);
             R1 = ring h;
             tempField = R1/(ideal h);
             simpleExt = numberField(tempField, Verify=>false);
@@ -1106,7 +1207,7 @@ simpleExtension(NumberField) := opts -> nf ->(
         );
         count = count+1;
     );
-    if (debugLevel > 1) then print ("simpleExtension:  made initial simple extension"|toString(simpleExt));
+    if (debugLevel > 1) then print ("simpleExtension:  made initial simple extension"|toString(simpleExt)| " , now running polredbest from Pari if applicable.");
 
     nf#cache#simpleExtension = (simpleExt, phi);
     

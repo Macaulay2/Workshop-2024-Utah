@@ -9,9 +9,13 @@ restart
 loadPackage "NumberFields"
 debugLevel = 2
 R = QQ[a,b]/ideal(a^3-2, b^2+b+1)
-R = QQ[a,b,c]/ideal(a^2+1, b^4+b^3+b^2+b+1,c^5-2)
+debugLevel = 0
+time internalSimpleExtension(R)
 simpleExtension(R)
-
+R = QQ[b,d]/ideal(b^6+b^5+b^4+b^3+b^2+b+1,d^11-3)
+simpleExtension(R)
+time internalSimpleExtension(R, Strategy=>kernel);
+time internalSimpleExtension(R, Strategy=>null);
 restart
 loadPackage "NumberFields"
 
