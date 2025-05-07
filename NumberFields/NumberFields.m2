@@ -1106,7 +1106,7 @@ simpleExtension(NumberField) := opts -> nf ->(
         );
         count = count+1;
     );
-    if (debugLevel > 1) then print ("simpleExtension:  made initial simple extension"|toString(simpleExt));
+    if (debugLevel > 1) then print ("simpleExtension:  made initial simple extension"|toString(simpleExt)| " , now running polredbest from Pari if applicable.");
 
     nf#cache#simpleExtension = (simpleExt, phi);
     
