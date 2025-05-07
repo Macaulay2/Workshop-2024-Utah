@@ -932,6 +932,7 @@ polredbest(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
+    print(usePari);
     if usePari === false then{
         return (p, 1);
     };
@@ -1106,7 +1107,8 @@ simpleExtension(NumberField) := opts -> nf ->(
     );
 
     nf#cache#simpleExtension = (simpleExt, phi);
-    if  not (opts.usePari === false) then{
+    
+    if  (opts.usePari === false) then{
         return (simpleExt, phi);
     };
     --Takes the simple extension given by our algorithm and runs polredbest on it.
