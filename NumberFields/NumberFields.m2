@@ -979,7 +979,7 @@ compositumPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 -- Need to add the proper morphisms from original into the compositum.
 compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
-    if UsePari === false  then{
+    if usePari === false  then{
         return (P,Q);
     };
     P1 := simpleExtension(P);
@@ -1045,7 +1045,7 @@ simpleExtension(NumberField) := opts -> nf ->(
     if not(nf#?cache) then nf#cache = new CacheTable from {};
 
     if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
-    if (debugLevel > 1) then print ("simpleExtension:  starting, using UsePari=>"|toString(defaultPariStrat));
+    if (debugLevel > 1) then print ("simpleExtension:  starting, using usePari=>"|toString(defaultPariStrat));
     K := nf;
     D := degree K;
     --We find an element that produces a degree D field extension.
