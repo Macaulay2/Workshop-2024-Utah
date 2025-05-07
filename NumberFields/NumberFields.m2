@@ -17,7 +17,6 @@ newPackage(
     )
 
 export{
-
    "NumberField", 
    "numberField",
    "NumberFieldExtension",
@@ -980,7 +979,7 @@ compositumPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 -- Need to add the proper morphisms from original into the compositum.
 compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
-    if usePari === false  then{
+    if UsePari === false  then{
         return (P,Q);
     };
     P1 := simpleExtension(P);
