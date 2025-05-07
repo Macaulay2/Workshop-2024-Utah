@@ -955,7 +955,7 @@ polredbest(RingElement) := opts -> p -> (
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
     coeffs := value("{"|get OUTPUT|"}");
     definingEl := toList(get OUTPUT2);
-    definingEl =drop(drop(definingEl,1),-2);
+    definingEl = drop(drop(definingEl,1),-2);
     definingEl = concatenate definingEl;
     definingEl = value("{"|definingEl|"}");
     definingEl = reverse definingEl;
