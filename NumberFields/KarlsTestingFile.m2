@@ -7,6 +7,13 @@ check NumberFields
 
 restart
 loadPackage "NumberFields"
+debugLevel = 2
+R = QQ[a,b]/ideal(a^3-2, b^2+b+1)
+R = QQ[a,b,c]/ideal(a^2+1, b^4+b^3+b^2+b+1,c^5-2)
+simpleExtension(R)
+
+restart
+loadPackage "NumberFields"
 
 R = QQ[x]
 f = x^3-2

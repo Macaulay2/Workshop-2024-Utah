@@ -1044,9 +1044,10 @@ simpleExtension(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};
+    if (debugLevel > 1) then print ("simpleExtension:  starting, using usePari=>"|toString(defaultPariStrat));
 
     if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
-    if (debugLevel > 1) then print ("simpleExtension:  starting, using usePari=>"|toString(defaultPariStrat));
+    
     K := nf;
     D := degree K;
     --We find an element that produces a degree D field extension.
@@ -1105,6 +1106,7 @@ simpleExtension(NumberField) := opts -> nf ->(
         );
         count = count+1;
     );
+    if (debugLevel > 1) then print ("simpleExtension:  made initial simple extension"|toString(simpleExt));
 
     nf#cache#simpleExtension = (simpleExt, phi);
     
