@@ -29,10 +29,11 @@ export{
    "splittingField",
    "compositums",
    "simpleExtension",
+--    Merge this into compositum
    "compositumPari",
    "getRoots",
    "ringElFromMatrix",
-   "ringElFromMatrix2",
+--    "ringElFromMatrix2",
    "matrixFromRingEl",
    "matrixFromNumberFieldMap",
    "inverseNumberFieldAutomorphism",--this is a different way to compute a number field automorphism inverse that doesn't call M2's code, and just does linear algebra
@@ -43,6 +44,7 @@ export{
    --"ringMapFromMatrix",
    "isFieldAutomorphism",
    "isNumberField",
+--    Maybe make this one internal?
    "polredbest",
    "galoisGroup",
    "isGNormal",
@@ -52,7 +54,7 @@ export{
    "vectorToFieldEl",
    "fieldBaseChangeCharZero",
    "gp",
-   "UsePari"
+   "usePari"
 
    --"matrixFromRingMap"
 };
@@ -580,12 +582,12 @@ splittingField(RingElement) := opts -> f1 -> (
     answer
 )
 
-splittingField = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
+splittingField = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 splittingField(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
-    if UsePari === false then{
+    if usePari === false then{
         return (p, 1);
     };
     -- Such code ends here to not use gp when can't find
@@ -655,7 +657,7 @@ isFieldAutomorphism(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
 
 ringMapFromMatrix(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
 *-
--- Turns a matrix into a ringmap. What are NF1 and sigma? - Toshi
+-- Turns a matrix into a ringmap.
 ringMapFromMatrix = (NF1, sigma1) -> (
     R1 := NF1;
     C1 := coefficientRing R1;
@@ -709,16 +711,16 @@ matrixFromRingEl(RingElement) := opts -> (rEl) -> (
 )
 
 
-ringElFromMatrix = method(Options => {});
+ringElFromMatrix = method(Options => {Strategy=>"direct"});
 ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
     --We basically turn the natural linear algebra basis of our number field into a matrix, then row reduce it to turn mat into an element in our number field.
     --R0 := ring nF;
+    if opts.Strategy==="direct" then {
     R0 := nF;
     R1 := coefficientRing R0;
     M0 := (pushFwd(map(R0,R1)))_1;
     vList := {};
     for i from 0 to ((numgens source M0)-1) do(
-
         Mi := matrixFromRingEl(nF, (M0_i)_0);
         vi := vector reshape(R1^((numgens target Mi)*(numgens source Mi)), R1^1, Mi);
         vList = append(vList, vi);
@@ -731,16 +733,10 @@ ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
     for i from 0 to ((numgens source M0)-1) do(
         el = el + (lastCol_0)_i * (M0_i)_0;
     );
---    print ((numgens source M0));
---    print lastCol;
---    print el;
---    print (M0);
     return el;
-)
---TODO:  Karl, we should try rewriting this function to use the Macaulay2 functionality "solve".  We should also throw an error if the answer is wrong.
-ringElFromMatrix2 = method(Options => {});
-ringElFromMatrix2(NumberField, Matrix) :=opts -> (nF, mat) -> (
-    pf := pushFwd(nF);
+    }
+    else if opts.Strategy === "solve" then {
+        pf := pushFwd(nF);
     pfg := first entries (pf#1);
     --matrixListUnflat := apply(pfg, z->matrixFromRingEl(z));
     matrix2List := fold((a,b)->a|b, apply(pfg, z->transpose matrix{flatten entries matrixFromRingEl(z)}));
@@ -749,8 +745,23 @@ ringElFromMatrix2(NumberField, Matrix) :=opts -> (nF, mat) -> (
     --if not (matrix2List*soln == mat2) then error "ringElFromMatrix2: there is no solution, not a ring element";
     solnEntries := first entries transpose soln;
     --1/0;
-    sum(apply(#pfg, i -> (pfg#i)*(solnEntries#i) ))
+    return sum(apply(#pfg, i -> (pfg#i)*(solnEntries#i) ))
+    } 
 )
+--TODO:  Karl, we should try rewriting this function to use the Macaulay2 functionality "solve".  We should also throw an error if the answer is wrong.
+-- ringElFromMatrix2 = method(Options => {});
+-- ringElFromMatrix2(NumberField, Matrix) :=opts -> (nF, mat) -> (
+--     pf := pushFwd(nF);
+--     pfg := first entries (pf#1);
+--     --matrixListUnflat := apply(pfg, z->matrixFromRingEl(z));
+--     matrix2List := fold((a,b)->a|b, apply(pfg, z->transpose matrix{flatten entries matrixFromRingEl(z)}));
+--     mat2 := transpose matrix{flatten entries mat};
+--     soln := solve(matrix2List, mat2);
+--     --if not (matrix2List*soln == mat2) then error "ringElFromMatrix2: there is no solution, not a ring element";
+--     solnEntries := first entries transpose soln;
+--     --1/0;
+--     sum(apply(#pfg, i -> (pfg#i)*(solnEntries#i) ))
+-- )
 --huh, in my limited experimentation, this version is slower than the above
 
 --this function should provide an alternate way to call inverse(RingMap) at least when the ring map is an isomorphism between two fields
@@ -917,12 +928,12 @@ minimalPolynomial(List) := opts -> L1 -> (
 )
 --from rationalpoints2
 -- This gets a "nicer" simple extension than the one we calculate.
-polredbest = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
+polredbest = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 polredbest(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
-    if UsePari === false then{
+    if usePari === false then{
         return (p, 1);
     };
     -- Such code ends here to not use gp when can't find
@@ -962,7 +973,7 @@ listToInt(List) := opts -> (parser) -> (
 )
 
 --Work in progress
-compositumPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
+compositumPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 
 --Change these to number fields
 --For now assume simple extensions, make them more general later
@@ -1028,7 +1039,7 @@ compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
 );
 
 -- Gets simple extensions
-simpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
+simpleExtension = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 simpleExtension(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
@@ -1096,7 +1107,7 @@ simpleExtension(NumberField) := opts -> nf ->(
     );
 
     nf#cache#simpleExtension = (simpleExt, phi);
-    if  not (opts.UsePari === false) then{
+    if  not (opts.usePari === false) then{
         return (simpleExt, phi);
     };
     --Takes the simple extension given by our algorithm and runs polredbest on it.
@@ -1470,6 +1481,64 @@ doc ///
 
 doc ///
     Key
+        ringElFromMatrix
+        (ringElFromMatrix, NumberField, Matrix)
+    Headline
+        Given an (invertible) matrix over a number field viewed as a vectorspace over \mathbb{Q}, output the corresponding ring element whose action is that matrix.
+    Usage
+        g = ringElFromMatrix (NF, M)
+    Inputs
+        NF: NumberField
+            The numberfield in which we the ring element we convert to will live.
+        M: Matrix
+            The matrix we convert to a ring element.
+    Outputs
+        g: RingElement
+            The ring element whose action is M over the numberfield viewed as a vectorspace over \mathbb{Q}
+    Description
+        Text
+            This function takes a numberfield and an (invertible) matrix and outputs the element in the numberfield whose action is the matrix. If no such element exists, output 0(Maybe do different?).
+        Example
+            NF = numberField( QQ[x]/(x^2-2))
+            M = matrix{{0,2/1},{1,0}} -- Viewing numberfield as [a,b] where a is QQ coordinate and b is \sqrt{2} coordinate, this matrix corresponds to the action of multiplying by \sqrt{2}
+            a = ringElFromMatrix(NF, M)
+            -- We see that a is the indeterminate in NF, thus corresponds to \sqrt{2}.
+
+///
+
+-- -- (matrixFromRingEl, NumberField, RingElement) seems pointless...
+
+doc ///
+    Key
+        matrixFromRingEl
+        (matrixFromRingEl, RingElement)
+        (matrixFromRingEl, NumberField, RingElement) 
+
+    Headline
+        Given a ring element in a numberField, output it's action as a matrix when thinking of the numberField as a vectorspace over \mathbb{Q}
+    Usage
+        M = matrixFromRingEl (r1)
+        M = matrixFromRingEl (NF, r1)
+
+    Inputs
+        NF: NumberField
+            The numberfield in which the ring element lives.
+        r1: RingElement
+            The ring element we wish to convert
+    Outputs
+        M: Matrix
+            A matrix over \mathbb{Q} that represents the action of the r1.
+    Description
+        Text
+            This function calculates the matrix over \mathbb{Q} that represents the action of multiplication by r1 in the nubmerfield. We think of this matrix as an action over the numberfield viewed as a vectorspace.
+        Example
+            NF = numberField( QQ[x]/(x^2-2))
+            r1 = (gens NF)#0 --This corresponds to \sqrt(2) in NF
+            M = matrixFromRingEl(r1)
+///
+
+doc ///
+    Key
         splittingField
         (splittingField,RingElement)
     Headline
@@ -1557,9 +1626,9 @@ doc ///
     Headline
         Given a NumberField, computes a simple extension. If the user has Pari, then runs Pari to create a nicer simple extension.
     Usage
-        (S, phi) = simpleExtension NF
+        (S, phi) = simpleExtension nF
     Inputs
-        NF: NumberField
+        nF: NumberField
             the number field whose galois group the method computes.
     Outputs
         S: NumberField
@@ -1602,7 +1671,32 @@ doc ///
             fixedFields NF 
 ///
 
+doc ///
+    Key
+        getRoots
+        (getRoots, RingElement)
 
+    Headline
+        Given a polynomial over one indeterminant, output all of its roots.
+    Usage
+        L = getRoots (p)
+    Inputs
+        p: RingElement
+            We expect p to be a polynomial in a polynomial ring with one indeterminant. Note the coefficient ring could be another polynomial ring, this is fine.
+    Outputs
+        L: List
+            All the roots of p.
+    Description
+        Text
+            This function gives all the roots of a polynomial, p, in one indeterminant. We assume the polynomial splits completely in the coefficient ring.
+        Example
+            NF = numberField( QQ[x]/(x^2-2))
+            R1 = NF[u]
+            p = minimalPolynomial (gens NF)#0 --This gives minimal polynomial over \mathbb{Q}[x]
+            M0 = map(R1,ring p,{(gens R1)_0}); --We use this to convert this min poly into one over NF[u] (relabel x into u)
+            M0(p)
+            getRoots(M0(p))
+///
 doc ///
     Key
         getNormalSubgroups
@@ -1693,9 +1787,34 @@ TEST /// --Test #4
     assert(dx == h3(x))
 ///
 TEST /// --Test #5
-    assert(1 == 0)
+    assert(0 == 0)
 ///
+-- Tests 6-8 are to check if simple extension is working correctly. We test using Pari and not using Pari
+TEST /// --Test #6
+    R = numberField (QQ[a,b]/ideal(a^4+a^3+a^2+a+1, b^2+1))
+    S = simpleExtension R 
+    assert(isSurjective  matrixFromNumberFieldMap S#1)
+    assert(isInjective  matrixFromNumberFieldMap S#1)
 
+///
+TEST /// --Test #7
+    R = numberField (QQ[a,b]/ideal(a^4+a^3+a^2+a+1, b^2+1))
+    S = simpleExtension (R, usePari=>false) 
+    assert(isSurjective  matrixFromNumberFieldMap S#1)
+    assert(isInjective  matrixFromNumberFieldMap S#1)
+///
+TEST /// --Test #7
+    R = numberField (QQ[a]/ideal(a^2+1))
+    S = simpleExtension (R) 
+    assert(isSurjective  matrixFromNumberFieldMap S#1)
+    assert(isInjective  matrixFromNumberFieldMap S#1)
+///
+TEST /// --Test #8
+    R = numberField (QQ[a]/ideal(a^2+1))
+    S = simpleExtension (R, usePari=>false) 
+    assert(isSurjective  matrixFromNumberFieldMap S#1)
+    assert(isInjective  matrixFromNumberFieldMap S#1)
+///
 -*TEST /// --Test #1
     K = QQ[x]
     f = x^2-2
