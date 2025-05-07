@@ -932,7 +932,7 @@ polredbest(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
-    print(usePari);
+    -- print(usePari);
     if usePari === false then{
         return (p, 1);
     };
