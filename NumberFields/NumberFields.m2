@@ -26,6 +26,7 @@ export{
    "ToshiNumberField",
    "isGalois",
    "splittingField",
+   "splittingFieldPari",
    "compositums",
    "simpleExtension",
    "internalSimpleExtension",--turn this off later
@@ -36,6 +37,7 @@ export{
 --    "ringElFromMatrix2",
    "matrixFromRingEl",
    "matrixFromNumberFieldMap",
+   "internalNFMaps",
    "inverseNumberFieldAutomorphism",--this is a different way to compute a number field automorphism inverse that doesn't call M2's code, and just does linear algebra
    "asExtensionOfBase",--this probably shouldn't be exposed to the user long term
    "remakeField",--this probably shouldn't be exposed to the user long term
@@ -67,7 +69,7 @@ if gp === null then {
     defaultPariStrat = false;
 }
 --NumberField = new Type of QuotientRing
-NumberField = QuotientRing
+NumberField = Ring
 
 -*
 TempNumberField = new Type of QuotientRing
@@ -181,7 +183,7 @@ remakeField(Ring) := opts -> R1 -> (
     (finalRing2, psi, psiinv)
 )
 
-numberField = method(Options => {Verify => true, Verbose=>false, Variable=>null})
+numberField = method(Options => {Verify => true, Verbose=>false, Variable=>null, usePari=>defaultPariStrat})
 numberField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
@@ -222,11 +224,15 @@ numberField(Ring) := opts -> R1 -> (
     if opts.Verify and char R1 != 0 then error("Expected characteristic 0.");
 
     --(outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
-    (outputRing, outputPsi) = simpleExtension(R1, Variable=>opts.Variable);
-    1/0;
+    -- print("Made it to inernal");
+    (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(R1, Variable=>opts.Variable);
+     
+    -- 1/0;
     iota := map(outputRing,QQ); 
     local myPushFwd;
-    if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");    
+    if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");   
+    -- K 
+    -- numberField L 
     try myPushFwd = pushFwd(iota) else error("Not finite dimensional over QQ"); --we should check to see if the pushFwd has already been computed
     if not isFreeModule(myPushFwd#0) then error "numberField: something went wrong, this should be a free module over QQ";
     genMinPolys := apply(gens outputRing, h->minimalPolynomial(h));
@@ -262,7 +268,7 @@ numberField(Ring) := opts -> R1 -> (
     tempNumField#cache#String = myStr;
     tempNumField#cache#minimalPolynomial = genMinPolys;
     tempNumField#cache#degree = deg;    
-    tempNumField#cache#remakeField = (outputPsi, outputPsiInv);
+    tempNumField#cache#internalNFMaps = (outputPsi, outputPsiInv);
     return tempNumField;
 )
 
@@ -831,8 +837,8 @@ getRoots(RingElement) := opts -> (f1) -> (
     )
     else if (opts.Strategy === factor) then (
         K1 := ((flattenRing(coefficientRing R1))#0);
-        (K2a, psi1) := simpleExtension(K1);
-        psi2 := inverse psi1; --this is slow, it would be nice if it was faster
+        (K2a, psi1, psi2) := internalSimpleExtension(K1);
+        -- psi2 := inverse psi1; --this is slow, it would be nice if it was faster
         (myVars, myCoeffs) := coefficients f1;
         K2 := toField K2a;
         R2 := K2[gens R1];
@@ -959,7 +965,7 @@ polredbest(RingElement) := opts -> p -> (
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
     coeffs := value("{"|get OUTPUT|"}");
     definingEl := toList(get OUTPUT2);
-    definingEl =drop(drop(definingEl,1),-2);
+    definingEl = drop(drop(definingEl,1),-2);
     definingEl = concatenate definingEl;
     definingEl = value("{"|definingEl|"}");
     definingEl = reverse definingEl;    
@@ -971,11 +977,52 @@ polredbest(RingElement) := opts -> p -> (
     return (p1,root);
 );
 -- We expect a list like {"2", "3", "4"} and this make the int 234.
-listToInt = method(Options => {Strategy=>null});
-listToInt(List) := opts -> (parser) -> (
-    return sum apply(length(parser), i -> value(parser_i)*10^(length(parser)-i-1));
-)
+-- listToInt = method(Options => {Strategy=>null});
+-- listToInt(List) := opts -> (parser) -> (
+--     return sum apply(length(parser), i -> value(parser_i)*10^(length(parser)-i-1));
+-- )
 
+splittingFieldPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
+splittingFieldPari (NumberField) := opts -> R -> (
+    S := ambient R;
+    PARISIZE := 800000000;
+    setPariSize := n -> (PARISIZE = n);  
+    -- Code to not use gp when can't find. Maybe a global flag?
+    -- print(usePari);
+    if usePari === false then{
+        -- We will integrate this appropriately later
+        -- return (p, 1);
+    };
+    -- Such code ends here to not use gp when can't find
+
+    -- R := ring p;
+    -- k := coefficientRing R;
+    d := (degree (ideal R)_0)_0;
+    UID := temporaryFileName();
+    UID2 := temporaryFileName();
+    INPUT := UID|".gp";
+    OUTPUT := UID|"-output";
+    F := openOut INPUT;
+    F << "allocatemem("|toString PARISIZE|")\n"
+      << "K=nfinit("|toString ((ideal R)_0)|")\n"
+      << "splittingFieldPoly=nfsplitting(K)\n"
+      << "for(d=0,poldegree(splittingFieldPoly),write1(\""|OUTPUT|"\",polcoeff(splittingFieldPoly,d),\",\"))\n"
+     << "quit()" << close;
+    assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
+    coeffs := value("{"|get OUTPUT|"}");
+    -- print(coeffs);
+    -- Coeffs appears to have an extra blank coefficient. We ignore that in the line below with -1
+    p1 := sum apply(length coeffs-1, i -> coeffs_i*S_0^i);
+    print(p1);
+    removeFile \ {INPUT, OUTPUT};
+    
+    -- root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
+    -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
+    T := S/p1;
+    alpha = gens R;
+    phi = (T,R, {ww});
+    return (S/p1);
+);
 --Work in progress
 compositumPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 
@@ -1051,9 +1098,20 @@ internalSimpleExtension(NumberField) := opts -> nf ->(
     if (debugLevel > 1) then print ("internalSimpleExtension:  starting, using usePari=>"|toString(defaultPariStrat));
 
     if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
-    
+    -- print K;
     K := nf;
-    D := degree K;
+    D:= 0;
+    if (length gens K) == 0 then {
+        K = QQ(monoid[gens QQ]);
+        phi := map(QQ, K, {});
+        inversePhi := map(K, QQ, {});
+
+        return (K, phi, inversePhi);
+    } 
+    else{
+        D = degree K;
+    };
+    
     --We find an element that produces a degree D field extension.
     d := 0;
     c := 0;
@@ -1066,6 +1124,7 @@ internalSimpleExtension(NumberField) := opts -> nf ->(
     local tempField;
     count := 0;
     primitiveElement := 0; -- Uncomment along with below chunk to get a simpler primitive element
+    -- print("MADE IT 1");
     while d < D do 
     (
         -- Uncomment the following along with primitiveElement := 0 above to get a simpler primitive element
@@ -1118,7 +1177,7 @@ internalSimpleExtension(NumberField) := opts -> nf ->(
 
     if (debugLevel > 1) then print "internalSimpleExtension: computing inverse";
     
-    inversePhi := inverse phi;
+    inversePhi = inverse phi;
     if  (opts.usePari === false) then{        
         nf#cache#internalSimpleExtension = (tempField, phi, inversePhi);
         return (tempField, phi, inversePhi);
@@ -1128,11 +1187,16 @@ internalSimpleExtension(NumberField) := opts -> nf ->(
     -- print(((gens ideal(simpleExt))_0)_0);
     --1/0;
     if (debugLevel > 1) then print "internalSimpleExtension: pari is installed, running polredbest";
+
+
     (p, root) := polredbest(((gens ideal(tempField))_0)_0);
     --Map from our ring into polredbest ring by sending a_1 to element
     phi2 = map((ring p) / p, source phi, {root} );
+
     finalPhi := phi2*inversePhi;
+
     finalInversePhi := phi*(inverse phi2);
+
     --nf#cache#simpleExtension = (numberField(tempField, Verify=>false), phi2*(inverse phi));
     --Invert phi and use this to construct a map from polredbestring to origRing.
     return ((ring p) / p , finalPhi, finalInversePhi);
@@ -1148,7 +1212,8 @@ simpleExtension(NumberField) := opts -> nf ->(
     if (debugLevel > 1) then print ("simpleExtension:  starting, using usePari=>"|toString(defaultPariStrat));
 
     if (nf#cache#?internalSimpleExtension) then return nf#cache#internalSimpleExtension;
-    
+    -- print("MADE IT2");
+
     K := nf;
     D := degree K;
     --We find an element that produces a degree D field extension.
@@ -1588,7 +1653,7 @@ doc ///
         ringElFromMatrix
         (ringElFromMatrix, NumberField, Matrix)
     Headline
-        Given an (invertible) matrix over a number field viewed as a vectorspace over \mathbb{Q}, output the corresponding ring element whose action is that matrix.
+        Given an (invertible) matrix over a number field viewed as a vectorspace over \mathbb{Q}
     Usage
         g = ringElFromMatrix (NF, M)
     Inputs
@@ -1619,7 +1684,7 @@ doc ///
         (matrixFromRingEl, NumberField, RingElement) 
 
     Headline
-        Given a ring element in a numberField, output it's action as a matrix when thinking of the numberField as a vectorspace over \mathbb{Q}
+        Given a ring element in a numberField, output it'\mathbb{Q}
     Usage
         M = matrixFromRingEl (r1)
         M = matrixFromRingEl (NF, r1)
@@ -1728,7 +1793,7 @@ doc ///
         simpleExtension
         (simpleExtension, NumberField)
     Headline
-        Given a NumberField, computes a simple extension. If the user has Pari, then runs Pari to create a nicer simple extension.
+        Given a NumberField, computes a simple extension. 
     Usage
         (S, phi) = simpleExtension nF
     Inputs
@@ -1895,29 +1960,25 @@ TEST /// --Test #5
 ///
 -- Tests 6-8 are to check if simple extension is working correctly. We test using Pari and not using Pari
 TEST /// --Test #6
-    R = numberField (QQ[a,b]/ideal(a^4+a^3+a^2+a+1, b^2+1))
-    S = simpleExtension R 
-    assert(isSurjective  matrixFromNumberFieldMap S#1)
-    assert(isInjective  matrixFromNumberFieldMap S#1)
+    R = numberField (QQ[a,b]/ideal(a^4+a^3+a^2+a+1, b^2+1)) 
+    assert(isSurjective matrixFromNumberFieldMap R#cache#internalNFMaps#0 )
+    assert(isInjective  matrixFromNumberFieldMap R#cache#internalNFMaps#0)
 
 ///
 TEST /// --Test #7
-    R = numberField (QQ[a,b]/ideal(a^4+a^3+a^2+a+1, b^2+1))
-    S = simpleExtension (R, usePari=>false) 
-    assert(isSurjective  matrixFromNumberFieldMap S#1)
-    assert(isInjective  matrixFromNumberFieldMap S#1)
+    R = numberField (QQ[a,b]/ideal(a^4+a^3+a^2+a+1, b^2+1),usePari=>false) 
+    assert(isSurjective matrixFromNumberFieldMap R#cache#internalNFMaps#0 )
+    assert(isInjective  matrixFromNumberFieldMap R#cache#internalNFMaps#0)
 ///
 TEST /// --Test #7
-    R = numberField (QQ[a]/ideal(a^2+1))
-    S = simpleExtension (R) 
-    assert(isSurjective  matrixFromNumberFieldMap S#1)
-    assert(isInjective  matrixFromNumberFieldMap S#1)
+    R = numberField (QQ[a]/ideal(a^2+1)) 
+    assert(isSurjective matrixFromNumberFieldMap R#cache#internalNFMaps#0 )
+    assert(isInjective  matrixFromNumberFieldMap R#cache#internalNFMaps#0)
 ///
 TEST /// --Test #8
-    R = numberField (QQ[a]/ideal(a^2+1))
-    S = simpleExtension (R, usePari=>false) 
-    assert(isSurjective  matrixFromNumberFieldMap S#1)
-    assert(isInjective  matrixFromNumberFieldMap S#1)
+    R = numberField (QQ[a]/ideal(a^2+1),usePari=>false) 
+    assert(isSurjective matrixFromNumberFieldMap R#cache#internalNFMaps#0 )
+    assert(isInjective  matrixFromNumberFieldMap R#cache#internalNFMaps#0)
 ///
 -*TEST /// --Test #1
     K = QQ[x]
