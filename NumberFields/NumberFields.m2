@@ -1019,8 +1019,8 @@ splittingFieldPari (NumberField) := opts -> R -> (
     -- root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
     -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
     T := S/p1;
-    alpha = gens R;
-    phi = (T,R, {ww});
+    --alpha = gens R;
+    --phi = (T,R, {ww});
     return (S/p1);
 );
 --Work in progress
