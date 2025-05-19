@@ -231,13 +231,9 @@ numberField(Ring) := opts -> R1 -> (
     outputPsi = outputPsi * intermediatePhi;
     outputPsiInv =  intermediatePhiInv* outputPsiInv;
     -- 1/0;
-    -- THIS IS PROBABLY NOT WHAT WE WANT. THIS CREATES NUMBERFIELD OVER SOME OTHER NUMBERFIELD
     iota := map(outputRing, QQ);
     -- original
-    -- iota := map(outputRing,QQ); 
-
-    -- print(test);
-    -- print(iota); 
+    
     local myPushFwd;
     if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");   
     -- K 
@@ -996,7 +992,7 @@ polredbest(RingElement) := opts -> p -> (
 splittingFieldPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 splittingFieldPari (NumberField) := opts -> R -> (
     S := ambient R;
-    PARISIZE := 800000000;
+    PARISIZE := 80000000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
     -- print(usePari);
@@ -1035,6 +1031,23 @@ splittingFieldPari (NumberField) := opts -> R -> (
     phi := (T,R, {alpha});
     return (S/p1);
 );
+splittingFieldPari(RingElement):= opts -> r -> (
+    u := local u;
+
+    R1 := (ring r)[u];
+
+    minPol := minimalPolynomial(r);
+    M0 := map(R1,ring minPol,{(gens R1)_0});
+    -- M1 := map(R1,ring minPol,{(gens R1)_0});
+
+    -- This is the minimalPolynomial of the element as an element of the number field.qwlo  p0-
+    -- print(M0(minPol));
+
+    -- nf := numberField(R1/M0(minPol));
+    -- print(nf);
+    -- print();
+)
+
 --Work in progress
 compositumPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
 
@@ -1320,7 +1333,7 @@ galoisGroup(NumberField) :=  opts ->(nF) -> (
         minPol := minimalPolynomial(r0);
         M0 := map(R1,ring minPol,{(gens R1)_0});
         -- print ring minPol;
-        print getRoots(M0(minPol));
+        -- print getRoots(M0(minPol));
 
         rootList = append(rootList, getRoots(M0(minPol)));
     );
