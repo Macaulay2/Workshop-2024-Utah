@@ -225,10 +225,19 @@ numberField(Ring) := opts -> R1 -> (
 
     --(outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
     -- print("Made it to inernal");
-    (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(R1, Variable=>opts.Variable);
-     
+    (intermediateRing, intermediatePhi, intermediatePhiInv) := remakeField (R1) ;
+    
+    (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(intermediateRing, Variable=>opts.Variable);
+    outputPsi = outputPsi * intermediatePhi;
+    outputPsiInv =  intermediatePhiInv* outputPsiInv;
     -- 1/0;
-    iota := map(outputRing,QQ); 
+    -- THIS IS PROBABLY NOT WHAT WE WANT. THIS CREATES NUMBERFIELD OVER SOME OTHER NUMBERFIELD
+    iota := map(outputRing, QQ);
+    -- original
+    -- iota := map(outputRing,QQ); 
+
+    -- print(test);
+    -- print(iota); 
     local myPushFwd;
     if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");   
     -- K 
@@ -878,6 +887,8 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the 
     S1 := (coefficientRing(R1))[y];
     y = (gens S1)#0;
     P1 := pushFwd(map(R1, coefficientRing(R1)));
+    
+
     A1 := (P1#2)(1_R1);
     curf1 := 1;
     pow1 := 1;
@@ -1019,8 +1030,9 @@ splittingFieldPari (NumberField) := opts -> R -> (
     -- root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
     -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
     T := S/p1;
-    alpha = gens R;
-    phi = (T,R, {ww});
+    
+    alpha := gens R;
+    phi := (T,R, {alpha});
     return (S/p1);
 );
 --Work in progress
