@@ -480,7 +480,9 @@ splittingField(RingElement) := opts -> f1 -> (
     curf1 := f1;
     curf1old := f1;
     varName := gens R1;
-    if not (#varName == 1) then error "Expected a polynomial ring in a single variable";
+    if not (#varName == 1) then error "Expected a polynomial ring in a single variable";  
+    varName = apply(toList varName, z -> symbol z);
+    
     S1 := R1;
     Svar := (gens R1)#0;
     SvarOld := Svar;
@@ -534,7 +536,7 @@ splittingField(RingElement) := opts -> f1 -> (
             --S1 = K1[local a_variableIndex];                    
             S1 = K1[varName];
             SvarOld = Svar;
-            Svar = sub(varName#0, S1);
+            Svar = (gens (S1))#0;
             linTerm = Svar - newPsi(SvarOld);
             phi1 = map(S1, R1, {Svar});    --this is behaving badly, let me try sub
             if debugLevel >= 5 then print phi1;               
