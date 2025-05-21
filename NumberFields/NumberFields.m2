@@ -226,8 +226,8 @@ numberField(Ring) := opts -> R1 -> (
     --(outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
     -- print("Made it to inernal");
     (intermediateRing, intermediatePhi, intermediatePhiInv) := remakeField (R1) ;
-    
-    (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(intermediateRing, Variable=>opts.Variable);
+--    if opts.Verbose or (debugLevel > 1) then print ("numberField:  remakeField called, " | toString(intermediateRing));
+    (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(intermediateRing, usePari => opts.usePari, Variable=>opts.Variable, Verbose=>opts.Verbose);
     outputPsi = outputPsi * intermediatePhi;
     outputPsiInv =  intermediatePhiInv* outputPsiInv;
     -- 1/0;
@@ -1114,13 +1114,13 @@ compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     -- return (sum apply(d1+1, i -> coeffs_i*P_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*0_0^i));
 );
 
-internalSimpleExtension = method(Options => {Strategy=>null, usePari=>defaultPariStrat, Variable=>null});
+internalSimpleExtension = method(Options => {Strategy=>null, usePari=>defaultPariStrat, Variable=>null, Verbose=>false});
 
 internalSimpleExtension(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};
-    if (debugLevel > 1) then print ("internalSimpleExtension:  starting, using usePari=>"|toString(defaultPariStrat));
+    if (debugLevel > 1) or (opts.Verbose) then print ("internalSimpleExtension:  starting, using usePari=>"|toString(opts.usePari));
 
     if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
     -- print K;
@@ -1204,8 +1204,8 @@ internalSimpleExtension(NumberField) := opts -> nf ->(
     
     inversePhi = inverse phi;
     if  (opts.usePari === false) then{        
-        nf#cache#internalSimpleExtension = (tempField, phi, inversePhi);
-        return (tempField, phi, inversePhi);
+        nf#cache#internalSimpleExtension = (tempField, inversePhi, phi);
+        return (tempField, inversePhi, phi);
     };
     --Takes the simple extension given by our algorithm and runs polredbest on it.
     --Returns the pol to mod by and the a primitive root.
@@ -1234,7 +1234,7 @@ simpleExtension(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};
-    if (debugLevel > 1) then print ("simpleExtension:  starting, using usePari=>"|toString(defaultPariStrat));
+    if (debugLevel > 1) then print ("simpleExtension:  starting, using usePari=>"|toString(opts.usePari));
 
     if (nf#cache#?internalSimpleExtension) then return nf#cache#internalSimpleExtension;
     -- print("MADE IT2");
