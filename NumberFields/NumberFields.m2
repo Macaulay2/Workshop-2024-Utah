@@ -481,7 +481,7 @@ splittingField(RingElement) := opts -> f1 -> (
     curf1old := f1;
     varName := gens R1;
     if not (#varName == 1) then error "Expected a polynomial ring in a single variable";  
-    varName = apply(toList varName, z -> symbol z);
+    varName = apply(toList varName, z -> getSymbol "zzz");
     
     S1 := R1;
     Svar := (gens R1)#0;
@@ -526,6 +526,7 @@ splittingField(RingElement) := opts -> f1 -> (
             newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
             kappa = map(S1, coefficientRing S1);
             K1 = flatTargetRing/newPsi(curIdeal);
+            if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
             psi = (map(K1, target newPsi))*newPsi * kappa;
             -*unMadeField = R1/(idealList#0);
             totalPsi = (map(unMadeField, target totalPsi))  * totalPsi;
@@ -535,6 +536,7 @@ splittingField(RingElement) := opts -> f1 -> (
             totalPsi = psi*totalPsi;
             --S1 = K1[local a_variableIndex];                    
             S1 = K1[varName];
+            
             SvarOld = Svar;
             Svar = (gens (S1))#0;
             linTerm = Svar - newPsi(SvarOld);
@@ -544,12 +546,13 @@ splittingField(RingElement) := opts -> f1 -> (
             --curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
             --assert(linTerm*curf1 == curf1old);
             
-            idealList = drop(apply(idealList, z->sub(z, S1)), 1);
+            idealList = drop(apply(idealList, z->phi1(z)), 1);
             if opts.Verbose then print "doing a saturate";
-            newIdeal := saturate(sub(curIdeal, S1), linTerm);
+            newIdeal := saturate(phi1(curIdeal), linTerm);
             if opts.Verbose then print "checking isPrime";
             if debugLevel >= 5 then print newIdeal;
-            if opts.Verbose then print "Starting a decompose";
+            if opts.Verbose then print ("splittingField: Starting a decompose: " | toString(idealList));
+
             if (#idealList == 0) and (#currentEntry == 1) and (max degree(currentEntry#0) <= 2) then (
                     finished = true;
             ) 
@@ -591,11 +594,13 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberField K1
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     --numberFieldExtension (map(K1, K2))    
-    (finalAnswer, psi, psiInv) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
-
-    answer := (numberField(finalAnswer, Verify=>false, Verbose=>opts.Verbose), numberFieldExtension(psi*totalPsi));    
+    --(finalAnswer, psi, psiInv) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
+    tempFinal := numberField(K1, Verify=>false, Verbose=>opts.Verbose);
+    psi = tempFinal#cache#internalNFMaps#0;
+    answer := (tempFinal, numberFieldExtension(psi*totalPsi));    
     (ring f1)#cache#(splittingField,f1) = answer;
     answer
+    --*****TODO, FIX THE MAP SO IT COMES FROM coefficientRing R1*******
 )
 
 -- splittingField = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
