@@ -597,10 +597,9 @@ splittingField(RingElement) := opts -> f1 -> (
     --(finalAnswer, psi, psiInv) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
     tempFinal := numberField(K1, Verify=>false, Verbose=>opts.Verbose);
     psi = tempFinal#cache#internalNFMaps#0;
-    answer := (tempFinal, numberFieldExtension(psi*totalPsi));    
+    answer := (tempFinal, numberFieldExtension(psi*totalPsi));        
     (ring f1)#cache#(splittingField,f1) = answer;
     answer
-    --*****TODO, FIX THE MAP SO IT COMES FROM coefficientRing R1*******
 )
 
 -- splittingField = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
