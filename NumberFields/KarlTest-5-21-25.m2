@@ -1,4 +1,5 @@
 restart
+uninstallPackage "NumberFields"
 loadPackage "NumberFields"
 R = QQ[t,i]/ideal(t^3-2,i^2+1)
 numberField(R, Verbose=>true, usePari => false)
@@ -15,3 +16,8 @@ K = numberField(QQ[i]/(i^2+1), Verbose=>true)
 A = K[x]
 f = x^3-2
 splittingField (f, Verbose=>true)
+
+restart
+uninstallPackage "NumberFields"
+loadPackage "NumberFields"
+installPackage "NumberFields"

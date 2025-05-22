@@ -467,7 +467,7 @@ isGalois(RingMap) := opts -> iota -> (
 
 -- splittingField method
 --****KARL:  THIS IS CURRENTLY BROKEN, I TRIED TO MAKE IT FASTER...*****
-splittingField = method(Options => {Variable=>null, Verbose=>false})
+splittingField = method(Options => {Variable=>null, Verbose=>false, UsePari => defaultPariStrat})
 splittingField(RingElement) := opts -> f1 -> (
     --R1 := QQ[x];    
     R1 := ring f1;
@@ -1757,7 +1757,7 @@ doc ///
             R = QQ[x];
             f = x^2-2;
             splittingField f
-            f = x^2+x+1;
+            f = x^3-7;
             splittingField f
 ///
 
