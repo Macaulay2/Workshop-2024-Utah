@@ -56,7 +56,7 @@ export{
    "vectorToFieldEl",
    "fieldBaseChangeCharZero",
    "gp",
-   "usePari"
+   "UsePari"
 
    --"matrixFromRingMap"
 };
@@ -183,7 +183,7 @@ remakeField(Ring) := opts -> R1 -> (
     (finalRing2, psi, psiinv)
 )
 
-numberField = method(Options => {Verify => true, Verbose=>false, Variable=>null, usePari=>defaultPariStrat})
+numberField = method(Options => {Verify => true, Verbose=>false, Variable=>null, UsePari=>defaultPariStrat})
 numberField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
     if not isField coefficientRing R1 then error("Expected a polynomial over a field.");
@@ -227,7 +227,7 @@ numberField(Ring) := opts -> R1 -> (
     -- print("Made it to inernal");
     (intermediateRing, intermediatePhi, intermediatePhiInv) := remakeField (R1) ;
 --    if opts.Verbose or (debugLevel > 1) then print ("numberField:  remakeField called, " | toString(intermediateRing));
-    (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(intermediateRing, usePari => opts.usePari, Variable=>opts.Variable, Verbose=>opts.Verbose);
+    (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(intermediateRing, UsePari => opts.UsePari, Variable=>opts.Variable, Verbose=>opts.Verbose);
     outputPsi = outputPsi * intermediatePhi;
     outputPsiInv =  intermediatePhiInv* outputPsiInv;
     -- 1/0;
@@ -595,19 +595,19 @@ splittingField(RingElement) := opts -> f1 -> (
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     --numberFieldExtension (map(K1, K2))    
     --(finalAnswer, psi, psiInv) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
-    tempFinal := numberField(K1, Verify=>false, Verbose=>opts.Verbose);
+    tempFinal := numberField(K1, Verify=>false, Verbose=>opts.Verbose, UsePari => opts.UsePari);
     psi = tempFinal#cache#internalNFMaps#0;
     answer := (tempFinal, numberFieldExtension(psi*totalPsi));        
     (ring f1)#cache#(splittingField,f1) = answer;
     answer
 )
 
--- splittingField = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
+-- splittingField = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 -- splittingField(RingElement) := opts -> p -> (
 --     PARISIZE := 8000000;
 --     setPariSize := n -> (PARISIZE = n);  
 --     -- Code to not use gp when can't find. Maybe a global flag?
---     if usePari === false then{
+--     if UsePari === false then{
 --         return (p, 1);
 --     };
 --     -- Such code ends here to not use gp when can't find
@@ -950,13 +950,13 @@ minimalPolynomial(List) := opts -> L1 -> (
 )
 --from rationalpoints2
 -- This gets a "nicer" simple extension than the one we calculate.
-polredbest = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
+polredbest = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 polredbest(RingElement) := opts -> p -> (
     PARISIZE := 800000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
-    -- print(usePari);
-    if usePari === false then{
+    -- print(UsePari);
+    if UsePari === false then{
         return (p, 1);
     };
     -- Such code ends here to not use gp when can't find
@@ -995,14 +995,14 @@ polredbest(RingElement) := opts -> p -> (
 --     return sum apply(length(parser), i -> value(parser_i)*10^(length(parser)-i-1));
 -- )
 
-splittingFieldPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
+splittingFieldPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 splittingFieldPari (NumberField) := opts -> R -> (
     S := ambient R;
     PARISIZE := 80000000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
-    -- print(usePari);
-    if usePari === false then{
+    -- print(UsePari);
+    if UsePari === false then{
         -- We will integrate this appropriately later
         -- return (p, 1);
     };
@@ -1055,14 +1055,14 @@ splittingFieldPari(RingElement):= opts -> r -> (
 )
 
 --Work in progress
-compositumPari = method(Options => {Strategy=>null, usePari=>defaultPariStrat});
+compositumPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 
 --Change these to number fields
 --For now assume simple extensions, make them more general later
 -- Need to add the proper morphisms from original into the compositum.
 compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
-    if usePari === false  then{
+    if UsePari === false  then{
         return (P,Q);
     };
     P1 := simpleExtension(P);
@@ -1120,13 +1120,13 @@ compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     -- return (sum apply(d1+1, i -> coeffs_i*P_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*0_0^i));
 );
 
-internalSimpleExtension = method(Options => {Strategy=>null, usePari=>defaultPariStrat, Variable=>null, Verbose=>false});
+internalSimpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPariStrat, Variable=>null, Verbose=>false});
 
 internalSimpleExtension(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};
-    if (debugLevel > 1) or (opts.Verbose) then print ("internalSimpleExtension:  starting, using usePari=>"|toString(opts.usePari));
+    if (debugLevel > 1) or (opts.Verbose) then print ("internalSimpleExtension:  starting, using UsePari=>"|toString(opts.UsePari));
 
     if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
     -- print K;
@@ -1209,7 +1209,7 @@ internalSimpleExtension(NumberField) := opts -> nf ->(
     if (debugLevel > 1) then print "internalSimpleExtension: computing inverse";
     
     inversePhi = inverse phi;
-    if  (opts.usePari === false) then{        
+    if  (opts.UsePari === false) then{        
         nf#cache#internalSimpleExtension = (tempField, inversePhi, phi);
         return (tempField, inversePhi, phi);
     };
@@ -1235,12 +1235,12 @@ internalSimpleExtension(NumberField) := opts -> nf ->(
 )
 
 -- Gets simple extensions
-simpleExtension = method(Options => {Strategy=>null, usePari=>defaultPariStrat, Variable=>null});
+simpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPariStrat, Variable=>null});
 simpleExtension(NumberField) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};
-    if (debugLevel > 1) then print ("simpleExtension:  starting, using usePari=>"|toString(opts.usePari));
+    if (debugLevel > 1) then print ("simpleExtension:  starting, using UsePari=>"|toString(opts.UsePari));
 
     if (nf#cache#?internalSimpleExtension) then return nf#cache#internalSimpleExtension;
     -- print("MADE IT2");
@@ -1307,7 +1307,7 @@ simpleExtension(NumberField) := opts -> nf ->(
 
     nf#cache#simpleExtension = (simpleExt, phi);
     
-    if  (opts.usePari === false) then{
+    if  (opts.UsePari === false) then{
         return (simpleExt, phi);
     };
     --Takes the simple extension given by our algorithm and runs polredbest on it.
@@ -1997,7 +1997,7 @@ TEST /// --Test #6
 
 ///
 TEST /// --Test #7
-    R = numberField (QQ[a,b]/ideal(a^4+a^3+a^2+a+1, b^2+1),usePari=>false) 
+    R = numberField (QQ[a,b]/ideal(a^4+a^3+a^2+a+1, b^2+1),UsePari=>false) 
     assert(isSurjective matrixFromNumberFieldMap R#cache#internalNFMaps#0 )
     assert(isInjective  matrixFromNumberFieldMap R#cache#internalNFMaps#0)
 ///
@@ -2007,7 +2007,7 @@ TEST /// --Test #7
     assert(isInjective  matrixFromNumberFieldMap R#cache#internalNFMaps#0)
 ///
 TEST /// --Test #8
-    R = numberField (QQ[a]/ideal(a^2+1),usePari=>false) 
+    R = numberField (QQ[a]/ideal(a^2+1),UsePari=>false) 
     assert(isSurjective matrixFromNumberFieldMap R#cache#internalNFMaps#0 )
     assert(isInjective  matrixFromNumberFieldMap R#cache#internalNFMaps#0)
 ///
