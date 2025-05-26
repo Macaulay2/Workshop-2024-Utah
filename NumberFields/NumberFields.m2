@@ -266,14 +266,34 @@ numberField(Ring) := opts -> R1 -> (
         cache => new CacheTable from {degree => deg}
     }
     *-    
-    --tempNumField := new NumberField from outputRing;            
-    tempNumField := outputRing;        
+    --tempNumField := new NumberField from outputRing;    
+    F := toField outputRing;
+    -- M1 is a transition from F to outputRing
+    -- M2 is the the opposite
+    -- THese are used to extend pusfhwd after we make outputRing a field.
+    M1 := map (outputRing, F, {});      
+    M2 := map (F, outputRing, {});    
+    -- Wierd things happen with outputPsi and outputPsiInv. They don't recognize target of outputPsi is outPutRing somehow...
+    M3:=map(source outputPsiInv, target M1);
+    M4:=map(source M2, target outputPsi);
+    
+    toshiPushFwd := method();
+    toshiPushFwd(RingElement) :=  a -> (
+        print(a);
+        print(M1);
+        print(M1(a));
+        return myPushFwd(M1(a));
+    );
+
+    
+    tempNumField :=  F;
+    F#cache = new CacheTable from {};
     tempNumField#cache#NumberField = true;
-    tempNumField#cache#pushFwd = myPushFwd;
+    tempNumField#cache#pushFwd = (myPushFwd_0,myPushFwd_1,toshiPushFwd);
     tempNumField#cache#String = myStr;
     tempNumField#cache#minimalPolynomial = genMinPolys;
     tempNumField#cache#degree = deg;    
-    tempNumField#cache#internalNFMaps = (outputPsi, outputPsiInv);
+    tempNumField#cache#internalNFMaps = (M2*M4*outputPsi, outputPsiInv*M3*M1);
     return tempNumField;
 )
 
@@ -721,6 +741,7 @@ matrixFromRingEl(NumberField, RingElement) := opts -> (nF, rEl) -> (
     matrixFromRingEl(rEl)
 )
 matrixFromRingEl(RingElement) := opts -> (rEl) -> (
+
     --R := ring nF;
     R := ring rEl;
     --return pushFwd(map(R^1, R^1, matrix{{rEl}}));
@@ -1937,6 +1958,8 @@ TEST /// --Test #1
     p1 = pushFwd R;
     assert(rank (p1#0) == 4);
     nf = numberField R
+    nf 
+    isNumberField nf
     assert (isNumberField nf)
     p2 = pushFwd nf
     assert(rank (p2#0) == 4)
@@ -1973,9 +1996,11 @@ TEST /// --Test #3
 --this checks "matrixFromNumberFieldMap", "ringElFromMatrix","matrixFromRingEl"
 TEST /// --Test #4
     R = numberField(QQ[a]/ideal(a^4+a^3+a^2+a+1))
-    b = (gens(R))#0
+    b = (R_0)
     h3 = map(R, R, {b^3})
     assert(isWellDefined h3)
+    b^2 
+    R 
     c = matrixFromRingEl(R, b^2)
     M = matrixFromNumberFieldMap(h3)
     Mi = inverse M
