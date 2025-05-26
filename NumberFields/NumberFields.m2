@@ -183,6 +183,8 @@ remakeField(Ring) := opts -> R1 -> (
     (finalRing2, psi, psiinv)
 )
 
+-- ideal(NumberField) ->
+
 numberField = method(Options => {Verify => true, Verbose=>false, Variable=>null, UsePari=>defaultPariStrat})
 numberField(RingElement) := opts -> f1 -> (
     R1 := ring f1;
@@ -225,7 +227,7 @@ numberField(Ring) := opts -> R1 -> (
 
     --(outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
     -- print("Made it to inernal");
-    print(R1);
+    -- print(R1);
     (intermediateRing, intermediatePhi, intermediatePhiInv) := remakeField (R1) ;
 --    if opts.Verbose or (debugLevel > 1) then print ("numberField:  remakeField called, " | toString(intermediateRing));
     (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(intermediateRing, UsePari => opts.UsePari, Variable=>opts.Variable, Verbose=>opts.Verbose);
@@ -280,10 +282,8 @@ numberField(Ring) := opts -> R1 -> (
     
     toshiPushFwd := method();
     toshiPushFwd(RingElement) :=  a -> (
-        print(a);
-        print(M1);
-        print(M1(a));
-        return myPushFwd(M1(a));
+       
+        return (myPushFwd_2)(M1(a));
     );
 
     
@@ -758,8 +758,8 @@ ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
     --We basically turn the natural linear algebra basis of our number field into a matrix, then row reduce it to turn mat into an element in our number field.
     --R0 := ring nF;
     if opts.Strategy==="direct" then {
-    R0 := nF;
-    R1 := coefficientRing R0;
+    R0 := coefficientRing nF;
+    R1 := QQ;
     M0 := (pushFwd(map(R0,R1)))_1;
     vList := {};
     for i from 0 to ((numgens source M0)-1) do(
@@ -1019,7 +1019,7 @@ polredbest(RingElement) := opts -> p -> (
 
 splittingFieldPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 splittingFieldPari (NumberField) := opts -> R -> (
-    S := ambient R;
+    S := ambient coefficientRing R;
     PARISIZE := 80000000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
@@ -1032,7 +1032,10 @@ splittingFieldPari (NumberField) := opts -> R -> (
 
     -- R := ring p;
     -- k := coefficientRing R;
+    -- print("ABOUT TO");
+    R = coefficientRing R;
     d := (degree (ideal R)_0)_0;
+
     UID := temporaryFileName();
     UID2 := temporaryFileName();
     INPUT := UID|".gp";
@@ -1044,11 +1047,12 @@ splittingFieldPari (NumberField) := opts -> R -> (
       << "for(d=0,poldegree(splittingFieldPoly),write1(\""|OUTPUT|"\",polcoeff(splittingFieldPoly,d),\",\"))\n"
      << "quit()" << close;
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
+    -- print("BOOM");
     coeffs := value("{"|get OUTPUT|"}");
     -- print(coeffs);
     -- Coeffs appears to have an extra blank coefficient. We ignore that in the line below with -1
     p1 := sum apply(length coeffs-1, i -> coeffs_i*S_0^i);
-    print(p1);
+    -- print(p1);
     removeFile \ {INPUT, OUTPUT};
     
     -- root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
@@ -1087,8 +1091,10 @@ compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     if UsePari === false  then{
         return (P,Q);
     };
-    P1 := simpleExtension(P);
-    Q1 := simpleExtension(Q);
+    
+    -- Is there a better way to extract the ideal??
+    P1 := coefficientRing P;
+    Q1 := coefficientRing Q;
     --
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
@@ -1110,7 +1116,7 @@ compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     --   << "write1(\""|OUTPUT|"\",2,\",\")\n"
     --   << "quit()" << close;
     F << "allocatemem("|toString PARISIZE|")\n"
-      << "L=nfcompositum(nfinit(a_1),"|replace("a_1","x",toString (ideal P1_0)_0)|", "|replace("a_1","x",toString (ideal Q1_0)_0)|", 1)\n"
+      << "L=nfcompositum(nfinit(a_1),"|replace("a_1","x",toString ((ideal P1)_0))|", "|replace("a_1","x",toString ((ideal Q1)_0))|", 1)\n"
       << "f = L[1][1]\n"
       << "for(d=0,poldegree(f),write1(\""|OUTPUT|"\",polcoeff(f,d),\",\"))\n"
       << "quit()" << close;
@@ -1119,11 +1125,11 @@ compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
     -- print("{"|get OUTPUT|"}");
     coeffs := value("{"|get OUTPUT|"}");
     -- print(coeffs);
+
     a := local a;
     R := QQ[a];
     d:= length(coeffs);
     -- print(R_0);
-    -- print(d);
     -- coeffsDefEl := value("{"|get OUTPUT2|"}");
     -- print()
     -- print("{"|get OUTPUT|"}");
@@ -1350,6 +1356,7 @@ galoisGroup= method(Options => {Strategy=>null});
 --Returns Permutations, corresponding roots, and galois group as matrix 
 -- VERY SLOW!!!! Maybe integrate this with Pari?
 galoisGroup(NumberField) :=  opts ->(nF) -> (
+    -- nF = coefficientRing nF;
     if not(nF#?cache) then nF#cache = new CacheTable from {};
     if (nF#cache#?galoisGroup) then return nF#cache#galoisGroup;
     u := local u; 
@@ -1360,7 +1367,9 @@ galoisGroup(NumberField) :=  opts ->(nF) -> (
     rootList := {};
     
     for i from 0 to (length gens coefficientRing R1)-1 do(
+        print(R1);
         r0 := (gens coefficientRing R1)_i;
+        
         minPol := minimalPolynomial(r0);
         M0 := map(R1,ring minPol,{(gens R1)_0});
         -- print ring minPol;
@@ -1434,15 +1443,15 @@ galoisGroup(NumberField) :=  opts ->(nF) -> (
     return (allPerms, flatten rootList, group finiteAction(allMaps, QQ [x_1..x_numVars]));
 )
 
--- This implementation is for if a user has used "toField" on a numberField object...
-galoisGroup(PolynomialRing) :=  opts ->(K) -> (
-    -- We get the coefficient ring of K and return the corresp number field's galois group. 
-    if isNumberField coefficientRing K then(
-        return galoisGroup(coefficientRing K)
-    );
-    return 
+-- -- This implementation is for if a user has used "toField" on a numberField object...
+-- galoisGroup(PolynomialRing) :=  opts ->(K) -> (
+--     -- We get the coefficient ring of K and return the corresp number field's galois group. 
+--     if isNumberField coefficientRing K then(
+--         return galoisGroup(coefficientRing K)
+--     );
+--     return 
 
-)
+-- )
 
 -- Let us have a numberfield. Take the vectorspace structure over Q it possesses. 
 -- Convert the vector using the basis of the generators of nF to a NF element.
@@ -2010,7 +2019,8 @@ TEST /// --Test #4
     Mi = inverse M
     d = ringElFromMatrix(R, M*c*Mi)
     assert(d == h3(b^2))
-    x = random(1, R) + random(2,R)+random(3,R) + random(4,R)
+    
+    x = b+5*b+b^11
     cx = matrixFromRingEl(R, x)
     dx = ringElFromMatrix(R, M*cx*Mi)
     assert(dx == h3(x))
