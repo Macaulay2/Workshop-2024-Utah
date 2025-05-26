@@ -225,6 +225,7 @@ numberField(Ring) := opts -> R1 -> (
 
     --(outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
     -- print("Made it to inernal");
+    print(R1);
     (intermediateRing, intermediatePhi, intermediatePhiInv) := remakeField (R1) ;
 --    if opts.Verbose or (debugLevel > 1) then print ("numberField:  remakeField called, " | toString(intermediateRing));
     (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(intermediateRing, UsePari => opts.UsePari, Variable=>opts.Variable, Verbose=>opts.Verbose);
@@ -973,7 +974,7 @@ minimalPolynomial(List) := opts -> L1 -> (
 -- This gets a "nicer" simple extension than the one we calculate.
 polredbest = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 polredbest(RingElement) := opts -> p -> (
-    PARISIZE := 800000000;
+    PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
     -- print(UsePari);
@@ -1150,6 +1151,9 @@ internalSimpleExtension(NumberField) := opts -> nf ->(
     if (debugLevel > 1) or (opts.Verbose) then print ("internalSimpleExtension:  starting, using UsePari=>"|toString(opts.UsePari));
 
     if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
+    if numgens nf == 1 then(
+        return (nf, id_nf, id_nf);
+    );
     -- print K;
     K := nf;
     D:= 0;
