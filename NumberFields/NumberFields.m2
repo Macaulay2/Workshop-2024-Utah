@@ -62,6 +62,9 @@ export{
 };
 
 global gp;
+
+-- global PARISIZE := 80000000000;
+
 try (gp = findProgram("gp", "gp --version")) else (gp = null);
 global defaultPariStrat;
 defaultPariStrat = true;
@@ -486,7 +489,8 @@ isGalois(RingMap) := opts -> iota -> (
    isGalois(numberFieldExtension iota)
 )
 
--- splittingField method
+-- 
+ method
 --****KARL:  THIS IS CURRENTLY BROKEN, I TRIED TO MAKE IT FASTER...*****
 splittingField = method(Options => {Variable=>null, Verbose=>false, UsePari => defaultPariStrat})
 splittingField(RingElement) := opts -> f1 -> (
@@ -1004,9 +1008,10 @@ polredbest(RingElement) := opts -> p -> (
     definingEl = concatenate definingEl;
     definingEl = value("{"|definingEl|"}");
     definingEl = reverse definingEl;    
+    root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
+
     p1 := sum apply(d+1, i -> coeffs_i*R_0^i);
     removeFile \ {INPUT, OUTPUT, OUTPUT2};
-    root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
     -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
 
     return (p1,root);
@@ -1035,21 +1040,27 @@ splittingFieldPari (NumberField) := opts -> R -> (
     -- print("ABOUT TO");
     R = coefficientRing R;
     d := (degree (ideal R)_0)_0;
-
+ 
     UID := temporaryFileName();
     UID2 := temporaryFileName();
     INPUT := UID|".gp";
     OUTPUT := UID|"-output";
+    OUTPUT2 := UID2|"-output";
     F := openOut INPUT;
     F << "allocatemem("|toString PARISIZE|")\n"
       << "K=nfinit("|toString ((ideal R)_0)|")\n"
-      << "splittingFieldPoly=nfsplitting(K)\n"
+      << "[splittingFieldPoly,mapEl]=nfsplitting(K,,3)\n"
       << "for(d=0,poldegree(splittingFieldPoly),write1(\""|OUTPUT|"\",polcoeff(splittingFieldPoly,d),\",\"))\n"
-     << "quit()" << close;
+      << "write1(\""|OUTPUT2|"\",Vec(lift(a)),\",\")\n"
+      << "quit()" << close;
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
-    -- print("BOOM");
     coeffs := value("{"|get OUTPUT|"}");
-    -- print(coeffs);
+    definingEl := toList(get OUTPUT2);
+    definingEl = drop(drop(definingEl,1),-2);
+    definingEl = concatenate definingEl;
+    definingEl = value("{"|definingEl|"}");
+    definingEl = reverse definingEl;    
+    root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
     -- Coeffs appears to have an extra blank coefficient. We ignore that in the line below with -1
     p1 := sum apply(length coeffs-1, i -> coeffs_i*S_0^i);
     -- print(p1);
@@ -1060,9 +1071,10 @@ splittingFieldPari (NumberField) := opts -> R -> (
     T := S/p1;
     
     alpha := gens R;
-    phi := (T,R, {alpha});
-    return (S/p1);
-);
+    phi := (T,R, {root});
+    return (T, phi);
+);  
+
 splittingFieldPari(RingElement):= opts -> r -> (
     u := local u;
 
