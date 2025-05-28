@@ -15,7 +15,7 @@ loadPackage "NumberFields"
 K = numberField(QQ[i]/(i^2+1), Verbose=>true)
 A = K[x]
 f = x^3-2
-splittingField (f, Verbose=>true)
+splittingField (f, Verbose=>true, UsePari =>false)
 
 restart
 uninstallPackage "NumberFields"

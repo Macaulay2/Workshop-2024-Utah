@@ -494,7 +494,7 @@ isGalois(RingMap) := opts -> iota -> (
 splittingField = method(Options => {Variable=>null, Verbose=>false, UsePari => defaultPariStrat})
 
 splittingField(RingElement) := opts -> f1 -> (
-    if (not opts.UsePari) or (gp === null) then (
+    if not opts.UsePari or gp === null then (
         splittingFieldNonPari(f1, opts)
     )
     else (
@@ -513,6 +513,7 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
         if opts.Verbose then print "splittingField: result already cached, returning";
         return R1#cache#(splittingField,f1);
     );
+    
     curf1 := f1;
     curf1old := f1;
     varName := gens R1;
@@ -539,92 +540,77 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
     variableIndex := 1;
     finished := false;
     i := 1;
-    idealList := {ideal curf1};
-    L1 := flatten apply(idealList, z->decompose z);
-    local var;
-    a := local a;
-    if opts.Variable === null then (var = a) else (var = opts.Variable);
-    while not finished do (
-        if debugLevel >= 5 then print ("Starting a loop : " | toString(idealList));        
-        idealList = select(idealList, z->not isLinear z);        --let's only keep the good ones.
-        --print i;
-        --print curf1;
-        if opts.Verbose then print idealList;
-        i += 1;
-        finished = true;
-        --executeForLoop := true;
-        if (#idealList > 0) then (
-            curIdeal := idealList#0;
-            currentEntry := (entries gens curIdeal)#0;   --grab a polynomial to work with
-            finished = false;
-            newTargetRing := K1[var_variableIndex, Degrees=>{0}];
-            (flatTargetRing,flatPsi) = flattenRing(newTargetRing);
-            newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
-            kappa = map(S1, coefficientRing S1);
-            K1 = flatTargetRing/newPsi(curIdeal);
-            if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
-            psi = (map(K1, target newPsi))*newPsi * kappa;
-            -*unMadeField = R1/(idealList#0);
-            totalPsi = (map(unMadeField, target totalPsi))  * totalPsi;
-            (K1, psi) = flattenRing(K1[local a_variableIndex]);*-
-            
-            --(K1, psi) = remakeField (unMadeField, Degree=>0, NoPrune=>true);                    
-            totalPsi = psi*totalPsi;
-            --S1 = K1[local a_variableIndex];                    
-            S1 = K1[varName];
-            
-            SvarOld = Svar;
-            Svar = (gens (S1))#0;
-            linTerm = Svar - newPsi(SvarOld);
-            phi1 = map(S1, R1, {Svar});    --this is behaving badly, let me try sub
-            if debugLevel >= 5 then print phi1;               
-            --curf1old = phi1(curf1);
-            --curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
-            --assert(linTerm*curf1 == curf1old);
-            
-            idealList = drop(apply(idealList, z->phi1(z)), 1);
-            if opts.Verbose then print "doing a saturate";
-            newIdeal := saturate(phi1(curIdeal), linTerm);
-            if opts.Verbose then print "checking isPrime";
-            if debugLevel >= 5 then print newIdeal;
-            if opts.Verbose then print ("splittingField: Starting a decompose: " | toString(idealList));
+    local myFactors;
+    local idealList;
+    local L1;
+    factorFlag = false;
+    if ((coefficientRing R1)#?cache) and ((coefficientRing R1)#cache#?NumberField) and ((coefficientRing R1)#cache#NumberField) then (
+        factorFlag = true;
+        myFactors = factor curf1;
+        idealList = apply(#myFactors, j -> ideal(myFactors#j#0));
+        1/0;--working on fixing this...
+    )
+    else (
+        idealList = {ideal curf1};
+        idealList = flatten apply(idealList, z->decompose z);    
+        local var;
+        a := local a;
+        if opts.Variable === null then (var = a) else (var = opts.Variable);
+        while not finished do (
+            if debugLevel >= 5 then print ("Starting a loop : " | toString(idealList));        
+            idealList = select(idealList, z->not isLinear z);        --let's only keep the good ones.
+            --print i;
+            --print curf1;
+            if opts.Verbose then print idealList;
+            i += 1;
+            finished = true;
+            --executeForLoop := true;
+            if (#idealList > 0) then (
+                curIdeal := idealList#0;
+                currentEntry := (entries gens curIdeal)#0;   --grab a polynomial to work with
+                finished = false;
+                newTargetRing := K1[var_variableIndex, Degrees=>{0}];
+                (flatTargetRing,flatPsi) = flattenRing(newTargetRing);
+                newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
+                kappa = map(S1, coefficientRing S1);
+                K1 = flatTargetRing/newPsi(curIdeal);
+                if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
+                psi = (map(K1, target newPsi))*newPsi * kappa;
+                -*unMadeField = R1/(idealList#0);
+                totalPsi = (map(unMadeField, target totalPsi))  * totalPsi;
+                (K1, psi) = flattenRing(K1[local a_variableIndex]);*-
+                
+                --(K1, psi) = remakeField (unMadeField, Degree=>0, NoPrune=>true);                    
+                totalPsi = psi*totalPsi;
+                --S1 = K1[local a_variableIndex];                    
+                S1 = K1[varName];
+                
+                SvarOld = Svar;
+                Svar = (gens (S1))#0;
+                linTerm = Svar - newPsi(SvarOld);
+                phi1 = map(S1, R1, {Svar});    --this is behaving badly, let me try sub
+                if debugLevel >= 5 then print phi1;               
+                --curf1old = phi1(curf1);
+                --curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
+                --assert(linTerm*curf1 == curf1old);
+                
+                idealList = drop(apply(idealList, z->phi1(z)), 1);
+                if opts.Verbose then print "doing a saturate";
+                newIdeal := saturate(phi1(curIdeal), linTerm);
+                if opts.Verbose then print "checking isPrime";
+                if debugLevel >= 5 then print newIdeal;
+                if opts.Verbose then print ("splittingField: Starting a decompose: " | toString(idealList));
 
-            if (#idealList == 0) and (#currentEntry == 1) and (max degree(currentEntry#0) <= 2) then (
-                    finished = true;
-            ) 
-            else (
-                idealList = (decompose (newIdeal, Strategy=>"Legacy")) | idealList;
-                R1 = S1;
-                variableIndex += 1;
-            )
-        )
-
-        
-        -*for i from 0 to #idealList-1 do (
-            if executeForLoop then (
-                currentEntry := (entries gens L1#i)#0;         
-                if opts.Verbose then print (toString(currentEntry) | " : " | toString(length(currentEntry)) | "," | toString(degree(currentEntry#0)) );
-                if not (length(currentEntry)==1 and max(degree(currentEntry#0))==1) then (
-                    finished = false;
-                    unMadeField = R1/(L1#i);
-                    totalPsi = (map(unMadeField, target totalPsi))  * totalPsi;
-                    (K1, psi) = remakeField (unMadeField, Degree=>0);                    
-                    totalPsi = psi*totalPsi;
-                    --S1 = K1[local a_variableIndex];                    
-                    S1 = K1[varName];
-                    SvarOld = Svar;
-                    Svar = sub(varName#0, S1);
-                    linTerm = Svar - psi(SvarOld);
-                    phi1 = map(S1, R1, {Svar});                    
-                    curf1old = phi1(curf1);
-                    curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
-                    --assert(linTerm*curf1 == curf1old);
+                if (#idealList == 0) and (#currentEntry == 1) and (max degree(currentEntry#0) <= 2) then (
+                        finished = true;
+                ) 
+                else (
+                    idealList = (decompose (newIdeal, Strategy=>"Legacy")) | idealList;
                     R1 = S1;
                     variableIndex += 1;
-                    executeForLoop = false;
-                );                                
-            );            
-        );*-
+                )
+            )
+        );
     );
     --K1
     --numberField K1
@@ -639,7 +625,7 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
 )
 
 
-splittingFieldPari = method(Options => {Strategy=>null, Verbose=>false, UsePari=>defaultPariStrat});
+splittingFieldPari = method(Options => {Variable=>null, Strategy=>null, Verbose=>false, UsePari=>defaultPariStrat});
 splittingFieldPari (NumberField) := opts -> R -> (
     S := ambient coefficientRing R;
     PARISIZE := 80000000000;
