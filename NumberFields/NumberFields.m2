@@ -492,7 +492,10 @@ isGalois(RingMap) := opts -> iota -> (
 -- 
 
 splittingField = method(Options => {Variable=>null, Verbose=>false, UsePari => defaultPariStrat})
-splittingField(RingElement) := opts -> f1 -> (
+
+splittingFieldNonPari = method(Options => {Variable=>null, Verbose=>false, UsePari => defaultPariStrat})
+
+splittingFieldNonPari(RingElement) := opts -> f1 -> (
     --R1 := QQ[x];    
     R1 := ring f1;
     if not (R1#?cache) then R1#cache = new CacheTable from {};
@@ -624,6 +627,77 @@ splittingField(RingElement) := opts -> f1 -> (
     answer := (tempFinal, numberFieldExtension(psi*totalPsi));        
     (ring f1)#cache#(splittingField,f1) = answer;
     answer
+)
+
+
+splittingFieldPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
+splittingFieldPari (NumberField) := opts -> R -> (
+    S := ambient coefficientRing R;
+    PARISIZE := 80000000000;
+    setPariSize := n -> (PARISIZE = n);  
+    -- Code to not use gp when can't find. Maybe a global flag?
+    -- print(UsePari);
+    if UsePari === false then{
+        -- We will integrate this appropriately later
+        -- return (p, 1);
+    };
+    -- Such code ends here to not use gp when can't find
+
+    -- R := ring p;
+    -- k := coefficientRing R;
+    -- print("ABOUT TO");
+    R = coefficientRing R;
+    d := (degree (ideal R)_0)_0;
+ 
+    UID := temporaryFileName();
+    UID2 := temporaryFileName();
+    INPUT := UID|".gp";
+    OUTPUT := UID|"-output";
+    OUTPUT2 := UID2|"-output";
+    F := openOut INPUT;
+    F << "allocatemem("|toString PARISIZE|")\n"
+      << "K=nfinit("|toString ((ideal R)_0)|")\n"
+      << "[splittingFieldPoly,mapEl]=nfsplitting(K,,3)\n"
+      << "for(d=0,poldegree(splittingFieldPoly),write1(\""|OUTPUT|"\",polcoeff(splittingFieldPoly,d),\",\"))\n"
+      << "write1(\""|OUTPUT2|"\",Vec(lift(a)),\",\")\n"
+      << "quit()" << close;
+    assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
+    coeffs := value("{"|get OUTPUT|"}");
+    definingEl := toList(get OUTPUT2);
+    definingEl = drop(drop(definingEl,1),-2);
+    definingEl = concatenate definingEl;
+    definingEl = value("{"|definingEl|"}");
+    definingEl = reverse definingEl;    
+    root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
+    -- Coeffs appears to have an extra blank coefficient. We ignore that in the line below with -1
+    p1 := sum apply(length coeffs-1, i -> coeffs_i*S_0^i);
+    -- print(p1);
+    removeFile \ {INPUT, OUTPUT};
+    
+    -- root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
+    -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
+    T := S/p1;
+    
+    alpha := gens R;
+    phi := (T,R, {root});
+    return (T, phi);
+);  
+
+splittingFieldPari(RingElement):= opts -> r -> (
+    u := local u;
+
+    R1 := (ring r)[u];
+
+    minPol := minimalPolynomial(r);
+    M0 := map(R1,ring minPol,{(gens R1)_0});
+    -- M1 := map(R1,ring minPol,{(gens R1)_0});
+
+    -- This is the minimalPolynomial of the element as an element of the number field.qwlo  p0-
+    -- print(M0(minPol));
+
+    -- nf := numberField(R1/M0(minPol));
+    -- print(nf);
+    -- print();
 )
 
 -- splittingField = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
@@ -1021,75 +1095,6 @@ polredbest(RingElement) := opts -> p -> (
 --     return sum apply(length(parser), i -> value(parser_i)*10^(length(parser)-i-1));
 -- )
 
-splittingFieldPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
-splittingFieldPari (NumberField) := opts -> R -> (
-    S := ambient coefficientRing R;
-    PARISIZE := 80000000000;
-    setPariSize := n -> (PARISIZE = n);  
-    -- Code to not use gp when can't find. Maybe a global flag?
-    -- print(UsePari);
-    if UsePari === false then{
-        -- We will integrate this appropriately later
-        -- return (p, 1);
-    };
-    -- Such code ends here to not use gp when can't find
-
-    -- R := ring p;
-    -- k := coefficientRing R;
-    -- print("ABOUT TO");
-    R = coefficientRing R;
-    d := (degree (ideal R)_0)_0;
- 
-    UID := temporaryFileName();
-    UID2 := temporaryFileName();
-    INPUT := UID|".gp";
-    OUTPUT := UID|"-output";
-    OUTPUT2 := UID2|"-output";
-    F := openOut INPUT;
-    F << "allocatemem("|toString PARISIZE|")\n"
-      << "K=nfinit("|toString ((ideal R)_0)|")\n"
-      << "[splittingFieldPoly,mapEl]=nfsplitting(K,,3)\n"
-      << "for(d=0,poldegree(splittingFieldPoly),write1(\""|OUTPUT|"\",polcoeff(splittingFieldPoly,d),\",\"))\n"
-      << "write1(\""|OUTPUT2|"\",Vec(lift(a)),\",\")\n"
-      << "quit()" << close;
-    assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
-    coeffs := value("{"|get OUTPUT|"}");
-    definingEl := toList(get OUTPUT2);
-    definingEl = drop(drop(definingEl,1),-2);
-    definingEl = concatenate definingEl;
-    definingEl = value("{"|definingEl|"}");
-    definingEl = reverse definingEl;    
-    root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
-    -- Coeffs appears to have an extra blank coefficient. We ignore that in the line below with -1
-    p1 := sum apply(length coeffs-1, i -> coeffs_i*S_0^i);
-    -- print(p1);
-    removeFile \ {INPUT, OUTPUT};
-    
-    -- root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
-    -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
-    T := S/p1;
-    
-    alpha := gens R;
-    phi := (T,R, {root});
-    return (T, phi);
-);  
-
-splittingFieldPari(RingElement):= opts -> r -> (
-    u := local u;
-
-    R1 := (ring r)[u];
-
-    minPol := minimalPolynomial(r);
-    M0 := map(R1,ring minPol,{(gens R1)_0});
-    -- M1 := map(R1,ring minPol,{(gens R1)_0});
-
-    -- This is the minimalPolynomial of the element as an element of the number field.qwlo  p0-
-    -- print(M0(minPol));
-
-    -- nf := numberField(R1/M0(minPol));
-    -- print(nf);
-    -- print();
-)
 
 --Work in progress
 compositumPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
