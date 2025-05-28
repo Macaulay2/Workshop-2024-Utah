@@ -493,6 +493,15 @@ isGalois(RingMap) := opts -> iota -> (
 
 splittingField = method(Options => {Variable=>null, Verbose=>false, UsePari => defaultPariStrat})
 
+splittingField(RingElement) := opts -> f1 -> (
+    if (not opts.UsePari) or (gp === null) then (
+        splittingFieldNonPari(f1, opts)
+    )
+    else (
+        splittingFieldPari(f1, opts)
+    )
+);
+
 splittingFieldNonPari = method(Options => {Variable=>null, Verbose=>false, UsePari => defaultPariStrat})
 
 splittingFieldNonPari(RingElement) := opts -> f1 -> (
@@ -630,7 +639,7 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
 )
 
 
-splittingFieldPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
+splittingFieldPari = method(Options => {Strategy=>null, Verbose=>false, UsePari=>defaultPariStrat});
 splittingFieldPari (NumberField) := opts -> R -> (
     S := ambient coefficientRing R;
     PARISIZE := 80000000000;
