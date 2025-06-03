@@ -1,9 +1,11 @@
 needsPackage "Depth"
 
-path = prepend("../packages", path)
-loadPackage("Truncations", Reload => true)
-loadPackage("Complexes", Reload => true)
-loadPackage("Varieties", Reload => true)
+--path = prepend("../packages", path)
+--loadPackage("Truncations", Reload => true)
+--loadPackage("Complexes", Reload => true)
+--loadPackage("Varieties", Reload => true)
+
+------------------------------------------------------------------------------
 
 orlovTruncateLess = method()
 -- Input: a complex F of graded free modules and an integer i.
@@ -16,6 +18,7 @@ orlovTruncateLess(ComplexMap, ZZ) := (psi, i) -> map(
     orlovTruncateLess(source psi, i), -- source
     applyValues(psi.map, f -> submatrixByDegrees(f, (, i-1), (, i-1))))
 
+
 orlovTruncateGeq = method()
 -- Input: a complex F of graded free modules and an integer i.
 -- Output: the quotient of F given by summands of the form R(j) with j <= -i (so R(j) is generated in degree >= i).
@@ -27,8 +30,9 @@ orlovTruncateGeq(ComplexMap, ZZ) := (psi, i) -> map(
     orlovTruncateGeq(source psi, i), -- source
     applyValues(psi.map, f -> submatrixByDegrees(f, (i, ), (i, ))))
 
+------------------------------------------------------------------------------
 
-supTruncate = method();
+supTruncate = method()
 -- Input: a finitely generated module M over a graded Gorenstein ring with nonnegative Gorenstein parameter, and an integer i.
 --        We recall that the Gorenstein parameter is the integer a such that Ext^d_R(k, R) = k(-a) (up to a homological
 --        shift), where R is the ring of M, d is the dimension of R, and k is the residue field of R. 
@@ -38,8 +42,7 @@ supTruncate(Module, ZZ) := (M, i) -> (
     R := ring M;
     d := dim R;
     t := min flatten degrees M;-- this is the minimum generating degree of M
-    if i >= t then d+i-t else d
-)
+    if i >= t then d+i-t else d)
 -- Input: a Complex C given by a finitely generated module concentrated in a single homological degree, and an integer i. The ring
 --	  of the module should be as in the input of supTruncate(Module, ZZ). 
 -- Output: an integer, call it N, satisfying the following: if F is the minimal free resolution of C, and
@@ -50,10 +53,11 @@ supTruncate(Complex, ZZ) := (C, i) -> (
     m := min C;
     d := dim R;
     t := min flatten degrees C_m;-- this is the minimum generating degree of C_m
-    if i >= t then d+i-t + m else d + m
-)
+    if i >= t then d+i-t + m else d + m)
 
-orlovTruncateGeqDualize = method();
+------------------------------------------------------------------------------
+
+orlovTruncateGeqDualize = method()
 -- Input: a graded module M and an integer i
 -- Output: a smart truncation of the dual of orlovTruncationGeq(F, i) that is quasi-isomorphic to
 --         the complex orlovTruncationGeq(F, i), where F is the (typically infinite) minimal free resolution of M.
@@ -61,9 +65,7 @@ orlovTruncateGeqDualize(Module, ZZ) := (M, i) -> (
     F := freeResolution(M, LengthLimit => supTruncate(M, i) + 2);
     Fi := orlovTruncateGeq(F, i);
     Fidual := dual Fi;
-    canonicalTruncation(Fidual, -supTruncate(M, i) -1, )
-)
-
+    canonicalTruncation(Fidual, -supTruncate(M, i) -1,  ))
 -- Input: a Complex C given by a finitely generated module concentrated in a single homological degree, and an integer i
 -- Output: a smart truncation of the dual of orlovTruncationGeq(F, i) that is quasi-isomorphic to
 --         the complex orlovTruncationGeq(F, i), where F is the (typically infinite) minimal free resolution of M.
@@ -71,8 +73,7 @@ orlovTruncateGeqDualize(Complex, ZZ) := (C, i) -> (
     F := resolution(C, LengthLimit => supTruncate(C, i) + 2);
     Fi := orlovTruncateGeq(F, i);
     Fidual := dual Fi;
-    canonicalTruncation(Fidual, -supTruncate(C, i) -1, )
-)
+    canonicalTruncation(Fidual, -supTruncate(C, i) -1,  ))
 -- THIS FUNCTION DOESN'T WORK YET! We need the canonicalTruncation function for maps of complexes. See comment in code.
 -- Input: a morphism f of graded modules and an integer i.
 -- Output: the induced map on truncateGeqDualize applied to the source and target of f (and i).
@@ -83,17 +84,19 @@ orlovTruncateGeqDualize(Matrix, ZZ) := (f, i) -> (
     g := freeResolution(f, LengthLimit => s);
     gi := orlovTruncateGeq(ftilde, i);
     gidual := dual gi;
-    canonicalTruncation(gidual, -s - 1)--this function doesn't exist for ComplexMaps yet.
-)
+    canonicalTruncation(gidual, -s - 1))
+-- TODO: this function doesn't exist for ComplexMaps yet.
 
-sup = method();
+------------------------------------------------------------------------------
+
+sup = method()
 sup(Complex) := (C) -> (
     for i from -max C to -min C -1 do (
 	if prune HH_(-i)(C) != 0 then return -i
 	);
     )
 
-singularityToDerived = method();
+singularityToDerived = method()
 --Input: a finitely generated module M over a graded Gorenstein ring with nonnegative Gorenstein parameter, and integers i and j.
 --       We recall that the Gorenstein parameter is the integer a such that Ext^d_R(k, R) = k(-a) (up to a homological
 --       shift), where R is the ring of M, d is the dimension of R, and k is the residue field of R.
@@ -107,7 +110,6 @@ singularityToDerived = method();
 --CAVEAT: Any object in D^{sing}(R) is isomorphic to a (maximal Cohen-Macaulay) module, but concentrated in some
 --	  (possibly nonzero) homological degree. This method assumes the module is concentrated in homological degree
 --	  zero. Should allow for more generality.
-
 singularityToDerived(Module, ZZ, ZZ) := (M, i, j) -> (
     R := ring M;
     d := dim R;
@@ -159,8 +161,9 @@ singularityToDerived(Matrix, ZZ, ZZ) := (f, i, j) -> (
     sheaf orlovTruncateLess(gdual, i)
 )
 
-end;
+------------------------------------------------------------------------------
 
+end
 
 restart
 load "DbCY.m2"
@@ -174,6 +177,23 @@ R = ZZ/101[x_0..x_4] / ideal(x_0*x_1, x_2*x_3*x_4)
 X = Proj R
 M = coker matrix{{x_0*x_2}}
 D = minimize singularityToDerived(M, 3, 7)
+D = sheaf D
+errorDepth=2
+debugLevel=2
+C = OO_X^1
+E = OO_X^{1}
+D
+C ++ C
+elapsedTime RHom(C, D) -- 16.8s
+elapsedTime RHom(C, D, 0) -- 92.2s
+
+prune HH D
+D.dd
+elapsedTime prune HH RHom(D, OO_X^1) -- 22s -> 16s, ranks 113 103 69 7
+elapsedTime RHom(OO_X^1, D)
+debug Varieties
+
+D = minimize singularityToModules(M, 3, 7)
 D = sheaf D
 errorDepth=2
 debugLevel=2
