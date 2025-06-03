@@ -1,4 +1,7 @@
+restart
 needsPackage "OrlovFunctors"
+
+sheaf Complex := identity
 
 -- Example 2.7
 R = QQ[x_0,x_1,x_2] / sum(3, i -> x_i^3)

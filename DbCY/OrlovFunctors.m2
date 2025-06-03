@@ -199,3 +199,4 @@ end--
 -* Development section *-
 restart
 needsPackage "OrlovFunctors"
+check "OrlovFunctors"
