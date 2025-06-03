@@ -44,8 +44,9 @@ phi = canonicalTruncation(F1', -2, 0)
 phi = map(G0t, source phi, phi)
 f = phi * G0s.cache.resolutionMap
 g = G0t.cache.resolutionMap
-h = f // g
-f' = orlovTruncateLess(dual h, 1)
+h = liftMapAlongQuasiIsomorphism(f, g) -- or f // g
+-- homotopyMap h -- is this useful for anything?
+f' = orlovTruncateLess(dual h, 1) -- final result
 
 -- checking basics
 assert(Gt == sheaf source f')
