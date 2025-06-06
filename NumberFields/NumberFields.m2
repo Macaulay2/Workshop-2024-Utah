@@ -494,6 +494,7 @@ isGalois(RingMap) := opts -> iota -> (
 splittingField = method(Options => {Variable=>null, Verbose=>false, UsePari => defaultPariStrat})
 
 splittingField(RingElement) := opts -> f1 -> (
+    if not #gens (ring f1) == 1 then error "splittingField: expected a polynomial in a single variable.";
     if not opts.UsePari or gp === null then (
         splittingFieldNonPari(f1, opts)
     )
@@ -507,6 +508,7 @@ splittingFieldNonPari = method(Options => {Variable=>null, Verbose=>false, UsePa
 splittingFieldNonPari(RingElement) := opts -> f1 -> (
     --R1 := QQ[x];    
     R1 := ring f1;
+
     if not (R1#?cache) then R1#cache = new CacheTable from {};
     if (R1#cache#?(splittingField,f1)) then 
     (   
@@ -526,8 +528,8 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
     K1 := coefficientRing R1;
     K0 := K1;
     --K2 := (remakeField( coefficientRing R1, Degree=>0))#0;
-    psi := map(K1, K1);
-    totalPsi := psi;
+    local psi;
+    local totalPsi;
     local psiInv;
     local unMadeField;
     local phi1;
@@ -542,20 +544,46 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
     i := 1;
     local myFactors;
     local idealList;
+    local factorList;
     local L1;
-    factorFlag = false;
+    factorFlag := false;
+    local currentEntry;
+    local newTargetRing;
+    a := local a;
+    local var;
+    if opts.Variable === null then (var = a) else (var = opts.Variable);
+
     if ((coefficientRing R1)#?cache) and ((coefficientRing R1)#cache#?NumberField) and ((coefficientRing R1)#cache#NumberField) then (
+        --if we are using the numberField structure
+        K1 = coefficientRing K1;
+        psi = map(K1, K1);
+        totalPsi = psi;
         factorFlag = true;
         myFactors = factor curf1;
-        idealList = apply(#myFactors, j -> ideal(myFactors#j#0));
+        factorList = apply(#myFactors, j -> myFactors#j#0);
+        while not finished do (
+            finished = true;            
+            if (#factorList > 0) then (
+                currentEntry = factorList#0;
+                finished = false;
+                newTargetRing = K1[(varName#0)_variableIndex, Degrees=>{0}];
+                (flatTargetRing,flatPsi) = flattenRing(newTargetRing);
+                newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
+                kappa = map(S1, coefficientRing coefficientRing S1);
+                K1 = flatTargetRing/newPsi(ideal currentEntry);
+                if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
+                psi = (map(K1, target newPsi))*newPsi * kappa;
+                totalPsi = psi*totalPsi; --the composed map so far
+            );
+        );
         1/0;--working on fixing this...
     )
     else (
+        psi = map(K1, K1);
+        totalPsi = psi;
         idealList = {ideal curf1};
         idealList = flatten apply(idealList, z->decompose z);    
-        local var;
-        a := local a;
-        if opts.Variable === null then (var = a) else (var = opts.Variable);
+        
         while not finished do (
             if debugLevel >= 5 then print ("Starting a loop : " | toString(idealList));        
             idealList = select(idealList, z->not isLinear z);        --let's only keep the good ones.
@@ -567,20 +595,15 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
             --executeForLoop := true;
             if (#idealList > 0) then (
                 curIdeal := idealList#0;
-                currentEntry := (entries gens curIdeal)#0;   --grab a polynomial to work with
+                currentEntry = (entries gens curIdeal)#0;   --grab a polynomial to work with
                 finished = false;
-                newTargetRing := K1[var_variableIndex, Degrees=>{0}];
+                newTargetRing = K1[(varName#0)_variableIndex, Degrees=>{0}];
                 (flatTargetRing,flatPsi) = flattenRing(newTargetRing);
                 newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
                 kappa = map(S1, coefficientRing S1);
                 K1 = flatTargetRing/newPsi(curIdeal);
                 if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
                 psi = (map(K1, target newPsi))*newPsi * kappa;
-                -*unMadeField = R1/(idealList#0);
-                totalPsi = (map(unMadeField, target totalPsi))  * totalPsi;
-                (K1, psi) = flattenRing(K1[local a_variableIndex]);*-
-                
-                --(K1, psi) = remakeField (unMadeField, Degree=>0, NoPrune=>true);                    
                 totalPsi = psi*totalPsi;
                 --S1 = K1[local a_variableIndex];                    
                 S1 = K1[varName];
@@ -1161,7 +1184,7 @@ compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
 
 internalSimpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPariStrat, Variable=>null, Verbose=>false});
 
-internalSimpleExtension(NumberField) := opts -> nf ->(
+internalSimpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};
@@ -1278,7 +1301,7 @@ internalSimpleExtension(NumberField) := opts -> nf ->(
 
 -- Gets simple extensions
 simpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPariStrat, Variable=>null});
-simpleExtension(NumberField) := opts -> nf ->(
+simpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
     if not(nf#?cache) then nf#cache = new CacheTable from {};

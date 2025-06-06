@@ -127,3 +127,10 @@ loadPackage "NumberFields"
     assert(isWellDefined h3)
     time inverse h3
     time inverseNumberFieldAutomorphism(h3)
+
+restart
+loadPackage "NumberFields"
+K0 = numberField(QQ[a]/ideal(a^2+a+1))
+R = K0[x]
+f = x^3 - 2
+splittingField(f, Verbose=>true, UsePari => false)
