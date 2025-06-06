@@ -72,7 +72,7 @@ if gp === null then {
     defaultPariStrat = false;
 }
 --NumberField = new Type of QuotientRing
-NumberField = Ring
+--NumberField = Ring
 
 -*
 TempNumberField = new Type of QuotientRing
@@ -184,6 +184,14 @@ remakeField(Ring) := opts -> R1 -> (
     );
     
     (finalRing2, psi, psiinv)
+)
+
+extraFlattenRing = method(Options => {});
+extraFlattenRing(Ring) := opts -> (R1) -> (
+    A1 := coefficientRing R1; 
+    if (coefficientRing#?cache) and (coefficientRing#cache#?NumberField) then (
+
+    );
 )
 
 -- ideal(NumberField) ->
@@ -301,7 +309,7 @@ numberField(Ring) := opts -> R1 -> (
     return tempNumField;
 )
 
-pushFwd(NumberField) := opts -> R1 -> (
+pushFwd(Ring) := opts -> R1 -> (
     if isNumberField R1 or (R1#?cache and R1#cache#?pushFwd) then (
         return R1#cache#pushFwd;
     )
@@ -358,7 +366,7 @@ net NumberField := nf -> (
 
 
 --degreeNF = method(Options => {})
-degree(NumberField) := nf -> (
+degree(Ring) := nf -> (
     if ( nf#cache#?NumberField ) then (
         if (nf#cache#?degree) then return nf#cache#degree;
         -*iota := map(ring(nf),QQ);
@@ -376,18 +384,18 @@ degree(NumberField) := nf -> (
 
 --this gives the basis for the numberField over QQ. Note this isn't used or exported anywhere.
 basisOverQQ = method(Options=>{})
-basisOverQQ(NumberField) := opts -> nf -> (
+basisOverQQ(Ring) := opts -> nf -> (
     first entries ((pushFwd nf)#1)
 );
 
 -- Check if this give the number field as a vectorspace over Q?
 vectorSpace = method(Options=>{})
-vectorSpace(NumberField) := opts -> nf -> (
+vectorSpace(Ring) := opts -> nf -> (
     --nf#cache#pushFwd#0
     (pushFwd nf)#0
 )
 
-vector(RingElement, NumberField) := (f1, nf) -> (
+vector(RingElement, Ring) := (f1, nf) -> (
     if not (ring f1 === nf) then error "Expected an element of the NumberField";
     ((pushFwd nf)#2)(f1)
 );
@@ -470,7 +478,7 @@ trace(RingElement) := (elt) -> (
 isGalois = method(Options =>{})
 -- I've added a isGalois function for number fields, though it could likely be optimized as it calls galoisGroup. (Toshi)
 -- This is bad. We may want to have galoisGroup get the galois closure of a field first.
-isGalois(NumberField) := opts -> (nF) -> (
+isGalois(Ring) := opts -> (nF) -> (
     if length (galoisGroup(nF))_2 == degree nF then (
         return true;
     );
@@ -551,6 +559,10 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
     local newTargetRing;
     a := local a;
     local var;
+    local mapK1toK1a;
+    local mapK1atoK1;
+    local K1a;
+    local psia;
     if opts.Variable === null then (var = a) else (var = opts.Variable);
 
     if ((coefficientRing R1)#?cache) and ((coefficientRing R1)#cache#?NumberField) and ((coefficientRing R1)#cache#NumberField) then (
@@ -570,9 +582,10 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
                 (flatTargetRing,flatPsi) = flattenRing(newTargetRing);
                 newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
                 kappa = map(S1, coefficientRing coefficientRing S1);
-                K1 = flatTargetRing/newPsi(ideal currentEntry);
+                K1a = flatTargetRing/newPsi(ideal currentEntry);
                 if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
-                psi = (map(K1, target newPsi))*newPsi * kappa;
+                psia = (map(K1a, target newPsi))*newPsi * kappa;
+                K1 = internalSimpleExtension(K1a);
                 totalPsi = psi*totalPsi; --the composed map so far
             );
         );
@@ -649,7 +662,7 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
 
 
 splittingFieldPari = method(Options => {Variable=>null, Strategy=>null, Verbose=>false, UsePari=>defaultPariStrat});
-splittingFieldPari (NumberField) := opts -> R -> (
+splittingFieldPari (Ring) := opts -> R -> (
     S := ambient coefficientRing R;
     PARISIZE := 80000000000;
     setPariSize := n -> (PARISIZE = n);  
@@ -772,7 +785,7 @@ syntheticDivision(RingElement, RingElement) := (f1, g1) -> ( --compute f1 / g1, 
 
 -- Do we want to see if we can extend to isomorphic fields?
 isFieldAutomorphism = method(Options=>{})
-isFieldAutomorphism(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
+isFieldAutomorphism(Ring, Matrix) := opts -> (NF1, sigma1) -> (
     R1 := NF1;
     C1 := coefficientRing R1;
     P1 := (pushFwd(map(R1, C1)))#2;
@@ -791,7 +804,7 @@ isFieldAutomorphism(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
 -- Helper method for isFieldAutomorphism
 -*ringMapFromMatrix = method(Options=>{})
 
-ringMapFromMatrix(NumberField, Matrix) := opts -> (NF1, sigma1) -> (
+ringMapFromMatrix(Ring, Matrix) := opts -> (NF1, sigma1) -> (
 *-
 -- Turns a matrix into a ringmap.
 ringMapFromMatrix = (NF1, sigma1) -> (
@@ -807,7 +820,7 @@ ringMapFromMatrix = (NF1, sigma1) -> (
 -*
 matrixFromRingMap = method(Options=>{})
 
-matrixFromRingMap(NumberField, RingMap) := opts -> (n1, psi) ->(
+matrixFromRingMap(Ring, RingMap) := opts -> (n1, psi) ->(
     print "Hello";
     matrixFromRingMap(n1, n1, psi)
 )
@@ -815,7 +828,7 @@ matrixFromRingMap(ZZ,ZZ) := opts -> (i,j) -> (
     i+j
 )
 
-matrixFromRingMap(NumberField, NumberField, Thing) := opts -> (nf1, nf2, psi) -> (
+matrixFromRingMap(Ring, NumberField, Thing) := opts -> (nf1, nf2, psi) -> (
 *-
 matrixFromRingMap = (nf1, nf2, psi) -> (
     if not ((target psi === ring nf1) and (source psi === ring nf2)) then error "expected the map to go from the the second argument to the first";
@@ -830,7 +843,7 @@ matrixFromRingMap = (nf1, nf2, psi) -> (
     matrixOut
 )
 matrixFromRingEl = method(Options => {});
-matrixFromRingEl(NumberField, RingElement) := opts -> (nF, rEl) -> (
+matrixFromRingEl(Ring, RingElement) := opts -> (nF, rEl) -> (
     --R := ring nF;
 --    R := nF;
 --    return pushFwd(map(R^1, R^1, matrix{{rEl}}));
@@ -849,7 +862,7 @@ matrixFromRingEl(RingElement) := opts -> (rEl) -> (
 
 
 ringElFromMatrix = method(Options => {Strategy=>"direct"});
-ringElFromMatrix(NumberField, Matrix) :=opts -> (nF, mat) -> (
+ringElFromMatrix(Ring, Matrix) :=opts -> (nF, mat) -> (
     --We basically turn the natural linear algebra basis of our number field into a matrix, then row reduce it to turn mat into an element in our number field.
     --R0 := ring nF;
     if opts.Strategy==="direct" then {
@@ -1120,7 +1133,7 @@ compositumPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 --Change these to number fields
 --For now assume simple extensions, make them more general later
 -- Need to add the proper morphisms from original into the compositum.
-compositumPari(NumberField, NumberField) := opts -> (P, Q) -> (
+compositumPari(Ring, Ring) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
     if UsePari === false  then{
         return (P,Q);
@@ -1391,7 +1404,7 @@ simpleExtension(Ring) := opts -> nf ->(
 galoisGroup= method(Options => {Strategy=>null});
 --Returns Permutations, corresponding roots, and galois group as matrix 
 -- VERY SLOW!!!! Maybe integrate this with Pari?
-galoisGroup(NumberField) :=  opts ->(nF) -> (
+galoisGroup(Ring) :=  opts ->(nF) -> (
     -- nF = coefficientRing nF;
     if not(nF#?cache) then nF#cache = new CacheTable from {};
     if (nF#cache#?galoisGroup) then return nF#cache#galoisGroup;
@@ -1492,7 +1505,7 @@ galoisGroup(NumberField) :=  opts ->(nF) -> (
 -- Let us have a numberfield. Take the vectorspace structure over Q it possesses. 
 -- Convert the vector using the basis of the generators of nF to a NF element.
 vectorToFieldEl = method(Options =>{});
-vectorToFieldEl(NumberField, Vector) := opts -> (nF, v) -> (
+vectorToFieldEl(Ring, Vector) := opts -> (nF, v) -> (
     b := flatten entries basis nF;
     el := 0_nF;
     for i from 0 to (length  b) -1 do (
@@ -1551,7 +1564,7 @@ getNormalSubgroups(List) := opts -> (G) -> (
 -- Gets all the fixed fields of a numberField.
 -- We can integrate this with Pari
 fixedFields = method();
-fixedFields(NumberField) := (nF) -> (
+fixedFields(Ring) := (nF) -> (
     if not(nF#?cache) then nF#cache = new CacheTable from {};
     if (nF#cache#?fixedFields) then return nF#cache#fixedFields;
     G := null;
@@ -1645,7 +1658,7 @@ fixedFields(NumberField) := (nF) -> (
 -- takes a number field and a map to the original ring used to create
 -- the number field, and returns the map composed with the isomorphism
 composedMap = method(Options => {})
-composedMap(NumberField,Ring) := opts -> (nf,S) -> (
+composedMap(Ring,Ring) := opts -> (nf,S) -> (
 
   Psi := nf#cache#remakeField#0;
   R := source(Psi);
@@ -1656,7 +1669,7 @@ composedMap(NumberField,Ring) := opts -> (nf,S) -> (
 
 -- note: add basic case when degrees are relatively prime
 compositums = method(Options => {})
-compositums(NumberField,NumberField) := opts -> (K1,K2) -> (
+compositums(Ring,Ring) := opts -> (K1,K2) -> (
     
     T := K1 ** K2;
     if (gcd(degree K1, degree K2) == 1) then (
@@ -1752,13 +1765,13 @@ doc ///
 doc ///
     Key
         ringElFromMatrix
-        (ringElFromMatrix, NumberField, Matrix)
+        (ringElFromMatrix, Ring, Matrix)
     Headline
         Given an (invertible) matrix over a number field viewed as a vectorspace over \mathbb{Q}
     Usage
         g = ringElFromMatrix (NF, M)
     Inputs
-        NF: NumberField
+        NF: Ring
             The numberfield in which we the ring element we convert to will live.
         M: Matrix
             The matrix we convert to a ring element.
@@ -1776,13 +1789,13 @@ doc ///
 
 ///
 
--- -- (matrixFromRingEl, NumberField, RingElement) seems pointless...
+-- -- (matrixFromRingEl, Ring, RingElement) seems pointless...
 
 doc ///
     Key
         matrixFromRingEl
         (matrixFromRingEl, RingElement)
-        (matrixFromRingEl, NumberField, RingElement) 
+        (matrixFromRingEl, Ring, RingElement) 
 
     Headline
         Given a ring element in a numberField, output it'\mathbb{Q}
@@ -1791,7 +1804,7 @@ doc ///
         M = matrixFromRingEl (NF, r1)
 
     Inputs
-        NF: NumberField
+        NF: Ring
             The numberfield in which the ring element lives.
         r1: RingElement
             The ring element we wish to convert
@@ -1865,13 +1878,13 @@ doc ///
 doc ///
     Key
         galoisGroup
-        (galoisGroup, NumberField)
+        (galoisGroup, Ring)
     Headline
         computes the Galois Group of a number field.
     Usage
         G = galoisGroup NF
     Inputs
-        NF: NumberField
+        NF: Ring
             the number field whose galois group the method computes.
     Outputs
         permsList: RingElement
@@ -1892,16 +1905,16 @@ doc ///
 doc ///
     Key
         simpleExtension
-        (simpleExtension, NumberField)
+        (simpleExtension, Ring)
     Headline
-        Given a NumberField, computes a simple extension. 
+        Given a Ring, computes a simple extension. 
     Usage
         (S, phi) = simpleExtension nF
     Inputs
-        nF: NumberField
+        nF: Ring
             the number field whose galois group the method computes.
     Outputs
-        S: NumberField
+        S: Ring
             The simpleExtension related to NF
         phi:
             The isomorphism from NF to S.
@@ -1919,13 +1932,13 @@ doc ///
 doc ///
     Key
         fixedFields
-        (fixedFields, NumberField)
+        (fixedFields, Ring)
     Headline
-        Given a NumberField, computes all of the fixed fields.
+        Given a Ring, computes all of the fixed fields.
     Usage
         F = fixedFields NF
     Inputs
-        NF: NumberField
+        NF: Ring
             the number field which we find the fixed fields of.
     Outputs
         F: List
