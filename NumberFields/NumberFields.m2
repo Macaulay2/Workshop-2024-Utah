@@ -1187,6 +1187,7 @@ internalSimpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPar
 internalSimpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
+    if nf === QQ then return (nf, id_nf, id_nf);
     if not(nf#?cache) then nf#cache = new CacheTable from {};
     if (debugLevel > 1) or (opts.Verbose) then print ("internalSimpleExtension:  starting, using UsePari=>"|toString(opts.UsePari));
 
@@ -1304,6 +1305,7 @@ simpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPariStrat, 
 simpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
     --K := ring nf;
+--    if nf === QQ then return (QQ, id_nf, id_nf);
     if not(nf#?cache) then nf#cache = new CacheTable from {};
     if (debugLevel > 1) then print ("simpleExtension:  starting, using UsePari=>"|toString(opts.UsePari));
 
