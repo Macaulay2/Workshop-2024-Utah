@@ -56,10 +56,13 @@ export{
    "vectorToFieldEl",
    "fieldBaseChangeCharZero",
    "gp",
-   "UsePari"
+   "UsePari",
+   "extraFlattenRing"
 
    --"matrixFromRingMap"
 };
+
+protect NumberField;
 
 global gp;
 
@@ -188,10 +191,36 @@ remakeField(Ring) := opts -> R1 -> (
 
 extraFlattenRing = method(Options => {});
 extraFlattenRing(Ring) := opts -> (R1) -> (
-    A1 := coefficientRing R1; 
-    if (coefficientRing#?cache) and (coefficientRing#cache#?NumberField) then (
-
-    );
+    A1 := coefficientRing R1;
+    local A2; 
+    local phi;
+    local J1;
+    local R2;
+    local A2map;
+    local finalRing;
+    local semifinalMap;
+    if (A1#?cache) and (A1#cache#?NumberField) then (
+        (A2, A2map) = extraFlattenRing(coefficientRing A1);
+        if (instance(R1, QuotientRing)) then (
+            R2 = A2[gens R1];
+            phi = map(R2, ambient R1);
+            J1 = phi(ideal R1);
+            (finalRing, semifinalMap) = flattenRing (R2/J1);
+            (finalRing, semifinalMap*(map(R2/J1, R1)))
+        )
+        else if (instance(R1, PolynomialRing)) then (
+            R2 = A2[gens R1];
+            (finalRing, semifinalMap) = flattenRing R2;
+            (finalRing, semifinalMap*(map(R2, R1)))
+        )
+        else(--we don't know what to do, throw an error
+            error "extraFlattenRing: expected coefficientRing to be polynomialRing or a quotient thereof";
+        )
+    )
+    else(
+        flattenRing R1
+    )
+    
 )
 
 -- ideal(NumberField) ->
