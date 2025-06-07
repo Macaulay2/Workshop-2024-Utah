@@ -53,6 +53,7 @@ normalForm = method()
 normalForm Matrix := Matrix => (M) -> (
     "foo-normalForm-foo" << palpMatrix M << close;
     cmd := " -N foo-normalForm-foo";
+    --cmd := " -N -t foo-normalForm-foo"; -- -t gives data it computes along the way.
     result := runProgram(POLYX, cmd);
     print result#"output";
     matrix KSEntry result#"output"

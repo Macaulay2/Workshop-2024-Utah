@@ -444,7 +444,8 @@ TEST ///
   vertices P1
   vertices P2
   P2 == polytope Q
-  findAllFRSTs P2
+  findAllFRSTs Q
+  findAllFRSTs transpose matrix drop(latticePointList P2, -1)
   Amat = transpose matrix latticePointList polytope Q
   assert(Amat == transpose matrix {{-1, -1, 0, 0}, {-1, -1, 0, 1}, {-1, -1, 2, 0}, {-1, 0, 0, 0}, {1, -1, -1, 1}, {1, 2, -1, -1}, {-1, -1, 1, 0}, {0, 0, 0, 0}})
 ///

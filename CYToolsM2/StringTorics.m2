@@ -22,7 +22,8 @@ newPackage(
             "Topcom",
             "Triangulations",
             "InverseSystems",
-            "IntegerEquivalences"
+            "IntegerEquivalences",
+            "PALPInterface"
             },
         PackageImports => {
             "LLLBases"
@@ -41,6 +42,7 @@ export {
 
     -- ReflexivePolytope
     "reflexivePolytope",
+    "reflexive" => "reflexivePolytope", -- TODO: a synonym, or just the same behavior?
     "computeBasics",
     
     -- CYPolytope, CalabiYauInToric
@@ -96,7 +98,7 @@ export {
     "findAllSimplicialFans",
     "findOneFRST",
     "findAllFRSTs", -- fine regular, point triangulations
-    "findAllFRVTs", -- fine regular, but NOT point triangulations.
+    -- TODO: "findAllFRVTs", -- fine regular, but NOT point triangulations. This often crashes using topcom...
     -- finding one triangulation
     -- using opt level code to investigate nearby triangulations
     "partitionFRSTsByDFaceEquivalence",
@@ -872,14 +874,8 @@ exampleP111122'44 = () -> (value /// () -> (
      Ts1 := select(Ts, isStar);
      --<< "Ts1 = (after): " << netList Ts1 << endl;
      assert all(Ts1, tri -> all(max tri, s -> s#-1 == numcols A));
-     Ts1/(t -> (entries transpose A, (max t)/(s -> drop(s, -1))))
-     )
- findAllFRSTs Polyhedron := List => (P) -> (
-     L := latticePointList P;
-     assert all(L#-1, a -> a == 0);
-     L = drop(L, -1);
-     A := transpose matrix L;
-     findAllFRSTs A
+     result := Ts1/(t -> (entries transpose A, (max t)/(s -> drop(s, -1))));
+     result/last -- get rid of the actual vertices, which should match columns of A
      )
 
 -- This function finds all regular, simplicial fans with the given rays.
@@ -933,44 +929,6 @@ findAllSimplicialFans Matrix := List => opts -> (A) -> (
         );
     Ts
     )
-
-
--- Being rewritten 22 Aug 2023.
--- findAllCYs = method(Options => {Ring => null}) -- opts.Ring: ZZ[h11 variables].
--- findAllCYs CYPolytope := List => opts -> Q -> (
---     Ts := findAllFRSTs Q;
---     RZ := if opts#Ring === null then (
---         a := getSymbol "a";
---         h11 := hh^(1,1) Q;
---         ZZ[a_1 .. a_h11]
---         )
---     else (
---         opts#Ring
---         );
---     for i from 0 to #Ts - 1 list cyData(Q, Ts#i, ID => i, Ring => RZ)
---     )
-
-
--- keys: id, cypolytopedata, triangulation, cache.  The id is what? (id of polytope, which triangulation)
---  write date: for cypolytopedata, just writes the id.
---  read data: given id, need to be able to get at which polytope it is.
---    maybe a table with id => CYPolytope, or a function which takes an integer and returns 
---    the CYPolytope object to use, with this id.
---  construct one from a CYPolytope, id, triangulation.
---  what is in the cache?
---    ambient toric
---    CYInToric?
---    abstract toric variety (depends on base)
---    abstract variety for CY3 (depends on base)
---    intersectionNumbers
---    cubicForm (string or polynomial? or intersection numbers only?)
---    c2Form (string or list or polynomial?)
---    mori cone info?
---    gv invariants?
-
-
-----------------------------------------------------------------
-
 
 ----------------------------------------------------------------
 -- FRST Triangulations (Fine, regular, star triangulations) ----

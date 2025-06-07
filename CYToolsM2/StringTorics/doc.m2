@@ -20,15 +20,72 @@
 -- Cohomology
 
 doc ///
+    Key
+        StringTorics
+    Headline
+        toric variety functions useful for investigations in string theory
+    Description
+        Text
+            The purpose of this package is to provide facilities to
+            explore the geometry of Calabi-Yau 3-folds arising as
+            hypersurfaces in toric varieties, and the resulting
+            applications in string theory.
+        Text
+            There are a large number of Calabi-Yau 3-folds which lie
+            on a toric variety.  The main example is the construction
+            of Batyrev, taking anti-canonical hypersurfaces in
+            simplicial projective toric varieties given a
+            triangulation of a reflexive polytope.  However, there are
+            others too: complete intersections in products of
+            projective spaces or other toric varieties; triangulations
+            of the non-simplicial fan which do not induce a
+            triangulation of a reflexive polytope: these are often
+            called {\it vex} triangulations.
+        Text
+            This package allows one to work with these Calabi-Yau
+            varieties.  Currently, the best supported are the Batyrev
+            hypersurfaces.
+        Text
+            Although I wrote this code, much of the work to determine
+            algorithms and use them in research was done in collaboration
+            with Liam McAllister (Cornell physics), and our collaborators
+            (Cody Long, Jakob Moritz, Elijah Sheridan, Naomi Gendler,
+            Manki Kim, Andreas Braun, Andres Rios-Tascon).
+    SeeAlso
+        "working with reflexive polytopes"
+        "creating and using Batyrev Calabi-Yau hypersurfaces"
+        "working with intersection numbers and intersection rings"
+        "working with complete intersections in toric varieties"
+        "working with cohomology of line bundles and sheaves in torics"
+        "topological equivalence of Calabi-Yau 3-folds"
+        "Gopakumar-Vafa invariants of (general in complex moduli) Calabi-Yau 3-folds"
+        "birational geometry of Calabi-Yaus"
+        "creating and using CYDatabase's"
+        "worked examples and example workflows using StringTorics"
+///
+
+
+doc ///
    Key
-     StringTorics
+     "StringTorics2"
    Headline
      toric variety functions useful for investigations in string theory
    Description
     Text
+      The purpose of this package is to provide facilities to explore the
+      geometry of Calabi-Yau 3-folds arising as hypersurfaces in toric varieties,
+      and the resulting applications in string theory.
+      
+
+      Below, one sees some of the computations that are made available in this package.
+      
       This package uses the software packages TOPCOM, CohomCalg, and PALP, together
       with facilities already present in Macaulay2, to provide the following 
       functionality.
+    Text
+      @SUBSECTION "Reflexive polytopes"@
+    Text
+      @SUBSECTION "Triangulations"@
     Text
       @SUBSECTION "Examples of use"@
     Text
@@ -38,28 +95,9 @@ doc ///
     Text
       @SUBSECTION "Reflexive polytopes"@
     Text
-      In this package, a key type is @TO CYPolytope@.  Objects of this class
-      contain information about a reflexive polytope.  This is essentially
-      a reflexive polytope, but also computes and caches information about the Batryev
-      Calabi-Yau hypersurfaces that is independent of the FRST (i.e. fine regular star triangulation
-      of this reflexive polytope).  This includes the GLSM charge matrix, and a description of
-      the generators of the Picard group of the corresponding Calabi-Yau varieties.
-    Text
-      @UL {
-          TO CYPolytope,
-          TO (annotatedFaces, CYPolytope),
-          TO basisIndices,
-          TO (isFavorable, CYPolytope),
-          TO (polar, CYPolytope),
-          TO (degrees, CYPolytope)
-          }@
-    Text
-      @SUBSECTION "Reflexive polytopes"@
-    Text
       In this package, a key type is @TO ReflexivePolytope@ (this supercedes @TO CYPolytope@.
       We might still change the name to CanonicalPolytope).  Objects of this class
-      contain information about a reflexive polytope.  This is essentially
-      a reflexive polytope, but also computes and caches information about the Batryev
+      represent a reflexive polytope.  However, it also computes and caches information about the Batryev
       Calabi-Yau hypersurfaces that is independent of the FRST (i.e. fine regular star triangulation
       of this reflexive polytope).  This includes the GLSM charge matrix, and a description of
       the generators of the Picard group of the corresponding Calabi-Yau varieties.
@@ -74,6 +112,26 @@ doc ///
           --TO basisIndices,
           }@
     Text
+      @SUBSECTION "Batyrev Calabi-Yau hypersurfaces"@
+    Text
+      The data for a Calabi-Yau hypersurface is a reflexive polytope, as above, and a triangulation
+      of the set of all lattice points not interior to facets, that is FRST (fine: it uses all of these points,
+      regular: it is a regular triangulation, and star: all simplices contain the origin).  Basic construction
+      and use of these include the following.  For more involved algorithms, see the sections below.
+    Text
+      @UL {
+          TO CalabiYauInToric,
+          TO calabiYau,
+          TO makeCY,
+          TO makeCYs,
+          TO (label, CalabiYauInToric),
+          TO (max, CalabiYauInToric),
+          TO (rays, CalabiYauInToric),
+          TO (normalToricVariety, CalabiYauInToric),
+          TO (picardRing, CalabiYauInToric),
+          TO (dump, CalabiYauInToric)
+          }@
+    Text
       @SUBSECTION "Routines to access the Kreuzer-Skarke database"@
     Text
       @UL {
@@ -85,9 +143,35 @@ doc ///
     Text
       @UL {
           TO "facilities available for working with triangulations",
+          TO findAllFRSTs,
+          TO findAllFRVTs,
+          TO findOneFRST,
+          "More general triangulation features",
           TO regularFineStarTriangulation,
           TO allTriangulations,
-          TO generateTriangulations
+          TO generateTriangulations,
+          TO "example: generating some triangulations"
+          }@
+    Text
+      @SUBSECTION "Intersection numbers and intersection rings"@
+    Text
+      @UL {
+          TO (intersectionNumbers, CalabiYauInToric)
+          }@
+    Text
+      @SUBSECTION "Topological equivalence of Calabi-Yau 3-folds"@
+    Text
+      @UL {
+          }@
+    Text
+      @SUBSECTION "Gopakumar-Vafa invariants of (general in complex moduli) Calabi-Yau 3-folds"@
+    Text
+      @UL {
+          }@
+    Text
+      @SUBSECTION "Birational geometry of Calabi-Yaus"@
+    Text
+      @UL {
           }@
     Text
       @SUBSECTION "Calabi Yau hypersurfaces in toric varieties"@

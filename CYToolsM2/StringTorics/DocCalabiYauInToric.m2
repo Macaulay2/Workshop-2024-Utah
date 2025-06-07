@@ -1,4 +1,133 @@
 doc ///
+    Key
+        "creating and using Batyrev Calabi-Yau hypersurfaces"
+    Headline
+        information and basic constructors
+    Description
+        Text
+          A @TO CalabiYauInToric@ is the Macaulay2 type for such an object.
+          The basic data stored is the vertices of a reflexive polytope,
+          and a triangulation (given as a list of lists of indices of the lattice points
+          of the polytope).  Note that this is exactly the same data as that
+          for a simplicial toric variety.
+        Text
+          It is generally easier to have triangulations computed for you.
+          In many smaller cases ($h^{1,1}(X)$ less than 5 or 6 or so), the
+          number of triangulations is small.  For larger cases, the number can be too
+          many to enumerate...
+    	Text
+    	    @SUBSECTION "Constructors for Batryev Calabi Yaus"@
+        Text
+    	    @UL {
+                TO (calabiYau, ReflexivePolytope, List),
+                TO (makeCY, ReflexivePolytope),
+                TO (makeCYs, ReflexivePolytope)
+    	    }@
+        Text
+    	    @SUBSECTION "Basic information"@
+        Text
+    	    @UL {
+                TO (dim, CalabiYauInToric),
+                TO (rays, CalabiYauInToric),
+                TO (max, CalabiYauInToric),
+                TO (label, CalabiYauInToric),
+                TO (isFavorable, CalabiYauInToric),
+                TO (hh, Sequence, CalabiYauInToric),
+                TO (describe, CalabiYauInToric)
+    	    }@
+        Text
+    	    @SUBSECTION "Picard group"@
+        Text
+    	    @UL {
+                TO (picardRing, CalabiYauInToric),
+                TO (degrees, CalabiYauInToric),
+                TO (basisIndices, CalabiYauInToric)
+            }@
+        Text
+            @SUBSECTION "Interacting with NormalToricVarieties, Polyhedra"@
+        Text
+            @UL {
+                TO (normalToricVariety, CalabiYauInToric),
+                TO (ambient, CalabiYauInToric),
+                TO (polytope, CalabiYauInToric),
+                TO (abstractVariety, CalabiYauInToric)
+            }@
+///        
+
+doc ///
+    Key
+        "working with complete intersections in toric varieties"
+    Headline
+        
+    Description
+        Text
+          One way to construct a variety is as a complete intersection $X$ in a toric or projective
+          variety $V$.  A subvariety of codimension $c$ is a complete intersection in $V$,
+          whose ideal has exactly $c$ minimal generators (in the homogeneous coordinate ring, or Cox
+          ring, of $V$).
+
+          Given a set of equations cutting out $X$, there are a few caveats one must consider:
+          (1) $X$ might not be smooth, and so some formulas or techniques might not work, and (2)
+          the Picard group might not be the one induced by $V$.  For example, in the
+          Batyrev hypersurface case, if $X$ is not favorable, then the Picard group is strictly
+          larger than the induced Picard group from $V$.  We can handle that case, but for for more
+          general complete intersections, it seems to be a very hard problem to determine its
+          cohomology ring or Neron-Severi group.
+
+          Still, we can learn much about $X$, especially if $X$ is smooth.
+    	Text
+    	    @SUBSECTION "Constructors for CompleteIntersectionInToric"@
+        Text
+    	    @UL {
+                TO (completeIntersection, NormalToricVariety, List),
+    	    }@
+        Text
+    	    @SUBSECTION "Basic information"@
+        Text
+    	    @UL {
+                TO (dim, CompleteIntersectionInToric),
+                TO (equations, CompleteIntersectionInToric),
+    	    }@
+        Text
+    	    @SUBSECTION "Induced intersection ring"@
+        Text
+    	    @UL {
+                TO (abstractVariety, CompleteIntersectionInToric),
+                TO (intersectionRing, CompleteIntersectionInToric),
+                TO (intersectionForm, CompleteIntersectionInToric),
+                TO (c2Form, CompleteIntersectionInToric),
+--                TO (cubicForm, CompleteIntersectionInToric)
+            }@
+        Text
+    	    @SUBSECTION "Hodge numbers"@
+        Text
+    	    @UL {
+                TO (hodgeDiamond, CompleteIntersectionInToric)
+            }@
+        Text
+    	    @SUBSECTION "Cohomology of induced line bundles"@
+        Text
+    	    @UL {
+                TO (symbol_, OO, CompleteIntersectionInToric),
+                TO (lineBundle, CompleteIntersectionInToric, List),
+                TO (cohomology, ZZ, CompleteIntersectionInToric, List, RingElement)
+            }@
+        Text
+    	    @SUBSECTION "Hodge-Deligne polynomials, Danilov-Khovanskii algorithm"@
+        Text
+    	    @UL {
+                "in an included package.  Needs alot of work!"
+            }@
+        Text
+            There is alot we would like to understand still.
+        Text
+    	    @UL {
+                "Is $X$ smooth?",
+                "Many algorithms here only work in the hypersurface case"
+            }@
+        ///        
+
+doc ///
   Key
     CalabiYauInToric
   Headline
@@ -129,8 +258,7 @@ doc ///
       corresponding to $X$.
   Caveat
     This is not well thought out in the case when the class group of the ambient
-    toric variety has torsion.  It might have some issues for
-    the 
+    toric variety has torsion.
   SeeAlso
     c2Form
     cubicForm

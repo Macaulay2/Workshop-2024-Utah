@@ -34,6 +34,7 @@ ReflexivePolytopeCache = {
     "automorphisms" => {value, toString, List},
     "autPermutations" => {value, toString, List},
     "allFRVTs" => {value, toString, Boolean},
+    "allFRSTs" => {value, toString, Boolean},
     "ptriangulations" => {value, toString, List},
     "vtriangulations" => {value, toString, List}  -- simplicial fans which are not induced by the polytope
     }
@@ -376,7 +377,8 @@ isTriangulationOfPolytope(ReflexivePolytope, List) := Boolean => (Q, T) -> (
     )
 isTriangulationOfPolytope(ReflexivePolytope, Triangulation) := (Q, T) -> isTriangulationOfPolytope(Q, max T)
 
-computeTriangulations = Q -> (
+-- local function
+computeFRVTs = Q -> (
     -- sets "ptriangulations", "vtriangulations" (these are the ones that are *not* in ptriangulations.
     -- also sets "allPtriangulations", "allVtriangulations"
     -- maybe: FRSTs, FRVTs
@@ -392,22 +394,34 @@ computeTriangulations = Q -> (
     -- TODO: maybe have a max number we stash?
     vtris := findAllSimplicialFans(transpose matrix rays Q);
     H := partition(t -> isTriangulationOfPolytope(Q,t), vtris, {true, false});
-    Q.cache#"vtriangulations" = sort for t in H#false list t; -- there had better be at least one here (why!?)
-    Q.cache#"ptriangulations" = sort for t in H#true list t; -- there had better be at least one here.
+    Q.cache#"vtriangulations" = sort for t in H#false list t; -- might be zero of these
+    if not Q.cache#?"allFRSTs" and not Q.cache#"allFRSTs" then (
+        Q.cache#"ptriangulations" = sort for t in H#true list t; -- there had better be at least one here.
+        Q.cache#"allFRSTs" = true;
+        ); -- TODO possibly: check that what is there is the same as what we have just computed?
     Q.cache#"allFRVTs" = true; -- currently, we have not coded the partial computation of these fans..
     )
 
+computeFRSTs = Q -> (
+    if Q.cache#?"allFRSTs" and Q.cache#"allFRSTs" then return;
+    Ts := findAllFRSTs transpose matrix rays Q;
+    Q.cache#"ptriangulations" = Ts;
+    Q.cache#"allFRSTs" = true;
+    );
+
 findAllFRSTs ReflexivePolytope := List => Q -> (
-    if not Q.cache#?"allFRVTs" then computeTriangulations Q;
+    if not Q.cache#?"allFRSTs" then computeFRSTs Q;
     Q.cache#"ptriangulations"
     )
 
 findAllFRVTs = method()
 findAllFRVTs ReflexivePolytope := List => Q -> (
-    if not Q.cache#?"allFRVTs" then computeTriangulations Q;
+    if not Q.cache#?"allFRVTs" then computeFRVTs Q;
     Q.cache#"vtriangulations"
     )
 
+-- TODO: this can't always be right??  It knows nothing about the
+-- order of rays, and which rays, we are using.
 findOneFRST = method()
 findOneFRST ReflexivePolytope := Q -> (
     -- TODO: this is NOT correct if any rays interior to facets 
@@ -569,7 +583,7 @@ computeBasics ReflexivePolytope := Q -> (
     computeGLSM Q;
     computeH11H21 Q;
     computeAutomorphisms Q;
-    computeTriangulations Q;
+    computeFRSTs Q; -- not FRVTs yet, that takes too long? TODO: which should be here?
     )
 
 TEST ///
