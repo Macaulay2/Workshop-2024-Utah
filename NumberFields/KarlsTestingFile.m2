@@ -134,3 +134,20 @@ K0 = numberField(QQ[a]/ideal(a^2+a+1))
 R = K0[x]
 f = x^3 - 2
 splittingField(f, Verbose=>true, UsePari => false)
+
+restart
+loadPackage "NumberFields"
+K = numberField(QQ[i]/ideal(i^2+1))
+R = K[x]
+f = x^4+1
+splittingField(f, Verbose=>true, UsePari=>false) 
+
+L = QQ[j]/ideal(j^2+1)
+S = L[y]
+g = y^4+1
+splittingField(g, Verbose=>true, UsePari=>false) 
+
+k = QQ[jj]/ideal(jj^4+1)
+
+KK = QQ[zzz_2, zzz_1, j]/(zzz_1^2-j,j^2+1)/(zzz_2^2+j)
+

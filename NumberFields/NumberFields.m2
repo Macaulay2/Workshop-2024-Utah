@@ -62,8 +62,6 @@ export{
    --"matrixFromRingMap"
 };
 
-protect NumberField;
-
 global gp;
 
 -- global PARISIZE := 80000000000;
@@ -191,6 +189,7 @@ remakeField(Ring) := opts -> R1 -> (
 
 extraFlattenRing = method(Options => {});
 extraFlattenRing(Ring) := opts -> (R1) -> (
+    if R1 === QQ then return (QQ, map(QQ,QQ));
     A1 := coefficientRing R1;
     local A2; 
     local phi;
@@ -200,7 +199,7 @@ extraFlattenRing(Ring) := opts -> (R1) -> (
     local finalRing;
     local semifinalMap;
     if (A1#?cache) and (A1#cache#?NumberField) then (
-        (A2, A2map) = extraFlattenRing(coefficientRing A1);
+        (A2, A2map) = flattenRing(coefficientRing A1);
         if (instance(R1, QuotientRing)) then (
             R2 = A2[gens R1];
             phi = map(R2, ambient R1);
@@ -432,20 +431,14 @@ vector(RingElement, Ring) := (f1, nf) -> (
 
 
 --NumberFieldExtension = new Type of RingMap
-NumberFieldExtension = RingMap
+--NumberFieldExtension = RingMap
 
 numberFieldExtension = method(Options => {})
 numberFieldExtension(RingMap) := opts -> phi1 -> (
-    answer := new NumberFieldExtension from phi1;
+    --answer := new NumberFieldExtension from phi1;
+    answer := phi1;
     answer#cache#String = ("Number field extension, degree " | degree answer);
     answer
-
-    -*new NumberFieldExtension from {
-        source=>numberField source phi1, 
-        target=>numberField target phi1, 
-        "map"=>phi1, 
-        cache => new CacheTable from {}
-    }*-
 );
 
 --net NumberFieldExtension := nfe -> (nfe#cache#String)
@@ -481,12 +474,16 @@ matrixFromNumberFieldMap(RingMap) := opts -> phi1 ->(
 
 --source(NumberFieldExtension) := phi1 -> (source phi1);
 --target(NumberFieldExtension) := phi1 -> (target phi1);
-map(NumberFieldExtension) := opts -> phi1 -> (phi1);
+--map(NumberFieldExtension) := opts -> phi1 -> (phi1);
 
 
-degree(NumberFieldExtension) := nfe -> (
+degree(RingMap) := nfe -> (
     if (nfe#cache#?degree) then return nfe#cache#degree;
-    rk := rank((pushFwd(map(target nfe, source nfe, matrix nfe)))#0);
+    local newTarget;
+    local newSource;
+    if isNumberField target nfe then newTarget = coefficientRing target nfe else newTarget = target nfe;
+    if isNumberField source nfe then newSource = coefficientRing source nfe else newSource = source nfe;
+    rk := rank((pushFwd(map(newTarget, newSource, sub(matrix nfe, newTarget))))#0);
     nfe#cache#degree = rk;
     rk
 )
@@ -523,7 +520,7 @@ isGalois(Ring) := opts -> (nF) -> (
 -- )
 
 isGalois(RingMap) := opts -> iota -> (
-   isGalois(numberFieldExtension iota)
+   isGalois(iota)
 )
 
 -- 
@@ -533,9 +530,11 @@ splittingField = method(Options => {Variable=>null, Verbose=>false, UsePari => d
 splittingField(RingElement) := opts -> f1 -> (
     if not #gens (ring f1) == 1 then error "splittingField: expected a polynomial in a single variable.";
     if not opts.UsePari or gp === null then (
+        if opts.Verbose then print "splittingField:  not using Pari";
         splittingFieldNonPari(f1, opts)
     )
     else (
+        if opts.Verbose then print "splittingField:  using Pari";
         splittingFieldPari(f1, opts)
     )
 );
@@ -596,6 +595,7 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
 
     if ((coefficientRing R1)#?cache) and ((coefficientRing R1)#cache#?NumberField) and ((coefficientRing R1)#cache#NumberField) then (
         --if we are using the numberField structure
+        if (opts.Verbose==true) then print "coefficientRingNonPari: using the numberField strategy";
         K1 = coefficientRing K1;
         psi = map(K1, K1);
         totalPsi = psi;
@@ -607,20 +607,21 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
             if (#factorList > 0) then (
                 currentEntry = factorList#0;
                 finished = false;
-                newTargetRing = K1[(varName#0)_variableIndex, Degrees=>{0}];
-                (flatTargetRing,flatPsi) = flattenRing(newTargetRing);
-                newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
+                newTargetRing = (flattenRing(K1[(varName#0)_variableIndex]))#0;
+                --(flatTargetRing,flatPsi) = flattenRing(newTargetRing);
+                newPsi = map(ambient newTargetRing, S1, gens ambient newTargetRing);
                 kappa = map(S1, coefficientRing coefficientRing S1);
-                K1a = flatTargetRing/newPsi(ideal currentEntry);
+                K1a = (ambient newTargetRing)/(ideal newTargetRing + newPsi(ideal currentEntry));
                 if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
                 psia = (map(K1a, target newPsi))*newPsi * kappa;
                 K1 = internalSimpleExtension(K1a);
-                totalPsi = psi*totalPsi; --the composed map so far
+                --totalPsi = psi*totalPsi; --the composed map so far
             );
         );
         1/0;--working on fixing this...
     )
     else (
+        if (opts.Verbose==true) then print "coefficientRingNonPari: using decompose  strategy";
         psi = map(K1, K1);
         totalPsi = psi;
         idealList = {ideal curf1};
@@ -639,11 +640,13 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
                 curIdeal := idealList#0;
                 currentEntry = (entries gens curIdeal)#0;   --grab a polynomial to work with
                 finished = false;
-                newTargetRing = K1[(varName#0)_variableIndex, Degrees=>{0}];
-                (flatTargetRing,flatPsi) = flattenRing(newTargetRing);
-                newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
+                --newTargetRing = K1[(varName#0)_variableIndex, Degrees=>{0}];
+                newTargetRing = (flattenRing(K1[(varName#0)_variableIndex]))#0;
+                --(flatTargetRing,flatPsi) = flattenRing(newTargetRing);
+                --newPsi = flatPsi*map(newTargetRing, S1, gens newTargetRing);
+                newPsi = map(newTargetRing, S1, gens newTargetRing);
                 kappa = map(S1, coefficientRing S1);
-                K1 = flatTargetRing/newPsi(curIdeal);
+                K1 = (flattenRing(newTargetRing/newPsi(curIdeal)))#0;
                 if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
                 psi = (map(K1, target newPsi))*newPsi * kappa;
                 totalPsi = psi*totalPsi;
@@ -652,14 +655,15 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
                 
                 SvarOld = Svar;
                 Svar = (gens (S1))#0;
-                linTerm = Svar - newPsi(SvarOld);
+                linTerm = Svar - sub(newPsi(SvarOld), S1);
                 phi1 = map(S1, R1, {Svar});    --this is behaving badly, let me try sub
                 if debugLevel >= 5 then print phi1;               
                 --curf1old = phi1(curf1);
                 --curf1 = curf1old;-- // linTerm;      --is this working? --it is not.
                 --assert(linTerm*curf1 == curf1old);
-                
+                if (opts.Verbose) then print idealList;
                 idealList = drop(apply(idealList, z->phi1(z)), 1);
+                if (opts.Verbose) then print idealList;
                 if opts.Verbose then print "doing a saturate";
                 newIdeal := saturate(phi1(curIdeal), linTerm);
                 if opts.Verbose then print "checking isPrime";
@@ -682,6 +686,9 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
     --numberFieldExtension map((flattenRing K1)#0[local y], R1)
     --numberFieldExtension (map(K1, K2))    
     --(finalAnswer, psi, psiInv) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
+    if opts.Verbose then print K1;
+    1/0;
+    if not isPrime ideal(0_K1) then error "splittingField: error, something went wrong, didn't find a field";
     tempFinal := numberField(K1, Verify=>false, Verbose=>opts.Verbose, UsePari => opts.UsePari);
     psi = tempFinal#cache#internalNFMaps#0;
     answer := (tempFinal, numberFieldExtension(psi*totalPsi));        
@@ -1224,7 +1231,7 @@ compositumPari(Ring, Ring) := opts -> (P, Q) -> (
     -- return (sum apply(d1+1, i -> coeffs_i*P_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*0_0^i));
 );
 
-internalSimpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPariStrat, Variable=>null, Verbose=>false});
+internalSimpleExtension = method(Options => {Strategy=>kernel, UsePari=>defaultPariStrat, Variable=>null, Verbose=>false});
 
 internalSimpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
@@ -1725,7 +1732,7 @@ compositums(Ring,Ring) := opts -> (K1,K2) -> (
     infoList
 )
 
-compositums(NumberFieldExtension,NumberFieldExtension) := opts -> (iota,kappa) -> (
+compositums(RingMap,RingMap) := opts -> (iota,kappa) -> (
     -- check for common base
     b1 := source iota;
     b2 := source kappa;
@@ -1861,10 +1868,10 @@ doc ///
         f: RingElement
             a polynomial whose splitting field the method returns
     Outputs
-        : NumberFieldExtension
+        : RingMap
     Description
         Text
-            This method creates a @TO NumberFieldExtension@ whose source is $\mathbb{Q}$, target is a NumberField consisting of the splitting field of $f$, and map is inclusion. Recall that the splitting field of a polynomial $f$ with coefficients in a field $\FF$ is the smallest field extension of $\FF$ in which $f$ splits, or factors into linear factors.
+            This method creates a RingMap whose source is $\mathbb{Q}$, target is a NumberField consisting of the splitting field of $f$, and map is inclusion. Recall that the splitting field of a polynomial $f$ with coefficients in a field $\FF$ is the smallest field extension of $\FF$ in which $f$ splits, or factors into linear factors.
         Example
             R = QQ[x];
             f = x^2-2;
