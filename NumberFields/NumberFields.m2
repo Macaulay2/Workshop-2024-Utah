@@ -158,11 +158,12 @@ remakeField(Ring) := opts -> R1 -> (
     local myIdeal;
     local finalRing2;
     a := local a;
-    (R2, oldToNew, newToOld) := flattenRing(R1, Result=>3);
-    
+    (R2, oldToNew) := extraFlattenRing(R1);
+    newToOld := inverse oldToNew;
     if instance(R2, QuotientRing) then (amb = ambient R2; myIdeal = ideal R2) else (amb = R2; myIdeal = ideal(sub(0,R2)));
     numVars := #(gens amb);
 
+-- Maybe have this just use the old variables?
     if opts.Variable === null then (var = a) else (var = opts.Variable);
     
     varList := {var_1..var_numVars};
@@ -197,33 +198,46 @@ extraFlattenRing(Ring) := opts -> (R1) -> (
     local J1;
     local R2;
     local A2map;
+    local inverseA2Map;
     local finalRing;
+    local semiFinalRing;
+    local finalMap;
+
     local semifinalMap;
     if (A1#?cache) and (A1#cache#?NumberField) then (
-        (A2, A2map) = extraFlattenRing(coefficientRing A1);
+        (A2, A2map, inverseA2Map) = extraFlattenRing(coefficientRing A1);
         if (instance(R1, QuotientRing)) then (
             R2 = A2[gens R1];
             phi = map(R2, ambient R1);
             J1 = phi(ideal R1);
-            (finalRing, semifinalMap) = flattenRing (R2/J1);
-            (finalRing, semifinalMap*(map(R2/J1, R1)))
+            (semiFinalRing, semifinalMap) = flattenRing (R2/J1);
+            finalRing = newRing(semiFinalRing, Degrees=>apply(#gens semiFinalRing, i->1) );
+            finalMap = map(finalRing, semiFinalRing);
+            (finalRing, finalMap*semifinalMap*(map(R2/J1, R1)), (map(R1, R2/J1))*(inverse semifinalMap)*(inverse finalMap))
+
         )
         else if (instance(R1, PolynomialRing)) then (
             R2 = A2[gens R1];
-            (finalRing, semifinalMap) = flattenRing R2;
-            (finalRing, semifinalMap*(map(R2, R1)))
+            (semiFinalRing, semifinalMap) = flattenRing R2;
+            finalRing = newRing(semiFinalRing, Degrees=>apply(#gens semiFinalRing, i->1) );
+            finalMap = map(finalRing, semiFinalRing);
+            (finalRing, finalMap*semifinalMap*(map(R2, R1)), (map(R1, R2))*(inverse semifinalMap)*(inverse finalMap))
+
         )
         else(--we don't know what to do, throw an error
             error "extraFlattenRing: expected coefficientRing to be polynomialRing or a quotient thereof";
         )
     )
     else(
-        flattenRing R1
+        (semiFinalRing, semifinalMap) = flattenRing R1;
+        finalRing = newRing(semiFinalRing, Degrees=>apply(#gens semiFinalRing, i->1) );
+        finalMap = map(finalRing, semiFinalRing);
+        (finalRing, finalMap*semifinalMap, (inverse semifinalMap)*(inverse finalMap))
+
     )
     
 )
 
--- ideal(NumberField) ->
 
 numberField = method(Options => {Verify => true, Verbose=>false, Variable=>null, UsePari=>defaultPariStrat})
 numberField(RingElement) := opts -> f1 -> (
@@ -240,7 +254,6 @@ numberField(RingElement) := opts -> f1 -> (
 )
 
 
--- Understand these better
 numberField(Ring) := opts -> R1 -> (
     if opts.Verbose or (debugLevel > 1) then print ("Starting NumberFieldConstructor, verifying validity :" | toString(opts.Verify));
     -*if R1===QQ then return new NumberField from {
@@ -265,18 +278,23 @@ numberField(Ring) := opts -> R1 -> (
     
     if opts.Verify and char R1 != 0 then error("Expected characteristic 0.");
 
-    --(outputRing, outputPsi, outputPsiInv) = remakeField(R1, Variable=>opts.Variable);
+    
+    -- (intermediateRing, intermediatePhi, intermediatePhiInv) := remakeField (R1,Variable=>opts.Variable) ;
     -- print("Made it to inernal");
     -- print(R1);
-    (intermediateRing, intermediatePhi, intermediatePhiInv) := remakeField (R1) ;
+    (intermediateRing, intermediatePhi,intermediatePhiInv) := extraFlattenRing (R1) ;
+    -- intermediatePhiInv := inverse intermediatePhi;
+    -- What does remake field do..?
+    -- 1/0;
 --    if opts.Verbose or (debugLevel > 1) then print ("numberField:  remakeField called, " | toString(intermediateRing));
     (outputRing, outputPsi,outputPsiInv) = internalSimpleExtension(intermediateRing, UsePari => opts.UsePari, Variable=>opts.Variable, Verbose=>opts.Verbose);
     outputPsi = outputPsi * intermediatePhi;
     outputPsiInv =  intermediatePhiInv* outputPsiInv;
     -- 1/0;
+
     iota := map(outputRing, QQ);
     -- original
-    
+    -- 1/0;
     local myPushFwd;
     if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");   
     -- K 
@@ -491,7 +509,6 @@ degree(NumberFieldExtension) := nfe -> (
     rk
 )
 
--- Norm and Trace aren't used, but I do recall them being useful from number theory in Gordan's Class
 norm(RingElement) := (elt) ->(
     S := ring elt;
     return det pushFwd(map(S^1, S^1, {{elt}}));
@@ -978,7 +995,7 @@ getRoots(RingElement) := opts -> (f1) -> (
     if not (R1#?cache) then R1#cache = new CacheTable from {};
     -- For the cache, for each f1, should we store its roots in R1?
     -- if (nF#cache#?galoisGroup) then return nF#cache#galoisGroup;
-    print(f1);
+    -- print(f1);
     linearTerms := {};
     local i;
     local newLinTerm;
@@ -1048,8 +1065,15 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the 
     S1 := (coefficientRing(R1))[y];
     y = (gens S1)#0;
     P1 := pushFwd(map(R1, coefficientRing(R1)));
+    -- THIS THROWS AN ERROR IF WE DON'T USE REMAKEFIELD
+    -- has to do with internal degree being a list instead of a variable...
+    if debugLevel>1 then(
+        print("I'm ABOUT TO PRINT R1");
+        print(R1);
+        print(coefficientRing(R1));        
+        
+    );
     
-
     A1 := (P1#2)(1_R1);
     curf1 := 1;
     pow1 := 1;
@@ -1220,6 +1244,7 @@ compositumPari(Ring, Ring) := opts -> (P, Q) -> (
     -- print(definingEl);
 
     removeFile \ {INPUT, OUTPUT};
+    -- Churrently just returns the ring. Should also return maps
     return R/(sum apply(d-1, i -> coeffs_i*R_0^i));
     -- return (sum apply(d1+1, i -> coeffs_i*P_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*0_0^i));
 );
@@ -1299,7 +1324,11 @@ internalSimpleExtension(Ring) := opts -> nf ->(
             --); 
         )
         else if (opts.Strategy===null) then (--I'm surprised that this is slower
+            -- 1/0;
+            print("START OF ENTRY OF LOOP");
+            print(r);
             h = minimalPolynomial(r, Variable=>myVar);
+            print(h);
             R1 = ring h;
             tempField = R1/(ideal h);
             --simpleExt = numberField(tempField, Verify=>false);
@@ -2040,6 +2069,8 @@ TEST /// --Test #0
     K = QQ[x]/ideal(x^3-2)
     L = K[y]/ideal(y^2 + y + 1)
     assert(degree numberField K == 3)
+    numberField L 
+
     assert(degree numberField L == 6)
 ///
 
