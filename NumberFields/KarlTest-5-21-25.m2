@@ -27,6 +27,9 @@ loadPackage "NumberFields"
 needsPackage "PushForward"
 k = QQ[x]/ideal(x^3-2)
 L = k[y]/ideal(y^2-2)
+nf = numberField L
+
+
 S2 = (flattenRing(L))#0
 describe S2
 (myMod, myGens, myFun) = pushFwd(map(S2, coefficientRing S2))

@@ -151,3 +151,9 @@ k = QQ[jj]/ideal(jj^4+1)
 
 KK = QQ[zzz_2, zzz_1, j]/(zzz_1^2-j,j^2+1)/(zzz_2^2+j)
 
+restart
+loadPackage "NumberFields"
+K = QQ[i]/ideal(i^2+1)
+R = K[x]
+f = x^4+1
+splittingField(f, Verbose=>true, UsePari=>false) 
