@@ -33,7 +33,7 @@ describe S2
 prune myMod
 A4 = (coefficientRing S2)[gens S2]
 S4 = A4/sub(ideal(S2), A4)
-S4 = newRing(S2, MonomialOrder=>GRevLex)
+S4 = newRing(S2, MonomialOrder=>GRevLex, Degrees=>{1,1})
 (myMod, myGens, myFun) = pushFwd(map(S4, coefficientRing S4))
 
 S3 = QQ[v,u, Degrees=>{{0,1},{1,0}}]/ideal(v^3-2,u^2-2)
