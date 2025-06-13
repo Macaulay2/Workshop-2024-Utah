@@ -1059,11 +1059,11 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the 
     -- if (f1#cache#?minimalPolynomial) then return f1#cache#minimalPolynomial;
     R1 := ring f1;        
     D := degree R1;
-    local y;
-    if (opts.Variable === null) then (y = local xx;) else (y = opts.Variable);    
+    local yy;
+    if (opts.Variable === null) then (yy = local xx;) else (yy = opts.Variable);    
     --y := local aa;
-    S1 := (coefficientRing(R1))[y];
-    y = (gens S1)#0;
+    S1 := (coefficientRing(R1))[yy];
+    yy = (gens S1)#0;
     P1 := pushFwd(map(R1, coefficientRing(R1)));
     -- THIS THROWS AN ERROR IF WE DON'T USE REMAKEFIELD
     -- has to do with internal degree being a list instead of a variable...
@@ -1089,7 +1089,7 @@ minimalPolynomial(RingElement) := opts -> (f1) -> (--we should only compute the 
     pow1 = pow1-1;
     M1 := matrix({{1_S1}});
     for i1 from 1 to (pow1) do (
-        M1 |= y^i1;
+        M1 |= yy^i1;
     );
     -- f1#cache#minimalPolynomial = (entries (M1*(gens(kernel(A1)))))#0#0;
     (entries (M1*(gens(kernel(A1)))))#0#0
