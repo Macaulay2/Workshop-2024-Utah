@@ -211,7 +211,7 @@ extraFlattenRing(Ring) := opts -> (R1) -> (
             phi = map(R2, ambient R1);
             J1 = phi(ideal R1);
             (semiFinalRing, semifinalMap) = flattenRing (R2/J1);
-            finalRing = newRing(semiFinalRing, Degrees=>apply(#gens semiFinalRing, i->1) );
+            finalRing = newRing(semiFinalRing, MonomialOrder=>GRevLex,Degrees=>apply(#gens semiFinalRing, i->1) );
             finalMap = map(finalRing, semiFinalRing);
             (finalRing, finalMap*semifinalMap*(map(R2/J1, R1)), (map(R1, R2/J1))*(inverse semifinalMap)*(inverse finalMap))
 
@@ -219,7 +219,7 @@ extraFlattenRing(Ring) := opts -> (R1) -> (
         else if (instance(R1, PolynomialRing)) then (
             R2 = A2[gens R1];
             (semiFinalRing, semifinalMap) = flattenRing R2;
-            finalRing = newRing(semiFinalRing, Degrees=>apply(#gens semiFinalRing, i->1) );
+            finalRing = newRing(semiFinalRing,  MonomialOrder=>GRevLex,Degrees=>apply(#gens semiFinalRing, i->1) );
             finalMap = map(finalRing, semiFinalRing);
             (finalRing, finalMap*semifinalMap*(map(R2, R1)), (map(R1, R2))*(inverse semifinalMap)*(inverse finalMap))
 
@@ -230,7 +230,7 @@ extraFlattenRing(Ring) := opts -> (R1) -> (
     )
     else(
         (semiFinalRing, semifinalMap) = flattenRing R1;
-        finalRing = newRing(semiFinalRing, Degrees=>apply(#gens semiFinalRing, i->1) );
+        finalRing = newRing(semiFinalRing,  MonomialOrder=>GRevLex,Degrees=>apply(#gens semiFinalRing, i->1) );
         finalMap = map(finalRing, semiFinalRing);
         (finalRing, finalMap*semifinalMap, (inverse semifinalMap)*(inverse finalMap))
 
