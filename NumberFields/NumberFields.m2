@@ -667,7 +667,7 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
                 if opts.Verbose then print "doing a saturate";
                 newIdeal := saturate(phi1(curIdeal), linTerm);
                 if opts.Verbose then print "checking isPrime";
-                if debugLevel >= 5 then print newIdeal;
+                if opts.Verbose then print newIdeal;
                 if opts.Verbose then print ("splittingField: Starting a decompose: " | toString(idealList));
 
                 if (#idealList == 0) and (#currentEntry == 1) and (max degree(currentEntry#0) <= 2) then (
@@ -687,7 +687,6 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
     --numberFieldExtension (map(K1, K2))    
     --(finalAnswer, psi, psiInv) = remakeField(K1, Degree=>1, Variable=>opts.Variable);
     if opts.Verbose then print K1;
-    1/0;
     if not isPrime ideal(0_K1) then error "splittingField: error, something went wrong, didn't find a field";
     tempFinal := numberField(K1, Verify=>false, Verbose=>opts.Verbose, UsePari => opts.UsePari);
     psi = tempFinal#cache#internalNFMaps#0;
