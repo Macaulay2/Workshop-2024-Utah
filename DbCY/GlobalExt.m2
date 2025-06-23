@@ -36,14 +36,15 @@ toricDivisor(List, Ring) := opts -> (d, S) -> (
     P := basisPolyhedron(effGenerators S, transpose matrix {d});
     toricDivisor(first entries transpose interiorPoint P, X, opts))
 
-ampleDegree = X -> (
+ampleDegree = X -> X.cache#"AmpleDegree" ??= (
     nef := nefGenerators X;
     L := apply(entries reducedRowEchelonForm(nef ** QQ),
 	row -> position(row, not zero));
     entries sum(L, i -> nef_i))
 ampleDivisor = X -> toricDivisor(ampleDegree X, ring X)
 
-globalExt = (m, F, G) -> (
+globalExt = method()
+globalExt(ZZ, CoherentSheaf, CoherentSheaf) := Module => (m, F, G) -> F.cache#(symbol globalExt, m, F, G) ??= (
     -- computing global Ext^m(M, N(v))
     (M, N) := (module F, module G);
     X := variety F;
@@ -56,6 +57,8 @@ globalExt = (m, F, G) -> (
 	    -- TODO: the paper asks for S_{e*u} M, is truncation the same?
 	    C := freeResolution(truncate(e * u, M), LengthLimit => m);
 	    D := freeResolution(N, LengthLimit => d-m);
+	    -- TODO: in the single graded case we can just take the maximum degree
+	    -- but to make this work in the multigraded case, that may not work!
 	    all((0,0) .. (m,d-m),
 		(k,i) -> all(unique degrees C_(m-k) ** unique degrees D_i, -- TODO: why m-k and not just k?
 		    (aM, aN) -> contains(nef, transpose matrix {v + aM - aN})))
@@ -64,6 +67,32 @@ globalExt = (m, F, G) -> (
     E := part(v, Ext^m(truncate(e * u, M), N));
     E.cache.Ext = (m, F, G);
     E)
+
+globalHom = (C, D) -> C.cache#"globalHom" ??= minimize part_(degree 1_(ring C)) Hom(C, D)
+
+globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol globalExt, m, F, G) ??= (
+    (M, N) := (module F, module G);
+    X := variety F;
+    d := dim X;
+    u := ampleDegree X;
+    v := 0 * u;
+    nef := coneFromVData nefGenerators X;
+    -- TODO: find e that satisfies inequality in Theorem 2.14
+    -- e := binarySearch(0, , e -> (
+    -- 	    C := freeResolution(truncate(e * u, M), LengthLimit => m);
+    -- 	    D := freeResolution(N, LengthLimit => d-m);
+    -- 	    all((0,0) .. (m,d-m),
+    -- 		(k,i) -> all(unique degrees C_(m-k) ** unique degrees D_i, -- TODO: why m-k and not just k?
+    -- 		    (aM, aN) -> contains(nef, transpose matrix {v + aM - aN})))
+    -- 	    ));
+    e := 1;
+    -- error 0;
+    -- Ext^1(prune HH_0 F, prune HH_0 G)
+    -- part_0 Ext^1(prune HH_0 truncate_2 M, prune HH_0 N)
+    -- globalHom(truncate_2 M, N)
+    H := globalHom(truncate(e * u, M), N);
+    -- TODO: why is it -m?!
+    H_(-m))
 
 ExtTable = (X, L) -> (
     T = (degreesRing 1)_0;
@@ -85,11 +114,18 @@ assert(globalExt(n, OO_X^{n+1}, OO_X^{0}) === QQ^1)
 -- Beilinson's collection of O's
 L = apply(n+1, i -> OO_X^{i})
 ExtTable(X, L)
+ExtTable(X, complex \ L)
 
 -- Beilinson's collection of Omega's
 -- uuhhhh did nobody notice that this list is backwards??
 L = apply(n+1, i -> cotangentSheaf(i, X) ** OO_X^{i})
 ExtTable(X, L)
+
+-- FIXME: ????
+L = sheaf \ freeResolution \ module \ L
+ExtTable(X, L)
+globalExt(1, L#1, L#2)
+globalExt(1, prune HH_0 L#1, prune HH_0 L#2)
 
 ------------
 end
@@ -103,13 +139,15 @@ S = ring X
 K = koszulComplex vars S
 F = cotangentSheaf X
 
-L  = apply(n+1, i -> (naiveTruncation(K, (i+1, n+1)))[i+1])
-L' = apply(n+1, i -> (naiveTruncation(K, (0,     i)))[i])
+L  = apply(n+1, i -> (naiveTruncation(K, (i+1, n+1)))[i+1] ** S^{i})
+L' = apply(n+1, i -> (naiveTruncation(K, (0,     i)))[i] ** S^{i})
 assert all(n+1, i -> sheaf HH_0 L#i == sheaf HH_0 L'#i)
 -- FIXME: why does Omega^2 have coefficients?
-apply(n+1, i -> sheaf HH_0 L#i == exteriorPower(i, F))
+apply(n+1, i -> sheaf HH_0 L#i == exteriorPower(i, F) ** OO_X^{i})
 
--- TODO: show that L (or L') form exceptional collections (up to appropriate shifts)
+-- show that L (or L') form exceptional collections (up to appropriate shifts)
+ExtTable(X, sheaf \ L)
+ExtTable(X, sheaf \ L')
 
 ------------
 end
@@ -125,6 +163,30 @@ p = X^[]
 L = { p^* OO_Y^{0}, p^* OO_Y^{1}, p^* OO_Y^{2}, sheaf(S^1/S_3) }
 ExtTable(X, L)
 
--- TODO: now try their resolutions
-apply(L, M -> sheaf freeResolution module M)
+-- now try their resolutions
+L = apply(L, M -> sheaf freeResolution module M)
+ExtTable(X, L) -- FIXME: a couple of numbers are off
 
+
+--
+(L1,L2) = (OO_X^1, sheaf(S^1/S_2))
+--ExtTable(X, {L1,L2})
+(C,D) = freeResolution \ module \ (L1,L2)
+(F,G) = sheaf \ (C,D)
+
+globalExt(0,F,G)
+globalExt(1,G,F)
+
+ExtTable(X, {F,G})
+ExtTable(X, {L1,L2})
+
+part_{0,0} Ext^1(module L2, module L2)
+part_{0,0} Hom(truncate_{3,3} D, D[1])
+globalExt(1, L2, L2)
+
+
+
+globalExt(0,C,D), Ext^0(L1, L2)
+globalExt(1,D,C), Ext^1(L2, L1)
+
+minimize part_{0,0} Hom(D, C)
