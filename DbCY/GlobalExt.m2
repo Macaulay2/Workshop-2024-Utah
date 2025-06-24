@@ -63,6 +63,7 @@ globalExt(ZZ, CoherentSheaf, CoherentSheaf) := Module => (m, F, G) -> F.cache#(s
 		(k,i) -> all(unique degrees C_(m-k) ** unique degrees D_i, -- TODO: why m-k and not just k?
 		    (aM, aN) -> contains(nef, transpose matrix {v + aM - aN})))
 	    ));
+    if debugLevel > 0 then printerr("using truncation limit ", toString(e * u));
     -- TODO: recover the Yoneda sheaf extension
     E := part(v, Ext^m(truncate(e * u, M), N));
     E.cache.Ext = (m, F, G);
@@ -71,8 +72,9 @@ globalExt(ZZ, CoherentSheaf, CoherentSheaf) := Module => (m, F, G) -> F.cache#(s
 globalHom = (C, D) -> C.cache#"globalHom" ??= minimize part_(degree 1_(ring C)) Hom(C, D)
 
 globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol globalExt, m, F, G) ??= (
-    (M, N) := (module F, module G);
-    X := variety F;
+    --(M, N) := (module F, module G);
+    (M, N) := (F, G);
+    X := variety ring F;
     d := dim X;
     u := ampleDegree X;
     v := 0 * u;
@@ -86,11 +88,9 @@ globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol global
     -- 		    (aM, aN) -> contains(nef, transpose matrix {v + aM - aN})))
     -- 	    ));
     e := 1;
-    -- error 0;
-    -- Ext^1(prune HH_0 F, prune HH_0 G)
-    -- part_0 Ext^1(prune HH_0 truncate_2 M, prune HH_0 N)
-    -- globalHom(truncate_2 M, N)
-    H := globalHom(truncate(e * u, M), N);
+    if debugLevel > 0 then printerr("using truncation limit ", toString(e * u));
+    -- TODO: what's the correct LengthLimit based on m?
+    H := globalHom(freeResolution truncate(e * u, M), N);
     -- TODO: why is it -m?!
     H_(-m))
 
@@ -113,19 +113,18 @@ assert(globalExt(n, OO_X^{n+1}, OO_X^{0}) === QQ^1)
 
 -- Beilinson's collection of O's
 L = apply(n+1, i -> OO_X^{i})
-ExtTable(X, L)
-ExtTable(X, complex \ L)
+assert(0 == ExtTable(X, L) - ExtTable(X, complex \ module \ L))
 
 -- Beilinson's collection of Omega's
 -- uuhhhh did nobody notice that this list is backwards??
 L = apply(n+1, i -> cotangentSheaf(i, X) ** OO_X^{i})
-ExtTable(X, L)
+ExtTable(X, L) - ExtTable(X, freeResolution \ module \ L)
 
--- FIXME: ????
-L = sheaf \ freeResolution \ module \ L
-ExtTable(X, L)
-globalExt(1, L#1, L#2)
-globalExt(1, prune HH_0 L#1, prune HH_0 L#2)
+N = module cotangentSheaf(1, X) ** S^{1}
+M = module cotangentSheaf(2, X) ** S^{2}
+Ext^1(sheaf N, sheaf M)
+globalExt(1, sheaf N, sheaf M)
+globalExt(1, freeResolution N, freeResolution M)
 
 ------------
 end
@@ -190,3 +189,43 @@ globalExt(0,C,D), Ext^0(L1, L2)
 globalExt(1,D,C), Ext^1(L2, L1)
 
 minimize part_{0,0} Hom(D, C)
+
+
+
+end--
+restart
+needs "GlobalExt.m2"
+
+-- FIXME
+X = toricProjectiveSpace 2
+S = ring X
+F = cotangentSheaf(2, X)
+C = freeResolution module cotangentSheaf(1, X) ** S^{1}
+minimize part_0 Hom(truncate_1 C, freeResolution module F ** S^{2})
+minimize part_0 Hom(truncate_1 C, freeResolution module prune F ** S^{2})
+minimize part_0 Hom(truncate_1 C, freeResolution module(F ** OO_X^{2}))
+minimize part_0 Hom(truncate_1 C, module((sheaf freeResolution module F) ** OO_X^{2}))
+
+
+minimize part_0 Hom(truncate_1 C, module(sheaf module freeResolution module M ** OO_X^{2}))
+
+restart
+needs "GlobalExt.m2"
+n = 2
+X = toricProjectiveSpace 2
+S = ring X
+
+N = module cotangentSheaf(1, X) ** S^{1}
+M = module cotangentSheaf(2, X) ** S^{2}
+Ext^1(sheaf N, sheaf M)
+globalExt(1, sheaf N, sheaf M)
+debugLevel = 1
+globalExt(1, freeResolution N, freeResolution M)
+globalExt(1, freeResolution N, freeResolution module prune sheaf M)
+
+
+Ext^2(OO_X^{n+2}, OO_X^{0})
+globalExt(2, OO_X^{n+2}, OO_X^{0})
+globalExt(2, complex module OO_X^{n+2}, complex module OO_X^{0})
+globalExt(2, complex S^{n+2}, complex prune truncate(1, S^1))
+globalExt(2, complex S^{n+2}, complex module prune sheaf truncate(1, S^1))
