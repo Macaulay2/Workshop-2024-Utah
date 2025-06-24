@@ -1,5 +1,7 @@
 needsPackage "NormalToricVarieties"
 
+ToricMap^* := f -> pullback_f
+
 -- TODO: move to Core, c.f. https://github.com/Macaulay2/M2/issues/3844
 -- assume 'test' is a monotonic function, i.e. false for all i < n then true for i >= n
 binarySearch = method()
@@ -53,10 +55,11 @@ globalExt(ZZ, CoherentSheaf, CoherentSheaf) := Module => (m, F, G) -> F.cache#(s
     v := 0 * u;
     nef := coneFromVData nefGenerators X;
     -- find e that satisfies Greg's conditions
-    e := binarySearch(0, , e -> (
+    C := freeResolution(M, LengthLimit => m);
+    D := freeResolution(N, LengthLimit => d-m);
+    e := binarySearch(sum min degrees sum C, sum max degrees sum D, e -> (
 	    -- TODO: the paper asks for S_{e*u} M, is truncation the same?
-	    C := freeResolution(truncate(e * u, M), LengthLimit => m);
-	    D := freeResolution(N, LengthLimit => d-m);
+	    C = freeResolution(truncate(e * u, M), LengthLimit => m);
 	    -- TODO: in the single graded case we can just take the maximum degree
 	    -- but to make this work in the multigraded case, that may not work!
 	    all((0,0) .. (m,d-m),
@@ -75,7 +78,7 @@ globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol global
     -- TODO: also need to push forward to ambient projective space
     (C, D) := (F, G); -- (module F, module G);
     X := variety ring F;
-    n := dim X; -- should be embedding dimension
+    d := dim X; -- should be embedding dimension
     u := ampleDegree X;
     v := 0 * u;
     nef := coneFromVData nefGenerators X;
@@ -85,10 +88,24 @@ globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol global
     r := max for j to last concentration D
     list max for i to pdim D_j -- TODO: what are n and l in the paper?
     -- TODO: translate to a containment of cones for the toric case
-    list max apply(keys betti freeResolution D_j, (k, aa, s) -> aa) - n * u;
-    if debugLevel > 0 then printerr("using truncation limit ", toString(r * u));
+    list max apply(keys betti freeResolution D_j, (k, aa, s) -> aa) - d * u;
+    -- just for fun, we compute the bound a different way and compare
+    C' := freeResolution(C, LengthLimit => m);
+    D' := freeResolution(D, LengthLimit => d-m);
+    e := binarySearch(sum min degrees sum C, sum max degrees sum D', e -> (
+	    -- TODO: the paper asks for S_{e*u} M, is truncation the same?
+	    C' = freeResolution(truncate(e * u, C), LengthLimit => m);
+	    -- TODO: in the single graded case we can just take the maximum degree
+	    -- but to make this work in the multigraded case, that may not work!
+	    all((0,0) .. (m,d-m),
+		(k,i) -> all(unique degrees C'_(m-k) ** unique degrees D'_i, -- TODO: why m-k and not just k?
+		    (aC, aD) -> contains(nef, transpose matrix {v + aC - aD})))
+	    ));
+    if debugLevel > 0 then printerr("using truncation limit ", toString r, " vs ", toString(e * u));
+    -- use e for the multigraded case
+    if # u > 1 then r = e * u;
     -- TODO: what's the correct LengthLimit based on m?
-    E := globalHom(freeResolution truncate(r * u, C), D);
+    E := globalHom(freeResolution truncate(r, C), D);
     E.cache.Ext = (F, G);
     -- TODO: why is it -m here?!
     E_(-m))
@@ -103,6 +120,7 @@ ExtTable = (X, L) -> (
 end
 restart
 needs "GlobalExt.m2"
+debugLevel=1
 
 n = 2
 X = toricProjectiveSpace n
@@ -112,11 +130,13 @@ assert(globalExt(n, OO_X^{n+1}, OO_X^{0}) === QQ^1)
 
 -- Beilinson's collection of O's
 L = apply(n+1, i -> OO_X^{i})
+ExtTable(X, L) -- upper triangular means exceptional
 elapsedTime assert(0 == ExtTable(X, L) - ExtTable(X, complex \ module \ L))
 
 -- Beilinson's collection of Omega's
--- uuhhhh did nobody notice that this list is backwards??
 L = apply(n+1, i -> cotangentSheaf(i, X) ** OO_X^{i})
+ExtTable(X, L) -- upper triangular means exceptional
+-- uuhhhh did nobody notice that this list is backwards??
 elapsedTime assert(0 == ExtTable(X, L) - ExtTable(X, freeResolution \ module \ L))
 
 N = module cotangentSheaf(1, X) ** S^{1}
@@ -144,7 +164,7 @@ assert all(n+1, i -> sheaf HH_0 L#i == sheaf HH_0 L'#i)
 apply(n+1, i -> sheaf HH_0 L#i == exteriorPower(i, F) ** OO_X^{i})
 
 -- show that L (or L') form exceptional collections (up to appropriate shifts)
-ExtTable(X, L)
+ExtTable(X, L) -- upper triangular means exceptional
 ExtTable(X, apply(L', C -> C[-2]))
 
 ------------
@@ -159,11 +179,10 @@ p = X^[]
 
 -- Orlov's formula for the blow up
 L = { p^* OO_Y^{0}, p^* OO_Y^{1}, p^* OO_Y^{2}, sheaf(S^1/S_3) }
-ExtTable(X, L)
+ExtTable(X, L) -- upper triangular means exceptional
+-- now compare with complexes version
+ExtTable(X, L) - ExtTable(X, apply(L, M -> freeResolution module M))
 
--- now try their resolutions
-L = apply(L, M -> sheaf freeResolution module M)
-ExtTable(X, L) -- FIXME: a couple of numbers are off
 
 
 --
