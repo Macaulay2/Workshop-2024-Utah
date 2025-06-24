@@ -9,7 +9,7 @@ on:
       - '**'
 
 jobs:
-  test-bot:
+  testbot:
     name: Testing ${{ github.head_ref || github.ref_name }}
     runs-on: ubuntu-latest
     container:
@@ -19,8 +19,8 @@ jobs:
 
     steps:
       - name: Checkout the project repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Run testbot on project branch
         run: |
-          M2 --stop --no-debug --silent < tests/testbot.m2
+          M2 --script tests/testbot.m2
