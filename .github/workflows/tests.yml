@@ -9,7 +9,7 @@ on:
       - '**'
 
 jobs:
-  test-bot:
+  testbot:
     name: Testing ${{ github.head_ref || github.ref_name }}
     runs-on: macos-13
 
