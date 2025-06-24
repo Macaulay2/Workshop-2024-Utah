@@ -59,7 +59,7 @@ globalExt(ZZ, CoherentSheaf, CoherentSheaf) := Module => (m, F, G) -> F.cache#(s
     D := freeResolution(N, LengthLimit => d-m);
     e := binarySearch(sum min degrees sum C, sum max degrees sum D, e -> (
 	    -- TODO: the paper asks for S_{e*u} M, is truncation the same?
-	    C = freeResolution(truncate(e * u, M), LengthLimit => m);
+	    C = freeResolution(truncate(e * u, M, MinimalGenerators => false), LengthLimit => m);
 	    -- TODO: in the single graded case we can just take the maximum degree
 	    -- but to make this work in the multigraded case, that may not work!
 	    all((0,0) .. (m,d-m),
@@ -68,13 +68,16 @@ globalExt(ZZ, CoherentSheaf, CoherentSheaf) := Module => (m, F, G) -> F.cache#(s
 	    ));
     if debugLevel > 0 then printerr("using truncation limit ", toString(e * u));
     -- TODO: recover the Yoneda sheaf extension
-    E := part(v, Ext^m(truncate(e * u, M), N));
+    E := part(v, Ext^m(truncate(e * u, M, MinimalGenerators => false), N, MinimalGenerators => false));
     E.cache.Ext = (m, F, G);
     E)
 
-globalHom = (C, D) -> C.cache#("globalHom", C, D) ??= minimize part_(degree 1_(ring C)) Hom(C, D)
+globalHom = (C, D) -> C.cache#("globalHom", C, D) ??= (
+    z := degree 1_(ring C);
+    minimize part_z Hom(C, D, DegreeLimit => z,
+	MinimalGenerators => false))
 
-globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol globalExt, m, F, G) ??= (
+globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol globalExt, m, F, G, 1) ??= (
     -- TODO: also need to push forward to ambient projective space
     (C, D) := (F, G); -- (module F, module G);
     X := variety ring F;
@@ -85,16 +88,17 @@ globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol global
     s := first concentration D;
     if 0 != s then (C, D) = (C[s], D[s]);
     -- find r that satisfies inequality in Theorem 2.14
-    r := max for j to last concentration D
-    list max for i to pdim D_j -- TODO: what are n and l in the paper?
-    -- TODO: translate to a containment of cones for the toric case
-    list max apply(keys betti freeResolution D_j, (k, aa, s) -> aa) - d * u;
+    if #u == 1 then (
+	r := max for j to last concentration D
+	list max for i to pdim D_j -- TODO: what are n and l in the paper?
+	-- TODO: translate to a containment of cones for the toric case
+	list max apply(keys betti freeResolution D_j, (k, aa, s) -> aa) - d * u);
     -- just for fun, we compute the bound a different way and compare
     C' := freeResolution(C, LengthLimit => m);
     D' := freeResolution(D, LengthLimit => d-m);
     e := binarySearch(sum min degrees sum C, sum max degrees sum D', e -> (
 	    -- TODO: the paper asks for S_{e*u} M, is truncation the same?
-	    C' = freeResolution(truncate(e * u, C), LengthLimit => m);
+	    C' = freeResolution(truncate(e * u, C, MinimalGenerators => false), LengthLimit => m);
 	    -- TODO: in the single graded case we can just take the maximum degree
 	    -- but to make this work in the multigraded case, that may not work!
 	    all((0,0) .. (m,d-m),
@@ -103,9 +107,12 @@ globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol global
 	    ));
     if debugLevel > 0 then printerr("using truncation limit ", toString r, " vs ", toString(e * u));
     -- use e for the multigraded case
-    if # u > 1 then r = e * u;
-    -- TODO: what's the correct LengthLimit based on m?
-    E := globalHom(freeResolution truncate(r, C), D);
+    --if #u > 1 then
+    r = e * u;
+    C' = freeResolution(truncate(r, C, MinimalGenerators => false),
+	-- TODO: this +2 seems extra, but some examples fail without it
+	LengthLimit => m - min(0, first concentration C) + 2);
+    E := globalHom(C', D); -- ~70% of the computation
     E.cache.Ext = (F, G);
     -- TODO: why is it -m here?!
     E_(-m))
@@ -145,27 +152,16 @@ M = module cotangentSheaf(2, X) ** S^{2}
 0 == globalExt(1, sheaf N, sheaf M)
 0 == globalExt(1, freeResolution N, freeResolution M)
 
-------------
-end
-restart
-needs "GlobalExt.m2"
-
-n = 2
-X = toricProjectiveSpace n
-S = ring X
-
+--
 K = koszulComplex vars S
-F = cotangentSheaf X
+L1 = apply(n+1, i -> (naiveTruncation(K, (i+1, n+1)))[i+1] ** S^{i})
+L2 = apply(n+1, i -> (naiveTruncation(K, (0,     i)))[i]   ** S^{i})
+assert all(n+1, i -> sheaf HH_0 L1#i == L#i and sheaf HH_0 L2#i == L#i)
 
-L  = apply(n+1, i -> (naiveTruncation(K, (i+1, n+1)))[i+1] ** S^{i})
-L' = apply(n+1, i -> (naiveTruncation(K, (0,     i)))[i] ** S^{i})
-assert all(n+1, i -> sheaf HH_0 L#i == sheaf HH_0 L'#i)
--- FIXME: why does Omega^2 have coefficients?
-apply(n+1, i -> sheaf HH_0 L#i == exteriorPower(i, F) ** OO_X^{i})
-
--- show that L (or L') form exceptional collections (up to appropriate shifts)
+-- show that L1 (or L2) form exceptional collections (up to appropriate shifts)
 ExtTable(X, L) -- upper triangular means exceptional
-ExtTable(X, apply(L', C -> C[-2]))
+assert(0 == ExtTable(X, L) - ExtTable(X, L1))
+assert(0 == ExtTable(X, L) - ExtTable(X, L2))
 
 ------------
 end
@@ -181,7 +177,7 @@ p = X^[]
 L = { p^* OO_Y^{0}, p^* OO_Y^{1}, p^* OO_Y^{2}, sheaf(S^1/S_3) }
 ExtTable(X, L) -- upper triangular means exceptional
 -- now compare with complexes version
-ExtTable(X, L) - ExtTable(X, apply(L, M -> freeResolution module M))
+assert(0 == ExtTable(X, L) - ExtTable(X, apply(L, M -> freeResolution module M)))
 
 
 
