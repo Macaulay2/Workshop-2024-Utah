@@ -69,33 +69,32 @@ globalExt(ZZ, CoherentSheaf, CoherentSheaf) := Module => (m, F, G) -> F.cache#(s
     E.cache.Ext = (m, F, G);
     E)
 
-globalHom = (C, D) -> C.cache#"globalHom" ??= minimize part_(degree 1_(ring C)) Hom(C, D)
+globalHom = (C, D) -> C.cache#("globalHom", C, D) ??= minimize part_(degree 1_(ring C)) Hom(C, D)
 
 globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol globalExt, m, F, G) ??= (
-    --(M, N) := (module F, module G);
-    (M, N) := (F, G);
+    -- TODO: also need to push forward to ambient projective space
+    (C, D) := (F, G); -- (module F, module G);
     X := variety ring F;
-    d := dim X;
+    n := dim X; -- should be embedding dimension
     u := ampleDegree X;
     v := 0 * u;
     nef := coneFromVData nefGenerators X;
-    -- TODO: find e that satisfies inequality in Theorem 2.14
-    -- e := binarySearch(0, , e -> (
-    -- 	    C := freeResolution(truncate(e * u, M), LengthLimit => m);
-    -- 	    D := freeResolution(N, LengthLimit => d-m);
-    -- 	    all((0,0) .. (m,d-m),
-    -- 		(k,i) -> all(unique degrees C_(m-k) ** unique degrees D_i, -- TODO: why m-k and not just k?
-    -- 		    (aM, aN) -> contains(nef, transpose matrix {v + aM - aN})))
-    -- 	    ));
-    e := 1;
-    if debugLevel > 0 then printerr("using truncation limit ", toString(e * u));
+    s := first concentration D;
+    if 0 != s then (C, D) = (C[s], D[s]);
+    -- find r that satisfies inequality in Theorem 2.14
+    r := max for j to last concentration D
+    list max for i to pdim D_j -- TODO: what are n and l in the paper?
+    -- TODO: translate to a containment of cones for the toric case
+    list max apply(keys betti freeResolution D_j, (k, aa, s) -> aa) - n * u;
+    if debugLevel > 0 then printerr("using truncation limit ", toString(r * u));
     -- TODO: what's the correct LengthLimit based on m?
-    H := globalHom(freeResolution truncate(e * u, M), N);
-    -- TODO: why is it -m?!
-    H_(-m))
+    E := globalHom(freeResolution truncate(r * u, C), D);
+    E.cache.Ext = (F, G);
+    -- TODO: why is it -m here?!
+    E_(-m))
 
 ExtTable = (X, L) -> (
-    T = (degreesRing 1)_0;
+    T := (degreesRing 1)_0;
     matrix table(L, L,
 	(F, G) -> sum(dim X + 1,
 	    m -> T^m * rank globalExt(m, F, G))))
@@ -113,18 +112,18 @@ assert(globalExt(n, OO_X^{n+1}, OO_X^{0}) === QQ^1)
 
 -- Beilinson's collection of O's
 L = apply(n+1, i -> OO_X^{i})
-assert(0 == ExtTable(X, L) - ExtTable(X, complex \ module \ L))
+elapsedTime assert(0 == ExtTable(X, L) - ExtTable(X, complex \ module \ L))
 
 -- Beilinson's collection of Omega's
 -- uuhhhh did nobody notice that this list is backwards??
 L = apply(n+1, i -> cotangentSheaf(i, X) ** OO_X^{i})
-ExtTable(X, L) - ExtTable(X, freeResolution \ module \ L)
+elapsedTime assert(0 == ExtTable(X, L) - ExtTable(X, freeResolution \ module \ L))
 
 N = module cotangentSheaf(1, X) ** S^{1}
 M = module cotangentSheaf(2, X) ** S^{2}
-Ext^1(sheaf N, sheaf M)
-globalExt(1, sheaf N, sheaf M)
-globalExt(1, freeResolution N, freeResolution M)
+0 == Ext^1(sheaf N, sheaf M)
+0 == globalExt(1, sheaf N, sheaf M)
+0 == globalExt(1, freeResolution N, freeResolution M)
 
 ------------
 end
@@ -145,8 +144,8 @@ assert all(n+1, i -> sheaf HH_0 L#i == sheaf HH_0 L'#i)
 apply(n+1, i -> sheaf HH_0 L#i == exteriorPower(i, F) ** OO_X^{i})
 
 -- show that L (or L') form exceptional collections (up to appropriate shifts)
-ExtTable(X, sheaf \ L)
-ExtTable(X, sheaf \ L')
+ExtTable(X, L)
+ExtTable(X, apply(L', C -> C[-2]))
 
 ------------
 end
