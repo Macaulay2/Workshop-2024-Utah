@@ -53,3 +53,9 @@ uninstallPackage "NumberFields"
 loadPackage "NumberFields"
 installPackage "NumberFields"
 check NumberFields
+
+restart
+loadPackage "NumberFields"
+R = QQ[x];
+f = x^2-2;
+splittingField(f, UsePari=>false)
