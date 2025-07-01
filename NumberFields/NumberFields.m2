@@ -58,9 +58,12 @@ export{
    "gp",
    "UsePari",
    "extraFlattenRing",
-    "primitive"
+    "primitive",
+    "numberFieldToRing"
    --"matrixFromRingMap"
 };
+
+protect NumberField;
 
 global gp;
 
@@ -77,6 +80,12 @@ primitive = method(Options => {})
 primitive(Ring) := opts -> R1 -> (--get the primitive generator of a number field
     if not isNumberField R1 then error "primitive: Expected a number field";
     first gens coefficientRing R1
+)
+
+numberFieldToRing = method(Options =>{})
+numberFieldToRing(Ring) := opts -> K1 -> (
+    if not isNumberField K1 then error "isNumberField: Expected a number field";
+    coefficientRing K1
 )
 
 --****************************
@@ -558,6 +567,7 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
     local mapK1toK1a;
     local mapK1atoK1;
     local K1a;
+    local K1list;
     local psia;
     if opts.Variable === null then (var = a) else (var = opts.Variable);
 
@@ -582,7 +592,10 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
                 K1a = (ambient newTargetRing)/(ideal newTargetRing + newPsi(ideal currentEntry));
                 if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
                 psia = (map(K1a, target newPsi))*newPsi * kappa;
-                K1 = internalSimpleExtension(K1a);
+                K1list = (internalSimpleExtension(K1a));
+                ----------------------------------------------------------------
+                ------------KARL NEEDS TO FIX THIS------------------------------
+                ----------------------------------------------------------------
                 --totalPsi = psi*totalPsi; --the composed map so far
             );
         );
@@ -1220,7 +1233,7 @@ compositumPari(Ring, Ring) := opts -> (P, Q) -> (
     -- return (sum apply(d1+1, i -> coeffs_i*P_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*0_0^i));
 );
 
-internalSimpleExtension = method(Options => {Strategy=>kernel, UsePari=>defaultPariStrat, Variable=>null, Verbose=>false});
+internalSimpleExtension = method(Options => {Strategy=>kernel, UsePari=>defaultPariStrat, Variable=>null, Verbose=>false}); --returns target simple ring, map to the target simple ring, map from the target simple ring
 
 internalSimpleExtension(Ring) := opts -> nf ->(
     --We first get the degree of K as a field extension over Q and store it as D. 
@@ -1327,7 +1340,7 @@ internalSimpleExtension(Ring) := opts -> nf ->(
     --1/0;
     if (debugLevel > 1) then print "internalSimpleExtension: pari is installed, running polredbest";
 
-    print (tempField#FlatMonoid);
+    if (debugLevel > 1) then print (tempField#FlatMonoid);
     (p, root) := polredbest(((gens ideal(tempField))_0)_0);
     --Map from our ring into polredbest ring by sending a_1 to element
     finalRing := (ring p) / p;

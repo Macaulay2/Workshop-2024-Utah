@@ -19,6 +19,10 @@ splittingField (f, Verbose=>true, UsePari =>false)
 
 restart
 loadPackage "NumberFields"
+R = QQ[j]/ideal(j^2+j+1)
+K = numberField R
+S = K[x]
+splittingField(x^3-5, UsePari=>false)
 R = QQ[x];
 f = x^2-2;
 splittingField f
