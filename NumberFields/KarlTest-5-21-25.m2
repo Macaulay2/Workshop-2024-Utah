@@ -18,9 +18,12 @@ f = x^3-2
 splittingField (f, Verbose=>true, UsePari =>false)
 
 restart
-uninstallPackage "NumberFields"
 loadPackage "NumberFields"
-installPackage "NumberFields"
+R = QQ[x];
+f = x^2-2;
+splittingField f
+f = x^3-7;
+splittingField f
 
 restart
 loadPackage "NumberFields"
@@ -43,3 +46,10 @@ S3 = QQ[v,u, Degrees=>{{0,1},{1,0}}]/ideal(v^3-2,u^2-2)
 (myMod3, myGens3, myFun3) = pushFwd(map(S3, coefficientRing S3))
 
 nf = numberField L
+
+
+restart
+uninstallPackage "NumberFields"
+loadPackage "NumberFields"
+installPackage "NumberFields"
+check NumberFields

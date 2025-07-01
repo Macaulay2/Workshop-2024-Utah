@@ -165,9 +165,21 @@ extraFlattenRing(Ring) := opts -> (R1) -> (
         finalRing = newRing(semiFinalRing,  MonomialOrder=>GRevLex,Degrees=>apply(#gens semiFinalRing, i->1) );
         finalMap = map(finalRing, semiFinalRing);
         (finalRing, finalMap*semifinalMap, (inverse semifinalMap)*(inverse finalMap))
-
     )
     
+)
+
+cleanRing = method(Options=>{});  --this creates the same ring, with the same variable names, but gets rid of any data
+--the pushForward package breaks badly when there is almost any other data (from degrees, to anything)
+cleanRing(Ring) := opts -> (R1) -> (
+    myCoeff := coefficientRing R1;
+    myIdeal := ideal R1;
+    myVars := gens ambient R1;
+    newAmb := myCoeff[myVars];
+    newQuotient := newAmb/sub(myIdeal, newAmb);
+    phi1 := map(newQuotient, R1, gens newQuotient);
+    phi2 := map(R1, newQuotient, gens R1);
+    return (newQuotient, phi1, phi2); --return the ring, the map to the new ring, and the map from the new ring
 )
 
 
@@ -706,11 +718,20 @@ splittingFieldPari (Ring) := opts -> R -> (
 
 splittingFieldPari(RingElement):= opts -> r -> (
     u := local u;
+    local R1;
+    local minPol;
+    local M0;
 
-    R1 := (ring r)[u];
+    if (isNumberField ring r) then (
 
-    minPol := minimalPolynomial(r);
-    M0 := map(R1,ring minPol,{(gens R1)_0});
+        R1 = (ring r)[u];
+
+        minPol := minimalPolynomial(r);
+        M0 := map(R1,ring minPol,{(gens R1)_0});
+    )
+    else if (#gens ring r == 1) then (
+        
+    )
     -- M1 := map(R1,ring minPol,{(gens R1)_0});
 
     -- This is the minimalPolynomial of the element as an element of the number field.qwlo  p0-
@@ -1116,7 +1137,9 @@ polredbest(RingElement) := opts -> p -> (
     removeFile \ {INPUT, OUTPUT, OUTPUT2};
     -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
 
-    return (p1,root);
+    (goodRing, toNewGoodRing, fromNewGoodRing) := cleanRing(ring p1);
+
+    return (toNewGoodRing p1, toNewGoodRing root);
 );
 -- We expect a list like {"2", "3", "4"} and this make the int 234.
 -- listToInt = method(Options => {Strategy=>null});
