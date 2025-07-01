@@ -244,7 +244,7 @@ numberField(Ring) := opts -> R1 -> (
     if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");   
     -- K 
     -- numberField L 
-    1/0;
+    --1/0;
     try myPushFwd = pushFwd(iota) else error("Not finite dimensional over QQ"); --we should check to see if the pushFwd has already been computed
     if not isFreeModule(myPushFwd#0) then error "numberField: something went wrong, this should be a free module over QQ";
     --    genMinPolys := apply(gens outputRing, h->minimalPolynomial(h));
@@ -636,7 +636,7 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
                 if opts.Verbose then print newIdeal;
                 if opts.Verbose then print ("splittingField: Starting a decompose: " | toString(idealList));
 
-                if (#idealList == 0) and (#currentEntry == 1) and (degree(currentEntry#0, Svar) <= 2) then (
+                if (#idealList == 0) and (#currentEntry == 1) and (degree(Svar, phi1(currentEntry#0)) <= 2) then (
                         finished = true;
                 ) 
                 else (
@@ -726,11 +726,11 @@ splittingFieldPari(RingElement):= opts -> r -> (
 
         R1 = (ring r)[u];
 
-        minPol := minimalPolynomial(r);
-        M0 := map(R1,ring minPol,{(gens R1)_0});
+        minPol = minimalPolynomial(r);
+        M0 = map(R1,ring minPol,{(gens R1)_0});
     )
     else if (#gens ring r == 1) then (
-        
+
     )
     -- M1 := map(R1,ring minPol,{(gens R1)_0});
 
