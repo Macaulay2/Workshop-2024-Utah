@@ -958,7 +958,7 @@ polynomialFieldChange(RingElement, RingMap) := opts -> (f1,psi1) -> (
     error "This is not finished yet.";
 )
 -- This gets the roots of a polynomial
-getRoots = method(Options =>{Strategy=>factor});
+getRoots = method(Options =>{Strategy=>decompose});
 getRoots(RingElement) := opts -> (f1) -> (
     R1 := ring f1;
     if not (R1#?cache) then R1#cache = new CacheTable from {};
@@ -975,7 +975,7 @@ getRoots(RingElement) := opts -> (f1) -> (
     -- 1/0;
     if #(gens R1) != 1 then error "getRoots: expected a polynomial in a single variable";
     if opts.Strategy === decompose then (
-        (S,M, MInv) := (extraFlattenRing (R1));
+        (S,M, MInv) := (flattenRing (R1,Result=>3));
         primeFactors := decompose ideal M(f1);
         
         for i from 0 to ((length primeFactors)-1) do(
@@ -1229,7 +1229,7 @@ internalSimpleExtension(Ring) := opts -> nf ->(
     if not(nf#?cache) then nf#cache = new CacheTable from {};
     if (debugLevel > 1) or (opts.Verbose) then print ("internalSimpleExtension:  starting, using UsePari=>"|toString(opts.UsePari));
 
-    if (nf#cache#?internalSimpleExtension) then return nf#cache#internalSimpleExtension;
+    if (nf#cache#?simpleExtension) then return nf#cache#simpleExtension;
     if numgens nf == 1 then(
         return (nf, id_nf, id_nf);
     );
@@ -1330,21 +1330,105 @@ internalSimpleExtension(Ring) := opts -> nf ->(
     print (tempField#FlatMonoid);
     (p, root) := polredbest(((gens ideal(tempField))_0)_0);
     --Map from our ring into polredbest ring by sending a_1 to element
-    finalRing := (ring p) / p;
-    phi2 = map(finalRing, source phi, {root} );
+    phi2 = map((ring p) / p, source phi, {root} );
 
     finalPhi := phi2*inversePhi;
 
     finalInversePhi := phi*(inverse phi2);
-    nf#cache#internalSimpleExtension = (finalRing, finalPhi, finalInversePhi);
 
     --nf#cache#simpleExtension = (numberField(tempField, Verify=>false), phi2*(inverse phi));
     --Invert phi and use this to construct a map from polredbestring to origRing.
-    return (finalRing, finalPhi, finalInversePhi);
+    return ((ring p) / p , finalPhi, finalInversePhi);
     
 )
 
+-- Gets simple extensions
+simpleExtension = method(Options => {Strategy=>null, UsePari=>defaultPariStrat, Variable=>null});
+simpleExtension(Ring) := opts -> nf ->(
+    --We first get the degree of K as a field extension over Q and store it as D. 
+    --K := ring nf;
+--    if nf === QQ then return (QQ, id_nf, id_nf);
+    if not(nf#?cache) then nf#cache = new CacheTable from {};
+    if (debugLevel > 1) then print ("simpleExtension:  starting, using UsePari=>"|toString(opts.UsePari));
 
+    if (nf#cache#?internalSimpleExtension) then return nf#cache#internalSimpleExtension;
+    -- print("MADE IT2");
+
+    K := nf;
+    D := degree K;
+    --We find an element that produces a degree D field extension.
+    d := 0;
+    c := 0;
+    local r;
+    local h;
+    local R1;
+    local phi;
+    local phi2;
+
+    local simpleExt;
+    local tempField;
+    count := 0;
+    primitiveElement := 0; -- Uncomment along with below chunk to get a simpler primitive element
+    while d < D do 
+    (
+        -- Uncomment the following along with primitiveElement := 0 above to get a simpler primitive element
+        (if primitiveElement==0 then (
+            primitiveElement = sum gens K;
+         )
+        else if (count < 10) then (
+            primitiveElement += (random(gens K))#0; -- Randomly shuffles the list of generators of K and then takes the first element
+         )
+         else (
+            primitiveElement = random(1, K); -- Get a random homogeneous RingElement from K1 of degree 1
+         )
+        );
+        r = primitiveElement;
+        --
+        local myVar;
+        if (opts.Variable === null) then (myVar = local aa) else (myVar = opts.Variable);
+        if (opts.Strategy===kernel) then (            
+            R1 = QQ[myVar];
+            phi = map( K, R1, {r});
+            if  isPrime (kernel phi) then ( --we shouldn't do it this way
+                I := kernel phi *sub (( 1/(((coefficients (first entries gens kernel phi)_0)_1)_0)_0), R1);
+                tempField = R1/I;
+                simpleExt = numberField(tempField, Verify=>false);                
+                d = degree simpleExt;
+--                if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));
+                if (d == D) then phi = (map(K, tempField, {r}))*((simpleExt#cache#remakeField)#1);
+            );
+        )
+        else if (opts.Strategy===null) then (--I'm surprised that this is slower
+            h = minimalPolynomial(r, Variable=> myVar);
+            R1 = ring h;
+            tempField = R1/(ideal h);
+            simpleExt = numberField(tempField, Verify=>false);
+            d = degree simpleExt;
+--            if (d == D) then phi = (simpleExt#cache#remakeField)*(inverse map(K, tempField, {r}));            
+            if (d == D) then phi = (map(K, tempField, {r}))*((simpleExt#cache#remakeField)#1);
+        )
+        else (
+            error "simpleExt: invalid strategy";
+        );
+        count = count+1;
+    );
+    if (debugLevel > 1) then print ("simpleExtension:  made initial simple extension"|toString(simpleExt)| " , now running polredbest from Pari if applicable.");
+
+    nf#cache#simpleExtension = (simpleExt, phi);
+    
+    if  (opts.UsePari === false) then{
+        return (simpleExt, phi);
+    };
+    --Takes the simple extension given by our algorithm and runs polredbest on it.
+    --Returns the pol to mod by and the a primitive root.
+    -- print(((gens ideal(simpleExt))_0)_0);
+    (p, root) := polredbest(((gens ideal(simpleExt))_0)_0);
+    --Map from our ring into polredbest ring by sending a_1 to element
+    phi2 = map((ring p) / p, source phi, {root} );
+    nf#cache#simpleExtension = (numberField(tempField, Verify=>false), phi2*(inverse phi));
+    --Invert phi and use this to construct a map from polredbestring to origRing.
+    return ((ring p) / p , phi2*(inverse phi));
+)
 
 galoisGroup= method(Options => {Strategy=>null});
 --Returns Permutations, corresponding roots, and galois group as matrix 
@@ -1847,6 +1931,30 @@ doc ///
             galoisGroup NF
 ///
 
+doc ///
+    Key
+        simpleExtension
+        (simpleExtension, Ring)
+    Headline
+        Given a Ring, computes a simple extension. 
+    Usage
+        (S, phi) = simpleExtension nF
+    Inputs
+        nF: Ring
+            the number field whose galois group the method computes.
+    Outputs
+        S: Ring
+            The simpleExtension related to NF
+        phi:
+            The isomorphism from NF to S.
+    Description
+        Text
+            This method computes a simple extension of $NF := \mathbb{Q}[x_1,...,x_n]$, as well as a map phi such that phi:NF -> S.
+        Example
+            R = QQ[w,v]/ ideal(w^3-2,v^2+v+1)
+            NF = numberField(R)
+            simpleExtension NF
+///
 -- Should we include the injection morphisms for the numberField into the top field? 
 -- Should we include details relating to the coressponding normal subgroup?
 -- Note lots of our group operations are factorial which is suboptimal
