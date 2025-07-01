@@ -73,8 +73,11 @@ if gp === null then {
     defaultPariStrat = false;
 }
 
-
-
+primitive = method(Options => {})
+primitive(Ring) := opts -> R1 -> (--get the primitive generator of a number field
+    if not isNumberField R1 then error "primitive: Expected a number field";
+    first gens coefficientRing R1
+)
 
 --****************************
 --NumberField constructors
@@ -1842,7 +1845,7 @@ doc ///
             This function calculates the matrix over \mathbb{Q} that represents the action of multiplication by r1 in the nubmerfield. We think of this matrix as an action over the numberfield viewed as a vectorspace.
         Example
             NF = numberField( QQ[x]/(x^2-2))
-            r1 = (gens NF)#0 --This corresponds to \sqrt(2) in NF
+            r1 = primitive NF --This corresponds to \sqrt(2) in NF
             M = matrixFromRingEl(r1)
 ///
 
@@ -2001,7 +2004,7 @@ doc ///
         Example
             NF = numberField( QQ[x]/(x^2-2))
             R1 = NF[u]
-            p = minimalPolynomial (gens NF)#0 --This gives minimal polynomial over \mathbb{Q}[x]
+            p = minimalPolynomial primitive NF --This gives minimal polynomial over \mathbb{Q}[x]
             M0 = map(R1,ring p,{(gens R1)_0}); --We use this to convert this min poly into one over NF[u] (relabel x into u)
             M0(p)
             getRoots(M0(p))
