@@ -27,8 +27,7 @@ export{
    "isGalois",
    "splittingField",
    "splittingFieldPari",
-   "compositums",
-   "simpleExtension",
+   "compositums",   
    "internalSimpleExtension",--turn this off later
 --    Merge this into compositum
    "compositumPari",
@@ -63,7 +62,7 @@ export{
    --"matrixFromRingMap"
 };
 
-protect NumberField;
+NumberField = "NumberField";
 
 global gp;
 
@@ -249,14 +248,10 @@ numberField(Ring) := opts -> R1 -> (
     outputPsiInv =  intermediatePhiInv* outputPsiInv;
     -- 1/0;
 
-    iota := map(outputRing, QQ);
-    -- original
-    -- 1/0;
+    iota := map(outputRing, QQ);    
     local myPushFwd;
     if opts.Verbose then (print "NumberFieldConstructor, computing pushFwd");   
-    -- K 
-    -- numberField L 
-    --1/0;
+
     try myPushFwd = pushFwd(iota) else error("Not finite dimensional over QQ"); --we should check to see if the pushFwd has already been computed
     if not isFreeModule(myPushFwd#0) then error "numberField: something went wrong, this should be a free module over QQ";
     --    genMinPolys := apply(gens outputRing, h->minimalPolynomial(h));
@@ -571,15 +566,16 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
     local psia;
     if opts.Variable === null then (var = a) else (var = opts.Variable);
 
-    if ((coefficientRing R1)#?cache) and ((coefficientRing R1)#cache#?NumberField) and ((coefficientRing R1)#cache#NumberField) then (
+    if (isNumberField coefficientRing R1) then (
         --if we are using the numberField structure
         if (opts.Verbose==true) then print "coefficientRingNonPari: using the numberField strategy";
-        K1 = coefficientRing K1;
+        K1 = numberFieldToRing K1;
         psi = map(K1, K1);
         totalPsi = psi;
         factorFlag = true;
         myFactors = factor curf1;
-        factorList = apply(#myFactors, j -> myFactors#j#0);
+        factorList = select(apply(#myFactors, j -> myFactors#j#0), tt->degree(first gens R1, tt) > 1);
+        
         while not finished do (
             finished = true;            
             if (#factorList > 0) then (
@@ -590,13 +586,15 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
                 newPsi = map(ambient newTargetRing, S1, gens ambient newTargetRing);
                 kappa = map(S1, coefficientRing coefficientRing S1);
                 K1a = (ambient newTargetRing)/(ideal newTargetRing + newPsi(ideal currentEntry));
-                if (opts.Verbose) or (debugLevel > 1) then print ("splittingField:  " | toString(K1));
+                if (opts.Verbose) or (debugLevel > 1) then print ("working splittingField:  " | toString(K1));
                 psia = (map(K1a, target newPsi))*newPsi * kappa;
                 K1list = (internalSimpleExtension(K1a));
+                factorList
                 ----------------------------------------------------------------
                 ------------KARL NEEDS TO FIX THIS------------------------------
                 ----------------------------------------------------------------
                 --totalPsi = psi*totalPsi; --the composed map so far
+                1/0;
             );
         );
         1/0;--working on fixing this...
