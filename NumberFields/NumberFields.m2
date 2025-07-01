@@ -589,7 +589,9 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
                 if (opts.Verbose) or (debugLevel > 1) then print ("working splittingField:  " | toString(K1));
                 psia = (map(K1a, target newPsi))*newPsi * kappa;
                 K1list = (internalSimpleExtension(K1a));
-                factorList
+                psia = (K1list#1)*psia;                
+                --now we need to create a map K[x] -> K1list#0[x] basically, how do we do that
+                --factorList = flatten apply(factorList, tt -> factor )
                 ----------------------------------------------------------------
                 ------------KARL NEEDS TO FIX THIS------------------------------
                 ----------------------------------------------------------------
@@ -1113,7 +1115,7 @@ minimalPolynomial(List) := opts -> L1 -> (
 )
 --from rationalpoints2
 -- This gets a "nicer" simple extension than the one we calculate.
-polredbest = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
+polredbest = method(Options => {Strategy=>null, UsePari=>defaultPariStrat, Verbose=>false});
 polredbest(RingElement) := opts -> p -> (
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
@@ -1122,6 +1124,7 @@ polredbest(RingElement) := opts -> p -> (
     if UsePari === false then{
         return (p, 1);
     };
+    if (opts.Verbose) then print ("polredbest: starting with p = " | toString p);
     -- Such code ends here to not use gp when can't find
 
     R := ring p;
@@ -1152,6 +1155,7 @@ polredbest(RingElement) := opts -> p -> (
     -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
 
     (goodRing, toNewGoodRing, fromNewGoodRing) := cleanRing(ring p1);
+    if (opts.Verbose) then (print ("polredbest: ending with p1 = " | toString p1));
 
     return (toNewGoodRing p1, toNewGoodRing root);
 );
@@ -1336,10 +1340,10 @@ internalSimpleExtension(Ring) := opts -> nf ->(
     --Returns the pol to mod by and the a primitive root.
     -- print(((gens ideal(simpleExt))_0)_0);
     --1/0;
-    if (debugLevel > 1) then print "internalSimpleExtension: pari is installed, running polredbest";
+    if (debugLevel > 1) or (opts.Verbose) then print "internalSimpleExtension: pari is installed, running polredbest";
 
     if (debugLevel > 1) then print (tempField#FlatMonoid);
-    (p, root) := polredbest(((gens ideal(tempField))_0)_0);
+    (p, root) := polredbest(((gens ideal(tempField))_0)_0, Verbose=>opts.Verbose);
     --Map from our ring into polredbest ring by sending a_1 to element
     finalRing := (ring p) / p;
     phi2 = map(finalRing, source phi, {root} );
