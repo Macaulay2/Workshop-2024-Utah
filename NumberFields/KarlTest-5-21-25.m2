@@ -60,6 +60,14 @@ check NumberFields
 
 restart
 loadPackage "NumberFields"
+numberField QQ
+numberField (QQ[])
 R = QQ[x];
-f = x^2-2;
-splittingField(f, UsePari=>false)
+f = x^3-2;
+splittingField(f, UsePari=>false, Verbose=>true, cache => false)
+K = numberField QQ;
+S = K[y];
+g = y^3 -2;
+splittingField(g, UsePari=>false, Verbose=>true, cache => false)
+
+restart
