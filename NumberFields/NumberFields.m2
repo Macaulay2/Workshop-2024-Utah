@@ -139,7 +139,9 @@ remakeField(Ring) := opts -> R1 -> (
     (finalRing2, psi, psiinv)
 )
 
-extraFlattenRing = method(Options => {});
+--this is not flattening enough
+
+extraFlattenRing = method(Options => {Verbose=>true});
 extraFlattenRing(Ring) := opts -> (R1) -> (
     if R1 === QQ then (output := QQ[]; return (output, map(output,QQ), map(QQ, output)););
     A1 := coefficientRing R1;
@@ -153,11 +155,16 @@ extraFlattenRing(Ring) := opts -> (R1) -> (
     local semiFinalRing;
     local finalMap;
 
-    local semifinalMap;
-    if (A1#?cache) and (A1#cache#?NumberField) then (
-        (A2, A2map, inverseA2Map) = extraFlattenRing(coefficientRing A1);
+    local semifinalMap;    
+    if isField A1 then (
+        if opts.Verbose then print ("extraFlattenRing: passed a field " | toString A1);    
+        if (A1 === QQ) then 
+            (A2, A2map, inverseA2Map) = extraFlattenRing(A1)
+        else          
+            (A2, A2map, inverseA2Map) = extraFlattenRing(coefficientRing A1);
+        if opts.Verbose then print "extraFlattenRing: did a recurse, moving forward";     
         if (instance(R1, QuotientRing)) then (
-            R2 = A2[gens R1];
+            R2 = A2[gens ambient R1];
             phi = map(R2, ambient R1);
             J1 = phi(ideal R1);
             (semiFinalRing, semifinalMap) = flattenRing (R2/J1);
