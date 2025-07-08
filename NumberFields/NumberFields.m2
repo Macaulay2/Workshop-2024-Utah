@@ -717,7 +717,7 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
 
 
 splittingFieldPari = method(Options => {Variable=>null, Strategy=>null, Verbose=>false, UsePari=>defaultPariStrat, cache => true});
-splittingFieldPari (Ring) := opts -> R -> (
+splittingFieldPari (RingElement) := opts -> R -> (
     S := ambient coefficientRing R;
     PARISIZE := 80000000000;
     setPariSize := n -> (PARISIZE = n);  
@@ -725,7 +725,7 @@ splittingFieldPari (Ring) := opts -> R -> (
     -- print(UsePari);
     if UsePari === false then{
         -- We will integrate this appropriately later
-        -- return (p, 1);
+        return (p, 1);
     };
     -- Such code ends here to not use gp when can't find
 
@@ -1206,19 +1206,25 @@ polredbest(RingElement) := opts -> p -> (
 --Work in progress
 compositumPari = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 
---Change these to number fields
---For now assume simple extensions, make them more general later
--- Need to add the proper morphisms from original into the compositum.
-compositumPari(Ring, Ring) := opts -> (P, Q) -> (
+-- Maybe include a list implementation... for when we want to do compositums of a bunch of polynomials..
+compositumPari(Ring,Ring) := opts -> (P, Q) -> (
     --We first get simple extensions for P and Q.
     if UsePari === false  then{
         return (P,Q);
     };
     
     -- Is there a better way to extract the ideal??
-    P1 := coefficientRing P;
-    Q1 := coefficientRing Q;
+    (P1, phiP1, invPhiP1) := extraFlattenRing P;
+    (Q1, phiQ1, invPhiQ1) := extraFlattenRing Q;
+    print ("FLATTENED");
+    -- We have now extracted the number fields flattened. We now make them simple and store the simplification map
+    (P2, phiP2, invPhiP2) := internalSimpleExtension (P1);
+    (Q2, phiQ2, invPhiQ2) := internalSimpleExtension (Q1);
+    print ("SIMPLIFIED");
+
+    print(replace(toString ((vars P2)_0_0),"a",toString ((ideal P2)_0)));
     --
+    -- 1/0;
     PARISIZE := 8000000;
     setPariSize := n -> (PARISIZE = n);  
     -- k1 := coefficientRing P;
@@ -1226,49 +1232,59 @@ compositumPari(Ring, Ring) := opts -> (P, Q) -> (
     -- d1 := (degree ideal P)_0;
     -- d2 := (degree ideal Q)_0;
     UID := temporaryFileName();
+    UID0 := temporaryFileName();
+    UID1 := temporaryFileName();
     UID2 := temporaryFileName();
-    UID3 := temporaryFileName();
 
     INPUT := UID|".gp";
-    OUTPUT := UID|"-output";
+    OUTPUT0 := UID0|"-output";
+    OUTPUT1 := UID1|"-output";
     OUTPUT2 := UID2|"-output";
-    OUTPUT3 := UID3|"-output";
-    -- print(replace("a_1","x",toString (ideal P1_0)_0));
     F := openOut INPUT;
-    -- F << "allocatemem("|toString PARISIZE|")\n"
-    --   << "write1(\""|OUTPUT|"\",2,\",\")\n"
-    --   << "quit()" << close;
     F << "allocatemem("|toString PARISIZE|")\n"
-      << "L=nfcompositum(nfinit(a_1),"|replace("a_1","x",toString ((ideal P1)_0))|", "|replace("a_1","x",toString ((ideal Q1)_0))|", 1)\n"
-      << "f = L[1][1]\n"
-      << "for(d=0,poldegree(f),write1(\""|OUTPUT|"\",polcoeff(f,d),\",\"))\n"
+      << "L=nfcompositum(nfinit(y),"|replace(toString ((vars P2)_0_0),"x",toString ((ideal P2)_0))|", "|replace(toString ((vars Q2)_0_0),"x",toString ((ideal Q2)_0))|", 1)\n"
+      << "[f,a,b,k] = L[1]\n"
+      << "for(d=0,poldegree(f),write1(\""|OUTPUT0|"\",polcoeff(f,d),\",\"))\n"
+      << "a = lift(a)\n"
+      << "b = lift(b)\n"
+      << "for(d=0,poldegree(a),write1(\""|OUTPUT1|"\",polcoeff(a,d),\",\"))\n"
+      << "for(d=0,poldegree(b),write1(\""|OUTPUT2|"\",polcoeff(b,d),\",\"))\n"
+
       << "quit()" << close;
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
-        --   << "for(a=0,length(L),for(b=0,poldegree(L[a][1]),write1(\""|OUTPUT|"\",polcoeff(L[a][1],b),\",\")))\n"
-    -- print("{"|get OUTPUT|"}");
-    coeffs := value("{"|get OUTPUT|"}");
-    -- print(coeffs);
+    -- coeffs contains info for defining poly P(x) for compositum
+    -- coeffs1 and coeffs2 contain info for defining maps for P2,Q2 into QQ[x]/P(x)
+    coeffs := value("{"|get OUTPUT0|"}");
+    coeffs1 := value("{"|get OUTPUT1|"}");
+    coeffs2 := value("{"|get OUTPUT2|"}");
 
-    a := local a;
+    -- How should I create a new ring..?
+
+  
+
+    removeFile \ {INPUT, OUTPUT0, OUTPUT1, OUTPUT2};
+      a := local a;
     R := QQ[a];
     d:= length(coeffs);
-    -- print(R_0);
-    -- coeffsDefEl := value("{"|get OUTPUT2|"}");
-    -- print()
-    -- print("{"|get OUTPUT|"}");
-    -- print(get OUTPUT2);
-    -- curList := toList(get OUTPUT2);
-    -- curList =drop(drop(curList,4),-2);
-    -- for i from 0 to length curList do {
+    d1:= length(coeffs1);
 
-    -- }
-    -- curList = concatenate("{",,"}");
-    -- definingEl:= concatenate(curList);
-    -- print(definingEl);
+    d2:= length(coeffs2);
 
-    removeFile \ {INPUT, OUTPUT};
+    compositumPoly := sum apply(d-1, i -> coeffs_i*R_0^i);
+    finalRing := R/compositumPoly;
+
+    defElP := sum apply(d1-1, i -> coeffs1_i*finalRing_0^i);
+    defElQ := sum apply(d2-1, i -> coeffs2_i*finalRing_0^i);
+    
+    
+    -- See how to use cleanRing? TALK TO KARL
+    -- (finalRing, toNewGoodRing, fromNewGoodRing) := cleanRing(ring p1);
+    phiP3 := map(finalRing, P2, {defElP} );
+    phiQ3 := map(finalRing, Q2, {defElQ} );
     -- Churrently just returns the ring. Should also return maps
-    return R/(sum apply(d-1, i -> coeffs_i*R_0^i));
+    finalMapP := phiP3 * phiP2 * phiP1;
+    finalMapQ := phiQ3 * phiQ2 * phiQ1;
+    return (finalRing, finalMapP, finalMapQ);
     -- return (sum apply(d1+1, i -> coeffs_i*P_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*0_0^i));
 );
 
@@ -1600,7 +1616,7 @@ fixedFields(Ring) := (nF) -> (
             --We create the set of all minimalpolynomials of fixedVectors
             --We do so with set so we don't have duplicate min polynomials
             allMinPoly = set {};
-            numCols = numColumns basis allFixedVectors; --Assuredly a better way of indexing; ask Karl.
+            numCols = numColumns basis allFixedVectors; --Assuredly a better way of indexing... .
             for j from 0 to numCols -1 do (
                 v = vectorToFieldEl(nF, allFixedVectors_j);
                 p = minimalPolynomial v;
