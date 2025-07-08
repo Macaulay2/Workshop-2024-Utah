@@ -717,22 +717,49 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
 
 
 splittingFieldPari = method(Options => {Variable=>null, Strategy=>null, Verbose=>false, UsePari=>defaultPariStrat, cache => true});
-splittingFieldPari (RingElement) := opts -> R -> (
-    S := ambient coefficientRing R;
+splittingFieldPari (RingElement) := opts -> f -> (
+    myRing := ring f;
+    factors :={};
+    F := factor(f);
+    print(#F);
+    for i from 0 to #F-1 do (
+        -- NOTE: degree here produces a list of one number... 
+        print (degree F#i#0);
+        if ((degree F#i#0)_0 != 0 ) then(
+            factors = append(factors, F#i#0);
+        );
+    );
+    -- factors should now include the factors of f...
+
+    -- We now make the simple extensions
+    print(factors);
+    simpleExts := {};
+    for i from 0 to length(factors) do (
+        -- print(R/(factors_i));
+        -- 1/0;
+        smplExt := numberField ((ring f)/(factors_i));
+        print("BOOM");
+    );
+
+    
+
+    1/0;
+    -- We'll worry about underneath the 1/0 after we do pre-pari work...
+    S := ring f;
     PARISIZE := 80000000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
     -- print(UsePari);
     if UsePari === false then{
         -- We will integrate this appropriately later
-        return (p, 1);
+        return (f, 1);
     };
     -- Such code ends here to not use gp when can't find
 
     -- R := ring p;
     -- k := coefficientRing R;
     -- print("ABOUT TO");
-    R = coefficientRing R;
+    R := coefficientRing f;
     d := (degree (ideal R)_0)_0;
  
     UID := temporaryFileName();
@@ -768,32 +795,6 @@ splittingFieldPari (RingElement) := opts -> R -> (
     phi := (T,R, {root});
     return (T, phi);
 );  
-
-splittingFieldPari(RingElement):= opts -> r -> (
-    u := local u;
-    local R1;
-    local minPol;
-    local M0;
-
-    if (isNumberField ring r) then (
-
-        R1 = (ring r)[u];
-
-        minPol = minimalPolynomial(r);
-        M0 = map(R1,ring minPol,{(gens R1)_0});
-    )
-    else if (#gens ring r == 1) then (
-
-    )
-    -- M1 := map(R1,ring minPol,{(gens R1)_0});
-
-    -- This is the minimalPolynomial of the element as an element of the number field.qwlo  p0-
-    -- print(M0(minPol));
-
-    -- nf := numberField(R1/M0(minPol));
-    -- print(nf);
-    -- print();
-)
 
 -- splittingField = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
 -- splittingField(RingElement) := opts -> p -> (

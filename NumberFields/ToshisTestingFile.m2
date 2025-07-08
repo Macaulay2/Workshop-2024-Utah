@@ -13,9 +13,6 @@ M_1(x)^3
 M = compositumPari(K1, L)
 -- ================================================================================
 
-L = K[y]/ideal(y^2-2)
-NF = numberField L 
-
 
 -- Discuss with Karl
 
