@@ -316,7 +316,7 @@ numberField(Ring) := opts -> R1 -> (
         return (myPushFwd_2)(M1(a));
     );
 
-    
+    -- (F, finMap, finMapInv)extraFlattenRing(F);
     tempNumField =  F;
     F#cache = new CacheTable from {};
     tempNumField#cache#NumberField = true;
@@ -768,7 +768,7 @@ splittingFieldPari (RingElement) := opts -> f -> (
     INPUT := UID|".gp";
     OUTPUT := UID|"-output";
     OUTPUT2 := UID2|"-output";
-    F := openOut INPUT;
+    F = openOut INPUT;
     F << "allocatemem("|toString PARISIZE|")\n"
       << "K=nfinit("|toString ((ideal R)_0)|")\n"
       << "[splittingFieldPoly,mapEl]=nfsplitting(K,,3)\n"
@@ -1215,16 +1215,12 @@ compositumPari(Ring,Ring) := opts -> (P, Q) -> (
         return (P,Q);
     };
     
-    -- Is there a better way to extract the ideal??
     (P1, phiP1, invPhiP1) := extraFlattenRing P;
     (Q1, phiQ1, invPhiQ1) := extraFlattenRing Q;
-    print ("FLATTENED");
     -- We have now extracted the number fields flattened. We now make them simple and store the simplification map
     (P2, phiP2, invPhiP2) := internalSimpleExtension (P1);
     (Q2, phiQ2, invPhiQ2) := internalSimpleExtension (Q1);
-    print ("SIMPLIFIED");
 
-    print(replace(toString ((vars P2)_0_0),"a",toString ((ideal P2)_0)));
     --
     -- 1/0;
     PARISIZE := 8000000;
@@ -1260,12 +1256,11 @@ compositumPari(Ring,Ring) := opts -> (P, Q) -> (
     coeffs1 := value("{"|get OUTPUT1|"}");
     coeffs2 := value("{"|get OUTPUT2|"}");
 
-    -- How should I create a new ring..?
-
-  
 
     removeFile \ {INPUT, OUTPUT0, OUTPUT1, OUTPUT2};
-      a := local a;
+    -- How should I create a new ring..?
+
+    a := local a;
     R := QQ[a];
     d:= length(coeffs);
     d1:= length(coeffs1);
@@ -1289,6 +1284,40 @@ compositumPari(Ring,Ring) := opts -> (P, Q) -> (
     return (finalRing, finalMapP, finalMapQ);
     -- return (sum apply(d1+1, i -> coeffs_i*P_0^i),sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*0_0^i));
 );
+
+compositumPari(List) := opts -> (L) -> (
+
+    finalRing := L_0;
+    local finalMaps;
+    finalMaps =  {};
+    local mapP;
+    local mapQ;
+    local tempMaps;
+    if length(L)==1 then(
+        return L_0; 
+    );
+    (finalRing, mapP, mapQ) = compositumPari(L_0, L_1);
+    finalMaps = {mapP, mapQ};
+    for i from 1 to (length(L)-2) do (
+        print("START");
+        (finalRing, mapP, mapQ) = compositumPari(finalRing, L_(i+1));
+        print("STEP 1");
+        tempMaps = {};
+        for j from 0 to (length(finalMaps)-1) do (
+            print(j);
+            tempMaps = append(tempMaps, mapP*(finalMaps#j));
+        );
+        print("STEP 2");
+        print(length(tempMaps));
+        tempMaps = append(finalMaps, mapQ);
+        finalMaps = tempMaps;
+        print("STEP 3");
+
+    );
+
+    return (finalRing, finalMaps)
+)
+
 
 internalSimpleExtension = method(Options => {Strategy=>kernel, UsePari=>defaultPariStrat, Variable=>null, Verbose=>false, cache=>true}); --returns target simple ring, map to the target simple ring, map from the target simple ring
 
