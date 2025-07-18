@@ -1,4 +1,5 @@
 needsPackage "NormalToricVarieties"
+needsPackage "Complexes"
 
 ToricMap^* := f -> pullback_f
 
