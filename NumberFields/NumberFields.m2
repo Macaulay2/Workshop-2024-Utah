@@ -84,6 +84,7 @@ primitive(Ring) := opts -> R1 -> (--get the primitive generator of a number fiel
 numberFieldToRing = method(Options =>{})
 numberFieldToRing(Ring) := opts -> K1 -> (
     if not isNumberField K1 then error "isNumberField: Expected a number field";
+    if (K1 === QQ) then return K1;
     coefficientRing K1
 )
 
