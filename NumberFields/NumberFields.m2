@@ -718,9 +718,15 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
 
 splittingFieldPari = method(Options => {Variable=>null, Strategy=>null, Verbose=>false, UsePari=>defaultPariStrat, cache => true});
 splittingFieldPari (RingElement) := opts -> f -> (
-    myRing := ring f;
+    local myRing;
+    local flatMap;
+    local invFlatMap;
+    (myRing, flatMap, invFlatMap) = extraFlattenRing(ring f);
+    local testMyF;
+    local F;
+    testMyF = flatMap(f);
     factors :={};
-    F := factor(f);
+    F = factor(testMyF);
     print(#F);
     for i from 0 to #F-1 do (
         -- NOTE: degree here produces a list of one number... 
@@ -737,13 +743,17 @@ splittingFieldPari (RingElement) := opts -> f -> (
     for i from 0 to length(factors) do (
         -- print(R/(factors_i));
         -- 1/0;
-        smplExt := numberField ((ring f)/(factors_i));
+        print(myRing);
+        print(factors_i);
+        1/0;
+        print(myRing/factors_0);
+        smplExt := numberField (extraFlattenRing((myRing)/(factors_i)));
         print("BOOM");
     );
 
     
 
-    1/0;
+    -- 1/0;
     -- We'll worry about underneath the 1/0 after we do pre-pari work...
     S := ring f;
     PARISIZE := 80000000000;

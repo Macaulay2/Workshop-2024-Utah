@@ -8,7 +8,9 @@ K2 = numberField (QQ[z]/ideal(z^2+2))
 A = {K0,K1, K2}
 loadPackage ("NumberFields", Reload=>true)
 M = compositumPari (A);
-M
+
+
+
 -- We expect the following to be two as M_1(x) should have "same behavior" as x in the compositum field.
 M_1(x)^3 
 -- ==============================Discuss this with Karl...=========================

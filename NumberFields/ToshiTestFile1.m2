@@ -5,7 +5,7 @@ loadPackage ("NumberFields", Reload=>true)
 K= numberField (QQ[x]/(x^4+1)) 
 R = K[z]
 f = z^2+z+1 
-
+K= numberField (QQ[x]/((x^4+1)))
 splittingFieldPari(f)
 
 -- Discuss with Karl about splitting field and no applicable strategy for minimalPrimes, ideal...
