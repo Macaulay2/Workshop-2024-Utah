@@ -88,6 +88,7 @@ numberFieldToRing(Ring) := opts -> K1 -> (
     coefficientRing K1
 )
 
+
 sourceRingOfNumberField = method(Options=>{}); --returns the map from the ring used to construct it, to the nf
 sourceRingOfNumberField(Ring) := opts -> (NF) -> (
     if not isNumberField NF then error "sourceRingOfNumberField: Expected a number field";
@@ -158,23 +159,41 @@ extraFlattenRing(Ring) := opts -> (R1) -> (
 
     local semifinalMap;    
     if isField A1 then (
+
         if opts.Verbose then print ("extraFlattenRing: passed a field " | toString A1);    
-        if (A1 === QQ) then 
-            (A2, A2map, inverseA2Map) = extraFlattenRing(A1)
-        else          
+        if (A1 === QQ) then( 
+
+            (A2, A2map, inverseA2Map) = extraFlattenRing(A1);
+            )
+        else(
             (A2, A2map, inverseA2Map) = extraFlattenRing(coefficientRing A1);
+        );
         if opts.Verbose then print "extraFlattenRing: did a recurse, moving forward";     
         if (instance(R1, QuotientRing)) then (
-            R2 = A2[gens ambient R1];
-            phi = map(R2, ambient R1);
-            J1 = phi(ideal R1);
-            (semiFinalRing, semifinalMap) = flattenRing (R2/J1);
+            -- Note that this breaks when ring is (QQ[x,y]/x^2)/y^3            
+            -- These should probably be commented back in but from above we see there is an error
+            -- ==========================================================================================
+            -- R2 = A2[gens ambient R1];
+            -- phi = map(R2, ambient R1);
+            -- J1 = phi(ideal R1);
+            -- (semiFinalRing, semifinalMap) = flattenRing (R2/J1);
+            -- ==========================================================================================
+            -- Temporary thing I'm adding - Toshi
+            (semiFinalRing, semifinalMap) = flattenRing (R1);
+
+
+
             finalRing = newRing(semiFinalRing, MonomialOrder=>GRevLex,Degrees=>apply(#gens semiFinalRing, i->1) );
+            
             finalMap = map(finalRing, semiFinalRing);
-            (finalRing, finalMap*semifinalMap*(map(R2/J1, R1)), (map(R1, R2/J1))*(inverse semifinalMap)*(inverse finalMap))
+            -- (finalRing, finalMap*semifinalMap*(map(R2/J1, R1)), (map(R1, R2/J1))*(inverse semifinalMap)*(inverse finalMap))
+
+            (finalRing, finalMap*semifinalMap, (inverse semifinalMap)*(inverse finalMap))
 
         )
         else if (instance(R1, PolynomialRing)) then (
+            -- print("R1 is a poly ring");
+
             R2 = A2[gens R1];
             (semiFinalRing, semifinalMap) = flattenRing R2;
             finalRing = newRing(semiFinalRing,  MonomialOrder=>GRevLex,Degrees=>apply(#gens semiFinalRing, i->1) );
@@ -719,13 +738,18 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
 
 splittingFieldPari = method(Options => {Variable=>null, Strategy=>null, Verbose=>false, UsePari=>defaultPariStrat, cache => true});
 splittingFieldPari (RingElement) := opts -> f -> (
-    myRing := ring f;
+    local myRing;
+    local flatMap;
+    local invFlatMap;
+    -- 
+    (myRing, flatMap, invFlatMap) = extraFlattenRing(ring f);
+    local testMyF;
+    local F;
+    testMyF = flatMap(f);
     factors :={};
-    F := factor(f);
-    print(#F);
+    F = factor(testMyF);
     for i from 0 to #F-1 do (
         -- NOTE: degree here produces a list of one number... 
-        print (degree F#i#0);
         if ((degree F#i#0)_0 != 0 ) then(
             factors = append(factors, F#i#0);
         );
@@ -733,20 +757,48 @@ splittingFieldPari (RingElement) := opts -> f -> (
     -- factors should now include the factors of f...
 
     -- We now make the simple extensions
-    print(factors);
-    simpleExts := {};
-    for i from 0 to length(factors) do (
+    local curRawRing;
+    local quotientMap;
+    local curRing;
+    local curMap;
+    local curMapInv;
+
+    local simpleExts;
+    local simpleExtsMaps;
+    local simpleExtsMapsInv;
+
+    local simpleExt;
+    local simpleExtMap;
+    local simpleExtMapInv;
+
+
+    simpleExts = {myRing};
+    simpleExtsMaps = {id_myRing};
+    simpleExtsMapsInv = {id_myRing};
+    
+    for i from 0 to (length(factors)-1) do (
         -- print(R/(factors_i));
         -- 1/0;
-        smplExt := numberField ((ring f)/(factors_i));
-        print("BOOM");
-    );
+        -- print(myRing);
+        -- print(factors_i);
+        -- 1/0;
+        -- print(myRing/factors_0);
+        curRawRing = (simpleExts_i)/(factors_i);
+        quotientMap = map(curRawRing, simpleExts_i);
+        (curRing, curMap, curMapInv)=extraFlattenRing(curRawRing);
+        -- print(simpleExtension);
+        simpleExt = numberField (curRing);
+        
+        simpleExts = append(simpleExts, simpleExt);
 
+        simpleExtsMaps = append(simpleExtsMaps, simpleExt#cache#internalNFMaps#0* curMap *  quotientMap* simpleExtsMaps_i );
+
+        simpleExtsMapsInv = append(simpleExtsMapsInv,(inverse simpleExtsMaps_i) *(inverse quotientMap)*curMapInv* simpleExt#cache#internalNFMaps#1);
+
+    );    
     
-
-    1/0;
     -- We'll worry about underneath the 1/0 after we do pre-pari work...
-    S := ring f;
+    S := simpleExts_((length simpleExts)-1);
     PARISIZE := 80000000000;
     setPariSize := n -> (PARISIZE = n);  
     -- Code to not use gp when can't find. Maybe a global flag?
@@ -760,7 +812,9 @@ splittingFieldPari (RingElement) := opts -> f -> (
     -- R := ring p;
     -- k := coefficientRing R;
     -- print("ABOUT TO");
-    R := coefficientRing f;
+    R := coefficientRing S;
+    R0 := ambient R;
+
     d := (degree (ideal R)_0)_0;
  
     UID := temporaryFileName();
@@ -771,70 +825,41 @@ splittingFieldPari (RingElement) := opts -> f -> (
     F = openOut INPUT;
     F << "allocatemem("|toString PARISIZE|")\n"
       << "K=nfinit("|toString ((ideal R)_0)|")\n"
-      << "[splittingFieldPoly,mapEl]=nfsplitting(K,,3)\n"
+      << "[splittingFieldPoly,mapEl]=nfsplitting(K,,1)\n"
       << "for(d=0,poldegree(splittingFieldPoly),write1(\""|OUTPUT|"\",polcoeff(splittingFieldPoly,d),\",\"))\n"
-      << "write1(\""|OUTPUT2|"\",Vec(lift(a)),\",\")\n"
+      << "write1(\""|OUTPUT2|"\",mapEl,\",\")\n"
       << "quit()" << close;
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
     coeffs := value("{"|get OUTPUT|"}");
     definingEl := toList(get OUTPUT2);
-    definingEl = drop(drop(definingEl,1),-2);
+    definingEl = drop(definingEl,-1);
     definingEl = concatenate definingEl;
-    definingEl = value("{"|definingEl|"}");
-    definingEl = reverse definingEl;    
-    root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
-    -- Coeffs appears to have an extra blank coefficient. We ignore that in the line below with -1
-    p1 := sum apply(length coeffs-1, i -> coeffs_i*S_0^i);
-    -- print(p1);
-    removeFile \ {INPUT, OUTPUT};
+    -- There has GOT to be a better way to do this...
+    -- Using R0 and then trying to use "value" function didn't work; ww still came from K. I suspect use may be wonky?
+    ww := (gens R0)_0;
     
-    -- root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
-    -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
-    T := S/p1;
+    definingEl = value(definingEl);
+        
+   
+    removeFile \ {INPUT, OUTPUT, OUTPUT2};
+
+    R1:= ring definingEl;
+
+    -- Coeffs appears to have an extra blank coefficient. We ignore that in the line below with -1
+    p1 := sum apply(length coeffs-1, i -> coeffs_i*R1_0^i);
+
+    -- TODO We will turn T into a number field...
+    T := (R1)/p1;
+    -- TODO Now construct all the relevant maps.
     
     alpha := gens R;
-    phi := (T,R, {root});
-    return (T, phi);
+    -- simpleExtsMaps
+    phi := map(T,S, {definingEl});
+    finalRing := numberField T;
+
+    return (finalRing, finalRing#cache#internalNFMaps#0 * phi*(simpleExtsMaps_(length(simpleExtsMaps)-1)));
 );  
 
--- splittingField = method(Options => {Strategy=>null, UsePari=>defaultPariStrat});
--- splittingField(RingElement) := opts -> p -> (
---     PARISIZE := 8000000;
---     setPariSize := n -> (PARISIZE = n);  
---     -- Code to not use gp when can't find. Maybe a global flag?
---     if UsePari === false then{
---         return (p, 1);
---     };
---     -- Such code ends here to not use gp when can't find
-
---     R := ring p;
---     k := coefficientRing R;
---     d := (degree p)_0;
---     UID := temporaryFileName();
---     UID2 := temporaryFileName();
---     INPUT := UID|".gp";
---     OUTPUT := UID|"-output";
---     OUTPUT2 := UID2|"-output";
---     F := openOut INPUT;
---     F << "allocatemem("|toString PARISIZE|")\n"
---       << "[f,a]=polredbest("|toString p|", 1)\n"
---       << "for(d=0,poldegree(f),write1(\""|OUTPUT|"\",polcoeff(f,d),\",\"))\n"
---       << "write1(\""|OUTPUT2|"\",Vec(lift(a)),\",\")\n"
---      << "quit()" << close;
---     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
---     coeffs := value("{"|get OUTPUT|"}");
---     definingEl := toList(get OUTPUT2);
---     definingEl =drop(drop(definingEl,1),-2);
---     definingEl = concatenate definingEl;
---     definingEl = value("{"|definingEl|"}");
---     definingEl = reverse definingEl;
---     removeFile \ {INPUT, OUTPUT, OUTPUT2};
---     p1 := sum apply(d+1, i -> coeffs_i*R_0^i);
---     root := sum apply(length(definingEl), i -> definingEl_i*R_0^i);
---     -- root := sum apply(length(coeffsDefEl)-1, i -> coeffsDefEl_i*R_0^i);
-
---     return (p1,root );
--- );
 -- Investigate - Toshi
 isLinear = method(Options=>{})
 isLinear(Ideal) := opts -> (J1) -> (
