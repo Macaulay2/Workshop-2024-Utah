@@ -4,11 +4,16 @@ loadPackage ("NumberFields", Reload=>true)
 
 K= numberField (QQ[x]/(x^4+1)) 
 R = K[z]
-f = z^2+z+1 
-K= numberField (QQ[x]/((x^4+1)))
-splittingFieldPari(f)
+f = z^3-2
 
--- Discuss with Karl about splitting field and no applicable strategy for minimalPrimes, ideal...
+
+
+K= numberField (QQ) 
+R = K[z]
+f = z^3-2 
+(NF, myMap) := splittingFieldPari(f);
+source myMap
+-- Discuss with Karl about splitting field and no appl  Kicable strategy for minimalPrimes, ideal...
 
 -- Testing for 
 (gens P2)_0
