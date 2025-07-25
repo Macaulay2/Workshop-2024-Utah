@@ -719,15 +719,9 @@ splittingFieldNonPari(RingElement) := opts -> f1 -> (
 
 splittingFieldPari = method(Options => {Variable=>null, Strategy=>null, Verbose=>false, UsePari=>defaultPariStrat, cache => true});
 splittingFieldPari (RingElement) := opts -> f -> (
-    local myRing;
-    local flatMap;
-    local invFlatMap;
-    (myRing, flatMap, invFlatMap) = extraFlattenRing(ring f);
-    local testMyF;
-    local F;
-    testMyF = flatMap(f);
+    myRing := ring f;
     factors :={};
-    F = factor(testMyF);
+    F := factor(f);
     print(#F);
     for i from 0 to #F-1 do (
         -- NOTE: degree here produces a list of one number... 
@@ -744,17 +738,13 @@ splittingFieldPari (RingElement) := opts -> f -> (
     for i from 0 to length(factors) do (
         -- print(R/(factors_i));
         -- 1/0;
-        print(myRing);
-        print(factors_i);
-        1/0;
-        print(myRing/factors_0);
-        smplExt := numberField (extraFlattenRing((myRing)/(factors_i)));
+        smplExt := numberField ((ring f)/(factors_i));
         print("BOOM");
     );
 
     
 
-    -- 1/0;
+    1/0;
     -- We'll worry about underneath the 1/0 after we do pre-pari work...
     S := ring f;
     PARISIZE := 80000000000;
@@ -1036,7 +1026,7 @@ getRoots(RingElement) := opts -> (f1) -> (
     local newVars2;
     -- 1/0;
     if #(gens R1) != 1 then error "getRoots: expected a polynomial in a single variable";
-    if opts.Strategy === decompose then (
+    if (opts.Strategy === decompose) then (
         (S,M, MInv) := (extraFlattenRing (R1));
         primeFactors := decompose ideal M(f1);
         
@@ -1053,8 +1043,18 @@ getRoots(RingElement) := opts -> (f1) -> (
         );
         return linearTerms;
     )
-    else if (opts.Strategy === factor) then (
-        K1 := ((flattenRing(coefficientRing R1))#0);
+    else if (opts.Strategy === factor) and (isNumberField coefficientRing R1) then (
+        tempTerms1 := factor f1;
+        i  = 0;
+        while i < #tempTerms1 do (
+             if (degree (tempTerms1#i#0) == {1}) then linearTerms = append(linearTerms, tempTerms1#i#0);
+             i = i+1;
+        );
+        linearTerms = apply(linearTerms, uu -> sub(sub(uu, coefficientRing R1), R1));
+        return linearTerms;
+    )    
+    else if (opts.Strategy === factor)  then (        
+        (K1, M1, M1Inv) := extraFlattenRing(coefficientRing R1);
         (K2a, psi1, psi2) := internalSimpleExtension(K1);
         -- psi2 := inverse psi1; --this is slow, it would be nice if it was faster
         (myVars, myCoeffs) := coefficients f1;
@@ -1074,10 +1074,11 @@ getRoots(RingElement) := opts -> (f1) -> (
             );
             i = i+1;
         );
+        linearTerms = apply(linearTerms, uu -> sub(sub(uu, coefficientRing R1), R1));
         return linearTerms;
         --todo this needs to be written.newf
         --we should first find a way to 
-        --error "getRoots:strategy=>factor not implemented yet";
+        --error "getRoots:strategy=>factor not implemented yet";        
     )
     else (
         error "getRoots: not a valid strategy";
