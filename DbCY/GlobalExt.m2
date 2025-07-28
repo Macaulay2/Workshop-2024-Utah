@@ -78,38 +78,42 @@ globalHom = (C, D) -> C.cache#("globalHom", C, D) ??= (
     minimize part_z Hom(C, D, DegreeLimit => z,
 	MinimalGenerators => false))
 
+importFrom("Varieties", "flattenComplex")
+
 globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol globalExt, m, F, G, 1) ??= (
     -- TODO: also need to push forward to ambient projective space
     (C, D) := (F, G); -- (module F, module G);
     X := variety ring F;
     d := dim X; -- should be embedding dimension
-    u := ampleDegree X;
+    -- u := ampleDegree X;
+    w := sum degrees ring F;
+    u := {1};
     v := 0 * u;
-    nef := coneFromVData nefGenerators X;
+    -- nef := coneFromVData nefGenerators X;
     s := first concentration D;
     if 0 != s then (C, D) = (C[s], D[s]);
     -- find r that satisfies inequality in Theorem 2.14
     if #u == 1 then (
 	r := max for j to last concentration D
-	list max for i to pdim D_j -- TODO: what are n and l in the paper?
+	list max for i to pdim flattenModule D_j -- TODO: what are n and l in the paper?
 	-- TODO: translate to a containment of cones for the toric case
-	list max apply(keys betti freeResolution D_j, (k, aa, s) -> aa) - d * u);
+	list max apply(keys betti freeResolution flattenModule D_j, (k, aa, s) -> aa) - w + {1});
     -- just for fun, we compute the bound a different way and compare
-    C' := freeResolution(C, LengthLimit => m);
-    D' := freeResolution(D, LengthLimit => d-m);
-    e := binarySearch(sum min degrees sum C, sum max degrees sum D', e -> (
-	    -- TODO: the paper asks for S_{e*u} M, is truncation the same?
-	    C' = freeResolution(truncate(e * u, C, MinimalGenerators => false), LengthLimit => m);
-	    -- TODO: in the single graded case we can just take the maximum degree
-	    -- but to make this work in the multigraded case, that may not work!
-	    all((0,0) .. (m,d-m),
-		(k,i) -> all(unique degrees C'_(m-k) ** unique degrees D'_i, -- TODO: why m-k and not just k?
-		    (aC, aD) -> contains(nef, transpose matrix {v + aC - aD})))
-	    ));
-    if debugLevel > 0 then printerr("using truncation limit ", toString r, " vs ", toString(e * u));
+    -- C' := freeResolution(C, LengthLimit => m);
+    -- D' := freeResolution(D, LengthLimit => d-m);
+    -- e := binarySearch(sum min degrees sum C, sum max degrees sum D', e -> (
+    -- 	    -- TODO: the paper asks for S_{e*u} M, is truncation the same?
+    -- 	    C' = freeResolution(truncate(e * u, C, MinimalGenerators => false), LengthLimit => m);
+    -- 	    -- TODO: in the single graded case we can just take the maximum degree
+    -- 	    -- but to make this work in the multigraded case, that may not work!
+    -- 	    all((0,0) .. (m,d-m),
+    -- 		(k,i) -> all(unique degrees C'_(m-k) ** unique degrees D'_i, -- TODO: why m-k and not just k?
+    -- 		    (aC, aD) -> contains(nef, transpose matrix {v + aC - aD})))
+    -- 	    ));
+    -- if debugLevel > 0 then printerr("using truncation limit ", toString r, " vs ", toString(e * u));
     -- use e for the multigraded case
     --if #u > 1 then
-    r = e * u;
+    -- r = e * u;
     C' = freeResolution(truncate(r, C, MinimalGenerators => false),
 	-- TODO: this +2 seems extra, but some examples fail without it
 	LengthLimit => m - min(0, first concentration C) + 2);
