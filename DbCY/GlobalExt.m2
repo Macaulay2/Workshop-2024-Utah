@@ -124,6 +124,65 @@ globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol global
     -- TODO: why is it -m here?!
     E_(-m))
 
+globalExt(CoherentSheaf, CoherentSheaf) := Complex => (F, G) -> (
+    complex apply(dim variety F + 1, m -> globalExt(m, F, G)))
+
+globalExt(Complex, Complex) := Complex => (F, G) -> (
+    -- TODO: need to push forward to ambient projective space
+    (C, D) := (module F[min F], module G[min G]);
+    --
+    Y := youngest(C, D);
+    -- mutex := lock("globalExt", Y);
+    if Y.cache#?(symbol globalExt, C, D) then return ( -- unlock mutex;
+	Y.cache#(symbol globalExt, C, D)[min G - min F]);
+    -- startTimer FunctionApplication {symbol globalExt, (F, G)};
+    -- unlock mutex;
+    --
+    R := ring F;
+    K := coefficientRing R;
+    X := variety R;
+    d := dim X; -- should be embedding dimension
+    u := ampleDegree X;
+    v := 0 * u;
+    nef := coneFromVData nefGenerators X;
+    -- find r that satisfies inequality in Theorem 2.14
+    if #u == 1 then (
+	r := max for j to max D
+	list max for i to pdim D_j -- TODO: what are n and l in the paper?
+	-- TODO: translate to a containment of cones for the toric case
+	list max apply(keys betti freeResolution(D_j, LengthLimit => d), (k, aa, s) -> aa) - d * u);
+    -- just for fun, we compute the bound a different way and compare
+    -- TODO: double check these
+    -- C' := freeResolution(C, LengthLimit => max(0, d + max C - min C));
+    -- D' := freeResolution(D, LengthLimit => max(0, d + max D - min D));
+    -- e := binarySearch(sum min degrees sum C', sum max degrees sum D', e -> (
+    -- 	    -- TODO: the paper asks for S_{e*u} M, is truncation the same?
+    -- 	    C' = freeResolution(truncate(e * u, C, MinimalGenerators => false),
+    -- 		LengthLimit => max(0, d + max C - min C));
+    -- 	    -- TODO: in the single graded case we can just take the maximum degree
+    -- 	    -- but to make this work in the multigraded case, that may not work!
+    -- 	    all(0 .. d, m ->
+    -- 		all((0,0) .. (m,d-m), (k,i) ->
+    -- 		    all(unique degrees C'_(m-k) ** unique degrees D'_i, -- TODO: why m-k and not just k?
+    -- 			(aC, aD) -> contains(nef, transpose matrix {v + aC - aD}))))
+    -- 	    ));
+    -- if debugLevel > 0 then printerr("using truncation limit ", toString r, " vs ", toString(e * u));
+    -- -- use e for the multigraded case
+    -- --if #u > 1 then
+    -- r = e * u;
+    C' := freeResolution(truncate(r, C, MinimalGenerators => false),
+	LengthLimit => max(0, d + max C - min C + 1));
+    H := complexHom(C', D); -- ~70% of the computation
+    z := degree 1_(ring F);
+    M := for i from -max H to -min H list K^(numcols basis_z H_(-i));
+    E := complex(M, Base => -max H);
+    --
+    E.cache.Ext = (C, D);
+    Y.cache#(symbol globalExt, C, D) = E;
+    E[min G - min F])
+    -- endTimer FunctionApplication {symbol globalExt, (F, G)};
+    -- unlock("globalExt", Y, E[min G - min F]))
+
 ExtTable = (X, L) -> (
     T := (degreesRing 1)_0;
     matrix table(L, L,
@@ -140,6 +199,7 @@ n = 3
 X = toricProjectiveSpace n
 S = ring X
 
+assert(globalExt(OO_X^{n+1}, OO_X^{0}) == QQ^1[3])
 assert(globalExt(n, OO_X^{n+1}, OO_X^{0}) === QQ^1)
 
 -- Beilinson's collection of O's
