@@ -78,7 +78,7 @@ globalHom = (C, D) -> C.cache#("globalHom", C, D) ??= (
     minimize part_z Hom(C, D, DegreeLimit => z,
 	MinimalGenerators => false))
 
-importFrom("Varieties", "flattenComplex")
+importFrom("Varieties", {"flattenModule", "flattenComplex"})
 
 globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol globalExt, m, F, G, 1) ??= (
     -- TODO: also need to push forward to ambient projective space
@@ -117,6 +117,8 @@ globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol global
     C' = freeResolution(truncate(r, C, MinimalGenerators => false),
 	-- TODO: this +2 seems extra, but some examples fail without it
 	LengthLimit => m - min(0, first concentration C) + 2);
+    --E := Hom(C', D)
+    --yonedaExtension E_(-1)_{0}
     E := globalHom(C', D); -- ~70% of the computation
     E.cache.Ext = (F, G);
     -- TODO: why is it -m here?!
@@ -134,7 +136,7 @@ restart
 needs "GlobalExt.m2"
 debugLevel=1
 
-n = 2
+n = 3
 X = toricProjectiveSpace n
 S = ring X
 
