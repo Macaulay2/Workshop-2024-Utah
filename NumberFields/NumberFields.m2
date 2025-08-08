@@ -186,7 +186,9 @@ extraFlattenRing(Ring) := opts -> (R1) -> (
             finalRing = newRing(semiFinalRing, MonomialOrder=>GRevLex,Degrees=>apply(#gens semiFinalRing, i->1) );
             
             finalMap = map(finalRing, semiFinalRing);
+            -- ==========================================================================================
             -- (finalRing, finalMap*semifinalMap*(map(R2/J1, R1)), (map(R1, R2/J1))*(inverse semifinalMap)*(inverse finalMap))
+            -- ==========================================================================================
 
             (finalRing, finalMap*semifinalMap, (inverse semifinalMap)*(inverse finalMap))
 
@@ -839,7 +841,8 @@ splittingFieldPari (RingElement) := opts -> f -> (
     ww := (gens R0)_0;
     
     definingEl = value(definingEl);
-        
+    -- Try jank load/unload from file.
+    -- Parsing otherwise
    
     removeFile \ {INPUT, OUTPUT, OUTPUT2};
 
