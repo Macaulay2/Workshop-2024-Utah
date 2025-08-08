@@ -1054,7 +1054,7 @@ getRoots(RingElement) := opts -> (f1) -> (
     local newVars2;
     -- 1/0;
     if #(gens R1) != 1 then error "getRoots: expected a polynomial in a single variable";
-    if opts.Strategy === decompose then (
+    if (opts.Strategy === decompose) then (
         (S,M, MInv) := (extraFlattenRing (R1));
         primeFactors := decompose ideal M(f1);
         
@@ -1071,8 +1071,18 @@ getRoots(RingElement) := opts -> (f1) -> (
         );
         return linearTerms;
     )
-    else if (opts.Strategy === factor) then (
-        K1 := ((flattenRing(coefficientRing R1))#0);
+    else if (opts.Strategy === factor) and (isNumberField coefficientRing R1) then (
+        tempTerms1 := factor f1;
+        i  = 0;
+        while i < #tempTerms1 do (
+             if (degree (tempTerms1#i#0) == {1}) then linearTerms = append(linearTerms, tempTerms1#i#0);
+             i = i+1;
+        );
+        linearTerms = apply(linearTerms, uu -> sub(sub(uu, coefficientRing R1), R1));
+        return linearTerms;
+    )    
+    else if (opts.Strategy === factor)  then (        
+        (K1, M1, M1Inv) := extraFlattenRing(coefficientRing R1);
         (K2a, psi1, psi2) := internalSimpleExtension(K1);
         -- psi2 := inverse psi1; --this is slow, it would be nice if it was faster
         (myVars, myCoeffs) := coefficients f1;
@@ -1092,10 +1102,11 @@ getRoots(RingElement) := opts -> (f1) -> (
             );
             i = i+1;
         );
+        linearTerms = apply(linearTerms, uu -> sub(sub(uu, coefficientRing R1), R1));
         return linearTerms;
         --todo this needs to be written.newf
         --we should first find a way to 
-        --error "getRoots:strategy=>factor not implemented yet";
+        --error "getRoots:strategy=>factor not implemented yet";        
     )
     else (
         error "getRoots: not a valid strategy";
