@@ -796,8 +796,7 @@ splittingFieldPari (RingElement) := opts -> f -> (
         simpleExtsMaps = append(simpleExtsMaps, simpleExt#cache#internalNFMaps#0* curMap *  quotientMap* simpleExtsMaps_i );
 
         simpleExtsMapsInv = append(simpleExtsMapsInv,(inverse simpleExtsMaps_i) *(inverse quotientMap)*curMapInv* simpleExt#cache#internalNFMaps#1);
-
-    );    
+    ); 
     
     -- We'll worry about underneath the 1/0 after we do pre-pari work...
     S := simpleExts_((length simpleExts)-1);
@@ -826,21 +825,134 @@ splittingFieldPari (RingElement) := opts -> f -> (
     OUTPUT2 := UID2|"-output";
     F = openOut INPUT;
     F << "allocatemem("|toString PARISIZE|")\n"
-      << "K=nfinit("|toString ((ideal R)_0)|")\n"
+    -- replace(toString ((vars P2)_0_0),"x",toString ((ideal P2)_0))
+    -- replace (toString ((ideal R)_0))
+      << "K=nfinit("|replace ((toString((gens R)_0)), "x", (toString ((ideal R)_0)))|")\n"
       << "[splittingFieldPoly,mapEl]=nfsplitting(K,,1)\n"
       << "for(d=0,poldegree(splittingFieldPoly),write1(\""|OUTPUT|"\",polcoeff(splittingFieldPoly,d),\",\"))\n"
       << "write1(\""|OUTPUT2|"\",mapEl,\",\")\n"
       << "quit()" << close;
     assert zero (runProgram(gp, "-q <"|INPUT))#"return value";
     coeffs := value("{"|get OUTPUT|"}");
-    definingEl := toList(get OUTPUT2);
-    definingEl = drop(definingEl,-1);
+    toParse := toList(get OUTPUT2);
+    definingEl := drop(toParse,-1);
     definingEl = concatenate definingEl;
     -- There has GOT to be a better way to do this...
     -- Using R0 and then trying to use "value" function didn't work; ww still came from K. I suspect use may be wonky?
     ww := (gens R0)_0;
-    
+    use R0;
     definingEl = value(definingEl);
+    print(ring definingEl);
+    
+    -- print(R0);
+    -- Looks like we must parse
+    --Parsing rules:
+    -- +-*/^ x , num
+    -- leftNum is a, rightNum is b
+    -- On seeing a num, if flag, start building leftNum. else, build right num
+    -- 
+    tempParse0 := reverse toParse;
+    -- We first replace num and vars
+    numStrings := {"0","1","2","3","4","5","6","7","8","9"};
+
+    tempParse1 := {};
+    curNum := 0;
+    newNum := true;
+    curPowerOfTen := 0;
+    local parsedVal;
+    print("THIS IS TEMP PARSE 0");
+    print(tempParse0);
+    for i from 0 to length(tempParse0)-1 do {
+        if isMember(tempParse0_i, numStrings) then{
+            -- Parse tempParse0_i as an int
+            -- use ZZ;
+            parsedVal = position(numStrings, (j -> j == tempParse0_i));
+            print(parsedVal);
+            curNum = curNum + parsedVal * 10^curPowerOfTen;
+            curPowerOfTen += 1; 
+            newNum = false;
+            if i == length(tempParse0)-1 then{
+                tempParse1 = append(tempParse1, curNum);
+            }
+        }
+        else{
+            if newNum == false then{
+                newNum = true;
+                tempParse1 = append(tempParse1, curNum);
+                curNum = 0;
+                curPowerOfTen = 0;
+            };
+            if tempParse0_i == "x" then{
+                tempParse1 = append(tempParse1, ww);
+            }
+            else{
+                tempParse1 = append(tempParse1, tempParse0_i);
+            }
+        }
+    };
+    tempParse1 = select (tempParse1, i-> not i === " " and not i ==="," and not i ==="" and not i === null);
+    print(tempParse1);
+    -- We have now converted all string numbers in list to ints.
+    tempParse0 = reverse tempParse1;
+    -- We now reverse and start our token parsing.
+    local tempVar;
+    local curPos;
+    local curVal;
+    -- operation symbols
+    opSys := {"^", "/", "*", "+", "-"};
+    
+    print("Right before parsing");
+    print (tempParse0);
+    -- Process exponentiation. Then division. Then *. Then + and -
+    for i in 0..length opSys - 1 do{
+        curPos = position(tempParse0, k-> k === opSys_i);
+        while not (curPos=== null) do{
+            tempVar = {};
+            if i == 0 then {
+                curVal = tempParse0_{curPos-1}_0 ^ (tempParse0_{curPos+1}_0);
+                print(curPos);
+            };
+            if i == 1 then{
+                curVal = tempParse0_{curPos-1}_0 /( tempParse0_{curPos+1}_0); 
+            };
+            if i == 2 then{
+                curVal = tempParse0_{curPos-1}_0 * (tempParse0_{curPos+1}_0);
+            };
+            if i == 3 then{
+
+                curVal = tempParse0_{curPos-1}_0 + (tempParse0_{curPos+1}_0); 
+            };
+            if i == 4 then{
+                if curPos == 0 then {
+                    curVal = -( tempParse0_{curPos+1}_0);
+                }
+                else{
+                    curVal = tempParse0_{curPos-1}_0 -( tempParse0_{curPos+1}_0);
+                }
+                -- print("THIS IS THE FIRST ITEM");
+                -- print(tempParse0_{curPos-1}_0 );
+                -- print("THIS IS SECOND ITEM");
+                -- print(( tempParse0_{curPos+1}_0));
+                -- print("THIS IS OUTPUT");
+                -- print(curVal);
+                -- print("THIS IS CURRENTLY WHATS GETTING PARSED");
+                -- print(tempParse0);
+            };
+            for j in 0..curPos-2 do{
+                tempVar = append(tempVar, tempParse0_j);
+            };
+            tempVar = append(tempVar, curVal);
+            for j in (curPos+2)..length tempParse0-1 do{
+                tempVar = append(tempVar, tempParse0_j);
+            };
+            
+            tempParse0 = tempVar;
+            curPos = position(tempParse0, k-> k === opSys_i);
+        }
+    };
+    -- 1/0;
+    definingEl = tempParse0_0;
+    print(definingEl);
     -- Try jank load/unload from file.
     -- Parsing otherwise
    
@@ -848,7 +960,7 @@ splittingFieldPari (RingElement) := opts -> f -> (
 
     R1:= ring definingEl;
 
-    -- Coeffs appears to have an extra blank coefficient. We ignore that in the line below with -1
+    -- Coeffs appears to have an extra blank coefficient. We ignore that in the line below with -1 in "length coeffs -1"
     p1 := sum apply(length coeffs-1, i -> coeffs_i*R1_0^i);
 
     -- TODO We will turn T into a number field...
@@ -858,9 +970,11 @@ splittingFieldPari (RingElement) := opts -> f -> (
     alpha := gens R;
     -- simpleExtsMaps
     phi := map(T,S, {definingEl});
+    -- 1/0;
     finalRing := numberField T;
-
-    return (finalRing, finalRing#cache#internalNFMaps#0 * phi*(simpleExtsMaps_(length(simpleExtsMaps)-1)));
+    -- finalRing, finalRing#cache#internalNFMaps#0 * phi*(simpleExtsMaps_(length(simpleExtsMaps)-1));
+    -- 1/0;
+    return (finalRing, finalRing#cache#internalNFMaps#0 * phi*(simpleExtsMaps_(length(simpleExtsMaps)-1))*flatMap);
 );  
 
 -- Investigate - Toshi

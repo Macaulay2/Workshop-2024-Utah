@@ -5,8 +5,20 @@ loadPackage ("NumberFields", Reload=>true)
 K= numberField (QQ[x]/(x^4+1)) 
 R = K[z]
 f = z^3-2
+(NF, myMap) := splittingFieldPari(f);
+use R 
+myMap(z^3-2)
 
 
+K = QQ[x]/(x)
+breakVal = method();
+breakVal(Ring):= R-> (
+    local S;
+    S = ambient R;
+    use S;
+    value "use S; x"
+)
+breakVal(K)
 
 K= numberField (QQ) 
 R = K[z]
