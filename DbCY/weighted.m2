@@ -22,3 +22,9 @@ assert all(3, i -> 0 == globalExt(i, sheaf S^1, sheaf M))
 -- TODO: NormalToricVarieties doesn't support this yet
 0 == hilbertPolynomial_X M
 apply(0..10, i -> hilbertFunction(2*i, M))
+
+-- manual test
+X = weightedProjectiveSpace {1,1,2}
+S = ring X
+M = S^{1}/(x_0,x_1)
+minimize part_0 Hom(freeResolution truncate_1 S^1, complex M)
