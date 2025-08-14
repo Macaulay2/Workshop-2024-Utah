@@ -1,6 +1,9 @@
 needsPackage "NormalToricVarieties"
 needsPackage "Complexes"
 
+-- my system defines this already, but it's not in 1.25.06
+if not isMember((module, Complex), methods(module, Complex)) then module Complex := identity
+
 ToricMap^* := f -> pullback_f
 
 -- TODO: move to Core, c.f. https://github.com/Macaulay2/M2/issues/3844
