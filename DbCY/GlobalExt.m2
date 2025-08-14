@@ -75,7 +75,7 @@ globalExt(ZZ, CoherentSheaf, CoherentSheaf) := Module => (m, F, G) -> F.cache#(s
 
 globalHom = (C, D) -> C.cache#("globalHom", C, D) ??= (
     z := degree 1_(ring C);
-    minimize part_z Hom(C, D, DegreeLimit => z,
+    minimize prune part_z Hom(C, D, DegreeLimit => z,
 	MinimalGenerators => false))
 
 importFrom("Varieties", {"flattenModule", "flattenComplex"})
@@ -94,7 +94,7 @@ globalExt(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol global
     if 0 != s then (C, D) = (C[s], D[s]);
     -- find r that satisfies inequality in Theorem 2.14
     if #u == 1 then (
-	r := max for j to last concentration D
+	r := max for j to max D
 	list max for i to pdim flattenModule D_j -- TODO: what are n and l in the paper?
 	-- TODO: translate to a containment of cones for the toric case
 	list max apply(keys betti freeResolution flattenModule D_j, (k, aa, s) -> aa) - w + {1});
@@ -148,7 +148,7 @@ globalExt(Complex, Complex) := Complex => (F, G) -> (
     -- find r that satisfies inequality in Theorem 2.14
     if #u == 1 then (
 	r := max for j to max D
-	list max for i to pdim D_j -- TODO: what are n and l in the paper?
+	list max for i to pdim flattenModule D_j -- TODO: what are n and l in the paper?
 	-- TODO: translate to a containment of cones for the toric case
 	list max apply(keys betti freeResolution(D_j, LengthLimit => d), (k, aa, s) -> aa) - d * u);
     -- just for fun, we compute the bound a different way and compare
@@ -172,7 +172,7 @@ globalExt(Complex, Complex) := Complex => (F, G) -> (
     -- r = e * u;
     C' := freeResolution(truncate(r, C, MinimalGenerators => false),
 	LengthLimit => max(0, d + max C - min C + 1));
-    H := complexHom(C', D); -- ~70% of the computation
+    H := prune homology Hom(C', D); -- ~70% of the computation
     z := degree 1_(ring F);
     M := for i from -max H to -min H list K^(numcols basis_z H_(-i));
     E := complex(M, Base => -max H);
