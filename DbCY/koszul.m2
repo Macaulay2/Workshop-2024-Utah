@@ -1,14 +1,13 @@
 restart
 needs "./GlobalExt.m2"
 nefGenerators ProjectiveVariety := X -> matrix{{1}}
-module Complex := identity
 
 R = ZZ/32003[x,y,z]/(x^2,x*y)
 C = koszulComplex matrix{{x,y}}
-prune sheaf HH C
+apply(3, i -> prune sheaf HH_i C)
 globalExt(C, C)
 globalExt(0, C, C)
-ExtTable(Proj S, {C})
+ExtTable(Proj R, {C})
 
 ---
 
