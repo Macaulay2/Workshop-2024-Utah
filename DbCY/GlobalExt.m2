@@ -54,7 +54,7 @@ RHom'(Complex, Complex) := Complex => (F, G) -> (
     d := dim X; -- should be embedding dimension
     z := {0};
     u := {1};
-    nef := coneFromVData nefGenerators X;
+    nef := matrix{{1}};
     -- find r that satisfies inequality in Theorem 2.14
     if #u == 1 then (
 	r := max for j to max D
