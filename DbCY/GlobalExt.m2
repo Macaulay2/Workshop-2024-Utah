@@ -15,7 +15,7 @@ toricDivisor(List, Ring) := opts -> (d, S) -> (
 
 RHom' = method()
 RHom'(ZZ, CoherentSheaf, CoherentSheaf) := (m, F, G) -> RHom'(m, complex module F, complex module G)
-RHom'(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol RHom', m, F, G, 1) ??= (
+RHom'(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol RHom, m, F, G, 1) ??= (
     -- TODO: also need to push forward to ambient projective space
     (C, D) := (module F, module G);
     X := variety ring F;
@@ -23,7 +23,6 @@ RHom'(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol RHom', m, 
     w := sum degrees ring F;
     z := {0};
     u := {1};
-    -- nef := coneFromVData nefGenerators X;
     s := first concentration D;
     if 0 != s then (C, D) = (C[s], D[s]);
     -- find r that satisfies inequality in Theorem 2.14
@@ -36,7 +35,7 @@ RHom'(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol RHom', m, 
 	LengthLimit => m - min(0, first concentration C) + 2);
     E := minimize prune part_z Hom(C', D, DegreeLimit => z,
 	MinimalGenerators => false);
-    E.cache.RHom' = (F, G);
+    E.cache.RHom = (F, G);
     E^m)
 
 RHom'(CoherentSheaf, CoherentSheaf) := (F, G) -> RHom'(complex module F, complex module G)
@@ -45,8 +44,8 @@ RHom'(Complex, Complex) := Complex => (F, G) -> (
     (C, D) := (module F[min F], module G[min G]);
     --
     Y := youngest(C, D);
-    if Y.cache#?(symbol RHom', C, D) then return (
-	Y.cache#(symbol RHom', C, D)[min F - min G]);
+    if Y.cache#?(symbol RHom, C, D) then return (
+	Y.cache#(symbol RHom, C, D)[min F - min G]);
     --
     R := ring F;
     K := coefficientRing R;
@@ -54,7 +53,6 @@ RHom'(Complex, Complex) := Complex => (F, G) -> (
     d := dim X; -- should be embedding dimension
     z := {0};
     u := {1};
-    nef := matrix{{1}};
     -- find r that satisfies inequality in Theorem 2.14
     if #u == 1 then (
 	r := max for j to max D
@@ -63,18 +61,26 @@ RHom'(Complex, Complex) := Complex => (F, G) -> (
     C' := freeResolution(truncate(r, C, MinimalGenerators => false),
 	LengthLimit => max(0, d + max C - min C + 1));
     H := prune homology Hom(C', D); -- ~70% of the computation
-    M := for i from -max H to -min H list K^(numcols basis_z H_(-i));
+    M := for i in (min C - max D .. max C + dim X - min D) list K^(numcols basis_z H_(-i));
     E := complex(M, Base => -max H);
     --
-    E.cache.RHom' = (C, D);
-    Y.cache#(symbol RHom', C, D) = E;
+    E.cache.RHom = (C, D);
+    Y.cache#(symbol RHom, C, D) = E;
     E[min F - min G])
+
+globalExt = RHom'
 
 ExtTable = (X, L) -> (
     T := (degreesRing 1)_0;
     matrix table(L, L,
 	(F, G) -> sum(dim X + 1,
 	    m -> T^m * rank RHom'(m, F, G))))
+
+rankPolynomial = (T, C) -> sum(pairs C.module, (i, E) -> rank E * T^(-i))
+ExtTable = (X, L) -> (
+    T := (degreesRing 1)_0;
+    V := table(L, L, RHom');
+    matrix applyTable(V, rankPolynomial_T))
 
 ------------
 end
@@ -83,7 +89,7 @@ notify = true
 needs "./GlobalExt.m2"
 debugLevel=1
 
-n = 3
+n = 2
 X = toricProjectiveSpace n
 S = ring X
 
