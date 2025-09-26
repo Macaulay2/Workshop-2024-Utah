@@ -8,6 +8,10 @@ S = ring X
 OC = koszulComplex (vars S)_{1} -- TODO: why is this only spherical on H_2?
 L = dual \ reverse { OO_X^{{-1,-1}}, OO_X^{{0,-1}}, OO_X^{{-1,0}}, OO_X^1 }
 
+-- OC is spherical:
+-- assert(hilbertPolynomial(sheaf OC ** OO toricDivisor X) == hilbertPolynomial(sheaf OC))
+-- ExtTable(X, {OC}) -- should be 1+T^(dim X)
+
 --
 Y = toricProjectiveSpace 5
 phi = map(Y, X, matrix {{1, 0}, {0, 1}, {1, 1}, {2, 1}, {3, 1}})
@@ -43,7 +47,13 @@ elapsedTime ExtTable(Z, complex \ L') -- ~6s
 globalExt(C, D)
 leftMutation(C, D)
 ev = derivedEvaluationMap(C, D)
+C[2], source ev
+D == target ev
 D , cone ev
+-- FIXME
+ev' = derivedCoevaluationMap(C, D)
+C, source ev'
+D[-2], target ev'
 
 netList_2 apply(L', E -> globalExt(sheaf OC', sheaf complex E))
 L2' = apply(L', E -> leftMutation(sheaf OC', sheaf complex E))
@@ -83,6 +93,7 @@ debug needsPackage "CoxCategories"
 needs "GlobalExt.m2"
 needs "BTtrunc.m2"
 X = hirzebruchSurface 3
+X = toricProjectiveSpace 2
 S = ring X
 BT = complex \ zonotopeBundles X
 degs = zonotopeDegrees S
@@ -93,9 +104,21 @@ sheaf (koszulComplex (vars S)_{1,3})
 sheaf rightMutation(complex S^1, complex S^{{3,-2}})
 
 globalExt = ToricExt
-sheaf \ BT
-sheaf \ mutate(0, mutate(1, BT))
-sheaf \ mutate(1, mutate(2, mutate(0, mutate(1, BT))))
+BT = sheaf \ dual \ reverse BT
+L = leftOrthogonal BT
+ExtTable_X mutate(1, BT)
+ExtTable_X mutate(0, mutate(1, BT)) -- Note, this changes!
+ExtTable_X mutate(1, mutate(0, mutate(1, BT)))
+mutate(1, mutate(2, mutate(0, mutate(1, BT))))
+
+-- FIXME: some terms are truncated too much
+L = rightOrthogonal BT
+L = mutate(BT, 0)
+globalExt(L#1, L#2)
+rightMutation(L#1, L#2)
+mutate(mutate(mutate(BT, 0), 1), 0)
+mutate(1, mutate(0, mutate(1, BT)))
+OO toricDivisor X
 
 
 

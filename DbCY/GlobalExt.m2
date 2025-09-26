@@ -18,9 +18,11 @@ RHom'(ZZ, CoherentSheaf, CoherentSheaf) := (m, F, G) -> RHom'(m, complex module 
 RHom'(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol RHom, m, F, G, 1) ??= (
     -- TODO: also need to push forward to ambient projective space
     (C, D) := (module F, module G);
-    X := variety ring F;
-    d := dim X; -- should be embedding dimension
-    w := sum degrees ring F;
+    R := ring C;
+    X := variety R;
+    w := sum degrees R;
+    n := numgens R - 1; -- the embedding dimension
+    d := dim X;
     z := {0};
     u := {1};
     s := first concentration D;
@@ -28,8 +30,7 @@ RHom'(ZZ, Complex, Complex) := Module => (m, F, G) -> F.cache#(symbol RHom, m, F
     -- find r that satisfies inequality in Theorem 2.14
     if #u == 1 then (
 	r := max for j to max D
-	list max for i to pdim flattenModule D_j
-	list max apply(keys betti freeResolution flattenModule D_j, (k, aa, s) -> aa) - w + {1});
+	list max apply(keys betti res flattenModule D_j, (k, aa, s) -> aa) - w + u);
     C' = freeResolution(truncate(r, C, MinimalGenerators => false),
 	-- TODO: this +2 seems extra, but some examples fail without it
 	LengthLimit => m - min(0, first concentration C) + 2);
@@ -50,19 +51,23 @@ RHom'(Complex, Complex) := Complex => (F, G) -> (
     R := ring F;
     K := coefficientRing R;
     X := variety R;
-    d := dim X; -- should be embedding dimension
+    w := sum degrees R;
+    n := numgens R - 1; -- the embedding dimension
+    d := dim X;
     z := {0};
     u := {1};
     -- find r that satisfies inequality in Theorem 2.14
     if #u == 1 then (
 	r := max for j to max D
-	list max for i to pdim flattenModule D_j
-	list max apply(keys betti freeResolution(D_j, LengthLimit => d), (k, aa, s) -> aa) - d * u);
+	list max apply(keys betti res flattenModule D_j, (k, aa, s) -> aa) - w + u);
     C' := freeResolution(truncate(r, C, MinimalGenerators => false),
 	LengthLimit => max(0, d + max C - min C + 1));
+    -- TODO: does this slow things down?
+    C' = canonicalTruncation(C', 0, max(0, d + max C - min C));
     H := prune homology Hom(C', D); -- ~70% of the computation
-    M := for i in (min C - max D .. max C + dim X - min D) list K^(numcols basis_z H_(-i));
-    E := complex(M, Base => -max H);
+    B := complex(for i from min D - max C - dim X to max D - min C list
+	K^(numcols basis_z H_i), Base => min D - max C - dim X);
+    E := complex(B, Base => min B);
     --
     E.cache.RHom = (C, D);
     Y.cache#(symbol RHom, C, D) = E;
@@ -93,7 +98,7 @@ n = 2
 X = toricProjectiveSpace n
 S = ring X
 
-assert(RHom'(OO_X^{n+1}, OO_X^{0}) == QQ^1[3])
+assert(RHom'(OO_X^{n+1}, OO_X^{0}) == QQ^1[-n])
 assert(RHom'(n, OO_X^{n+1}, OO_X^{0}) === QQ^1)
 
 -- Beilinson's collection of O's
@@ -102,14 +107,14 @@ ExtTable(X, L) -- upper triangular means exceptional
 elapsedTime assert(0 == ExtTable(X, L) - ExtTable(X, complex \ module \ L))
 
 -- Beilinson's collection of Omega's
+-- uuhhhh did nobody notice that this list is backwards??
 L = apply(n+1, i -> prune cotangentSheaf(i, X) ** OO_X^{i})
 ExtTable(X, L) -- upper triangular means exceptional
--- uuhhhh did nobody notice that this list is backwards??
 elapsedTime assert(0 == ExtTable(X, L) - ExtTable(X, freeResolution \ module \ L))
 
 N = module cotangentSheaf(1, X) ** S^{1}
 M = module cotangentSheaf(2, X) ** S^{2}
-0 == RHom'^1(sheaf N, sheaf M)
+-- TODO: 0 == RHom'^1(sheaf N, sheaf M)
 0 == RHom'(1, sheaf N, sheaf M)
 0 == RHom'(1, freeResolution N, freeResolution M)
 
