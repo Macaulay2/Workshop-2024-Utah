@@ -4,6 +4,7 @@ newPackage(
     Version => "0.1",
     Date => "June 3, 2025",
     Authors => {
+	{ Name => "Mahrud Sayrafi", Email => "mahrud@mcmaster.ca", HomePage => "https://mahrud.github.io" }
     },
     PackageImports => { "Depth" },
     PackageExports => { "Complexes", "Varieties" },
