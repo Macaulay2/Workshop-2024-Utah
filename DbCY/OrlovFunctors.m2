@@ -4,6 +4,7 @@ newPackage(
     Version => "0.1",
     Date => "June 3, 2025",
     Authors => {
+	{ Name => "Michael K. Brown", Email => "mkb0096@auburn.edu", HomePage => "http://webhome.auburn.edu/~mkb0096/" }
 	{ Name => "Mahrud Sayrafi", Email => "mahrud@mcmaster.ca", HomePage => "https://mahrud.github.io" }
     },
     PackageImports => { "Depth" },
