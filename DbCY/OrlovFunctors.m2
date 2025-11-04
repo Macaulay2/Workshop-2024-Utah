@@ -108,14 +108,23 @@ orlovTruncateGeqDualize(ZZ, Complex) := (i, C) -> (
 -- THIS FUNCTION DOESN'T WORK YET! We need the canonicalTruncation function for maps of complexes. See comment in code.
 -- Input: a morphism f of graded modules and an integer i.
 -- Output: the induced map on truncateGeqDualize applied to the source and target of f (and i).
--- orlovTruncateGeqDualize(ZZ, Matrix) := (i, f) -> (
---     M := source f;
---     N := target f;
---     s := max{supTruncate(M) + 2, supTruncate(N) + 2};
---     g := freeResolution(f, LengthLimit => s);
---     gi := orlovTruncateGeq(ftilde, i);
---     gidual := dual gi;
---     canonicalTruncation(gidual, -s - 1))
+orlovTruncateGeqDualize(ZZ, Matrix) := (i, f) -> (
+    M := source f;
+    N := target f;
+    s := max{supTruncate(i, M) + 2, supTruncate(i, N) + 2};
+    g := freeResolution(f, LengthLimit => s);
+    gi := orlovTruncateGeq(i, g);
+    gidual := dual gi;
+    canonicalTruncation(gidual, -s - 1, ))
+
+-- f = map(N, M, 1)
+-- assert isHomogeneous f
+-- F = res(f, LengthLimit => 3)
+-- F1 = orlovTruncateGeq(1, F)
+-- F1' = dual F1
+-- TODO: orlovTruncateGeqDualize(i, f) needs to match phi:
+-- phi = canonicalTruncation(F1', -2, 0)
+
 -- TODO: this function doesn't exist for ComplexMaps yet.
 
 ------------------------------------------------------------------------------
@@ -145,7 +154,8 @@ singularityToDerived = method(Options => { LengthLimit => null })
 --	  zero. Should allow for more generality.
 singularityToDerived(ZZ, Module) := Complex => opts -> (i, M) -> (
     -- TODO: check if M is MCM?
-    G := freeResolution(orlovTruncateGeqDualize(i, M), opts);
+    -- TODO: what does LengthLimit for a resolution of a complex do?
+    G := freeResolution(orlovTruncateGeqDualize(i, M) -*, opts *-);
     orlovTruncateLess(i, dual G))
 
 --Input: a bounded Complex C of finitely generated modules as in the above function, and i and j as in the above function.
@@ -175,8 +185,22 @@ singularityToDerived(ZZ, Complex) := Complex => opts -> (i, C) -> (
 singularityToDerived(ZZ, Matrix) := ComplexMap => opts -> (i, f) -> (
     if not isMCM source f or not isMCM target f
     then error "expected Maximally Cohen-Macaulay source and target";
-    g := freeResolution(orlovTruncateGeqDualize(i, f), opts);
-    orlovTruncateLess(i, dual g)
+    -- g := freeResolution(orlovTruncateGeqDualize(i, f), opts);
+    -- orlovTruncateLess(i, dual g)
+    Gs := singularityToDerived(i, source f);
+    Gt := singularityToDerived(i, target f);
+    -- FIXME: figure out the bounds here
+    phi = canonicalTruncation(F1', -2, 0)
+    -- TODO: we need the target to be === to G0t
+    -- c.f. https://github.com/Macaulay2/M2/issues/3865
+    phi = map(G0t, source phi, phi);
+    f = phi * G0s.cache.resolutionMap
+    g = G0t.cache.resolutionMap
+    assert(target f === target g)
+    h = liftMapAlongQuasiIsomorphism(f, g) -- or f // g
+    -- homotopyMap h -- is this useful for anything?
+    f' = orlovTruncateLess(1, dual h) -- final result
+
 )
 
 -- TODO: this requires functorial RHom first

@@ -1,3 +1,7 @@
+-*
+needsPackage "OrlovFunctors"
+*-
+
 TEST ///
   R = ZZ/101[x_0] / ideal(x_0^3)
   M = coker vars R

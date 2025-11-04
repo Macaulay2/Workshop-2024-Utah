@@ -3,50 +3,64 @@ needsPackage "OrlovFunctors"
 
 sheaf Complex := identity
 
--- Example 2.7
+-- Example 2.7: the Fermat Cubic
 R = QQ[x_0,x_1,x_2] / sum(3, i -> x_i^3)
 X = Proj R
+-- parameters for a matrix factorization
 a = x_0 + x_1
 b = x_0^2-x_0*x_1+x_1^2
 A = matrix {{x_2, a}, {b, -x_2^2}}
 B = matrix {{x_2^2, a}, {b, -x_2}}
+-- checking the matrix factorization
 assert(A * B == 0 and B * A == 0)
+-- 
 A = map(R^{-1,0}, , A)
-M = coker A
-F = res(M, LengthLimit => 3)
-F1 = orlovTruncateGeq(F, 1)
+M = coker A -- an MCM module
+F = res(M, LengthLimit => 3) -- TODO: option for this?
+F1 = orlovTruncateGeq(1, F)
 F1' = dual F1
 G0 = canonicalTruncation(F1', -2, 0)
 G' = dual freeResolution G0
-G1' = orlovTruncateLess(G', 1)
+G1' = orlovTruncateLess(1, G')
 G = sheaf G1'
+
+-- TODO: LengthLimit isn't used
+singularityToDerived(1, M, LengthLimit => 3)
+
+prune HH_0 G
+assert isIsomorphic(prune HH_-4 G, coker B)
 
 
 -- Functorial example
-N = x_0 * M
-f = inducedMap(N, M, x_0 * id_M)
+N = x_0 * M ** R^{1}
+f = map(N, M, 1)
+assert isHomogeneous f
 F = res(f, LengthLimit => 3)
-F1 = orlovTruncateGeq(F, 1)
+F1 = orlovTruncateGeq(1, F)
 F1' = dual F1
 
 G0s = canonicalTruncation(source F1', -2, 0)
 G's = freeResolution G0s
-G1's = orlovTruncateLess(dual G's, 1)
+G1's = orlovTruncateLess(1, dual G's)
 Gs = sheaf G1's
+Gs' = sheaf singularityToDerived(1, source f)
 
 G0t = canonicalTruncation(target F1', -2, 0)
 G't = freeResolution G0t
-G1't = orlovTruncateLess(dual G't, 1)
+G1't = orlovTruncateLess(1, dual G't)
+Gt' = sheaf singularityToDerived(1, target f) -- TODO
 Gt = sheaf G1't
 
 phi = canonicalTruncation(F1', -2, 0)
--- c.g. https://github.com/Macaulay2/M2/issues/3865
+-- c.f. https://github.com/Macaulay2/M2/issues/3865
+-- we need the target to be === to G0t
 phi = map(G0t, source phi, phi)
 f = phi * G0s.cache.resolutionMap
 g = G0t.cache.resolutionMap
+assert(target f === target g)
 h = liftMapAlongQuasiIsomorphism(f, g) -- or f // g
 -- homotopyMap h -- is this useful for anything?
-f' = orlovTruncateLess(dual h, 1) -- final result
+f' = orlovTruncateLess(1, dual h) -- final result
 
 -- checking basics
 assert(Gt == sheaf source f')
