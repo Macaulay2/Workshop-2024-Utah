@@ -14,6 +14,7 @@ newPackage(
     Date => "June 3, 2025",
     Authors => {
 	{ Name => "Michael K. Brown", Email => "mkb0096@auburn.edu", HomePage => "http://webhome.auburn.edu/~mkb0096/" },
+    { Name => "Souvik Dey", Email => "souvikd@uark.edu", HomePage => "https://sites.google.com/view/souvikdey"}, 
 	{ Name => "Mahrud Sayrafi", Email => "mahrud@mcmaster.ca", HomePage => "https://mahrud.github.io" },
 	{ Name => "Guanyu Li", Email => "gl479@cornell.edu", HomePage => "https://sites.google.com/view/guanyu-li-math/home" },
 	{ Name => "Geoffrey Fatin", Email => "glf55@cornell.edu", HomePage => "https://physics.cornell.edu/geoffrey-fatin"}
