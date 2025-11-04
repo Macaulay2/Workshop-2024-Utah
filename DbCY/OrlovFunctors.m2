@@ -17,6 +17,7 @@ newPackage(
 	{ Name => "Mahrud Sayrafi", Email => "mahrud@mcmaster.ca", HomePage => "https://mahrud.github.io" },
 	{ Name => "Guanyu Li", Email => "gl479@cornell.edu", HomePage => "https://sites.google.com/view/guanyu-li-math/home" },
 	{ Name => "Geoffrey Fatin", Email => "glf55@cornell.edu", HomePage => "https://physics.cornell.edu/geoffrey-fatin"}
+	{ Name => "Tim Tribone", Email => "tim.tribone@utah.edu", HomePage => "https://timtribone.com/"}
     },
     PackageImports => { "Depth" },
     PackageExports => { "Complexes", "Varieties" },
