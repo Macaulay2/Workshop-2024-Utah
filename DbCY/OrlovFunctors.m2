@@ -15,7 +15,8 @@ newPackage(
     Authors => {
 	{ Name => "Michael K. Brown", Email => "mkb0096@auburn.edu", HomePage => "http://webhome.auburn.edu/~mkb0096/" },
 	{ Name => "Mahrud Sayrafi", Email => "mahrud@mcmaster.ca", HomePage => "https://mahrud.github.io" },
-	{ Name => "Guanyu Li", Email => "gl479@cornell.edu", HomePage => "https://sites.google.com/view/guanyu-li-math/home" }
+	{ Name => "Guanyu Li", Email => "gl479@cornell.edu", HomePage => "https://sites.google.com/view/guanyu-li-math/home" },
+	{ Name => "Geoffrey Fatin", Email => "glf55@cornell.edu", HomePage => "https://physics.cornell.edu/geoffrey-fatin"}
     },
     PackageImports => { "Depth" },
     PackageExports => { "Complexes", "Varieties" },
