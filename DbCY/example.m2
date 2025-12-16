@@ -33,7 +33,7 @@ assert isIsomorphic(prune HH_-4 G, coker B)
 
 -- Functorial example
 N = x_0 * M ** R^{1}
-f = map(N, M, 1)
+f = f0 = map(N, M, 1)
 assert isHomogeneous f
 F = res(f, LengthLimit => 3)
 F1 = orlovTruncateGeq(1, F)
@@ -66,7 +66,7 @@ f' = orlovTruncateLess(1, dual h) -- final result
 assert(Gt == sheaf source f')
 assert(Gs == sheaf target f')
 
-
+singularityToDerived(1, f0, LengthLimit => 3), f'
 
 -----
 R = QQ[x, y, z] / (x*y - z^2)

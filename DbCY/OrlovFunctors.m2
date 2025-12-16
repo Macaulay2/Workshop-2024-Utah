@@ -17,7 +17,7 @@ newPackage(
     { Name => "Souvik Dey", Email => "souvikd@uark.edu", HomePage => "https://sites.google.com/view/souvikdey"}, 
 	{ Name => "Mahrud Sayrafi", Email => "mahrud@mcmaster.ca", HomePage => "https://mahrud.github.io" },
 	{ Name => "Guanyu Li", Email => "gl479@cornell.edu", HomePage => "https://sites.google.com/view/guanyu-li-math/home" },
-	{ Name => "Geoffrey Fatin", Email => "glf55@cornell.edu", HomePage => "https://physics.cornell.edu/geoffrey-fatin"}
+	{ Name => "Geoffrey Fatin", Email => "glf55@cornell.edu", HomePage => "https://physics.cornell.edu/geoffrey-fatin"},
 	{ Name => "Tim Tribone", Email => "tim.tribone@utah.edu", HomePage => "https://timtribone.com/"}
     },
     PackageImports => { "Depth" },
@@ -189,21 +189,24 @@ singularityToDerived(ZZ, Matrix) := ComplexMap => opts -> (i, f) -> (
     then error "expected Maximally Cohen-Macaulay source and target";
     -- g := freeResolution(orlovTruncateGeqDualize(i, f), opts);
     -- orlovTruncateLess(i, dual g)
+    F := freeResolution(f, opts);
+    F1' := dual orlovTruncateGeq(i, F);
     Gs := singularityToDerived(i, source f);
     Gt := singularityToDerived(i, target f);
     -- FIXME: figure out the bounds here
-    phi = canonicalTruncation(F1', -2, 0)
+    phi := canonicalTruncation(F1', -2, 0);
     -- TODO: we need the target to be === to G0t
+    -- but canonicalTruncation isn't ===-functorial!
     -- c.f. https://github.com/Macaulay2/M2/issues/3865
+    G0s := canonicalTruncation(source F1', -2, 0);
+    G0t := canonicalTruncation(target F1', -2, 0);
     phi = map(G0t, source phi, phi);
-    f = phi * G0s.cache.resolutionMap
-    g = G0t.cache.resolutionMap
-    assert(target f === target g)
-    h = liftMapAlongQuasiIsomorphism(f, g) -- or f // g
+    f = phi * resolutionMap G0s;
+    g := resolutionMap G0t;
+    assert(target f === target g);
+    h := liftMapAlongQuasiIsomorphism(f, g); -- or f // g
     -- homotopyMap h -- is this useful for anything?
-    f' = orlovTruncateLess(1, dual h) -- final result
-
-)
+    orlovTruncateLess(i, dual h))
 
 -- TODO: this requires functorial RHom first
 -- singularityToDerived(ZZ, ComplexMap) := ComplexMap => opts -> (i, f) -> ()
