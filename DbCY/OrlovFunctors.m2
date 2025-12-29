@@ -27,6 +27,7 @@ newPackage(
     )
 
 export {
+    "subcomplexByDegrees",
     "orlovTruncateLess",
     "orlovTruncateGeq",
     "orlovTruncateGeqDualize",
@@ -38,30 +39,32 @@ export {
 
 ------------------------------------------------------------------------------
 
+-- Analog of submatrixByDegrees for graded free complexes and their morphisms
+-- Input:  a complex F of graded free modules
+--         a pair of degrees (mindeg, maxdeg)
+-- Output: the subcomplex of F given by summands of the form R(j) with mindeg <= j <= maxdeg
+subcomplexByDegrees = method()
+subcomplexByDegrees(Complex,    Sequence) := Complex    => (F, degs) -> (
+    -- TODO: check that F is a graded free complex
+    complex applyValues(F.dd.map, f -> submatrixByDegrees(f, degs, degs)))
+subcomplexByDegrees(ComplexMap, Sequence) := ComplexMap => (psi, degs) -> (
+    subcomplexByDegrees(target psi, degs),
+    subcomplexByDegrees(source psi, degs),
+    applyValues(psi.map, f -> submatrixByDegrees(f, degs, degs)))
+
+-- Input:  a complex F of graded free modules and an integer i
+-- Output: the subcomplex of F given by summands of the form
+--         R(j) with j > -i (so R(j) is generated in degree < i)
 orlovTruncateLess = method()
--- Input: a complex F of graded free modules and an integer i.
--- Output: the subcomplex of F given by summands of the form R(j) with j > -i (so R(j) is generated in degree < i)
-orlovTruncateLess(ZZ, Complex)    := Complex    => (i, F) -> (
-    complex applyValues(F.dd.map, f -> submatrixByDegrees(f, (, i-1), (, i-1))))
--- Input: a map psi of complexes and an integer i.
--- Output: the induced map on subcomplexes as above.
-orlovTruncateLess(ZZ, ComplexMap) := ComplexMap => (i, psi) -> map(
-    orlovTruncateLess(i, target psi), -- target
-    orlovTruncateLess(i, source psi), -- source
-    applyValues(psi.map, f -> submatrixByDegrees(f, (, i-1), (, i-1))))
+orlovTruncateLess(ZZ, Complex)    := Complex    => (i, F)   -> subcomplexByDegrees(F,   (, i-1))
+orlovTruncateLess(ZZ, ComplexMap) := ComplexMap => (i, psi) -> subcomplexByDegrees(psi, (, i-1))
 
-
+-- Input:  a complex F of graded free modules and an integer i
+-- Output: the subcomplex of F given by summands of the form
+--         R(j) with j <= -i (so R(j) is generated in degree >= i)
 orlovTruncateGeq = method()
--- Input: a complex F of graded free modules and an integer i.
--- Output: the quotient of F given by summands of the form R(j) with j <= -i (so R(j) is generated in degree >= i).
-orlovTruncateGeq(ZZ, Complex)    := Complex    => (i, F) -> (
-    complex applyValues(F.dd.map, f -> submatrixByDegrees(f, (i, ), (i, ))))
--- Input: a map psi of complexes and an integer i.
--- Output: the induced map on quotient complexes as above.
-orlovTruncateGeq(ZZ, ComplexMap) := ComplexMap => (i, psi) -> map(
-    orlovTruncateGeq(i, target psi), -- target
-    orlovTruncateGeq(i, source psi), -- source
-    applyValues(psi.map, f -> submatrixByDegrees(f, (i, ), (i, ))))
+orlovTruncateGeq(ZZ, Complex)    := Complex    => (i, F)   -> subcomplexByDegrees(F,   (i, ))
+orlovTruncateGeq(ZZ, ComplexMap) := ComplexMap => (i, psi) -> subcomplexByDegrees(psi, (i, ))
 
 ------------------------------------------------------------------------------
 
