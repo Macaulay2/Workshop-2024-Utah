@@ -3,7 +3,46 @@ Node
   Key
     OrlovFunctors
   Headline
-    Orlov's functors between singularity and derived categories for Calabi-Yau varieties
+    functors between singularity and derived categories for Calabi-Yau varieties
+  Description
+    Text
+      Blah
+  --   Example
+  --   Code
+  -- Contributors
+  -- References
+  -- Caveat
+  -- SeeAlso
+  Subnodes
+    singularityToDerived
+    subcomplexByDegrees
+    orlovTruncateGeqDualize
+    supTruncate
+
+Node
+  Key
+    singularityToDerived
+   (singularityToDerived, ZZ, Module)
+   (singularityToDerived, ZZ, Matrix)
+   (singularityToDerived, ZZ, Complex)
+   --(singularityToDerived, ZZ, ComplexMap) ??
+  Headline
+    apply Orlov's functor from the singularity category to the derived category
+  -- Usage
+  -- Inputs
+  -- Outputs
+  Description
+    -- Text
+    Example
+      R = ZZ/101[x_0] / ideal(x_0^3)
+      M = coker vars R
+      singularityToDerived(1, M, LengthLimit => 1)
+  --   Code
+  -- ExampleFiles
+  -- Contributors
+  -- References
+  -- Caveat
+  -- SeeAlso
 
 Node
   Key
@@ -80,17 +119,53 @@ Node
     submatrixByDegrees
     orlovTruncateLess
     orlovTruncateGeqDualize
-  -- Description
-  --   Text
-  --   Example
-  SeeAlso
-    orlovTruncateLess
 
 Node
   Key
-    singularityToDerived
+    orlovTruncateGeqDualize
+   (orlovTruncateGeqDualize, ZZ, Module)
+   (orlovTruncateGeqDualize, ZZ, Matrix)
+   (orlovTruncateGeqDualize, ZZ, Complex)
+   --(orlovTruncateGeqDualize, ZZ, ComplexMap) ??
+  -- Headline
+  -- Usage
+  -- Inputs
+  -- Outputs
+  -- Description
+  --   Text
+  --   Example
+  --   Code
+  -- ExampleFiles
+  -- Contributors
+  -- References
+  -- Caveat
+  -- SeeAlso
 
 Node
   Key
     supTruncate
+   (supTruncate, ZZ, Module)
+   --(supTruncate, ZZ, Matrix) ??
+   (supTruncate, ZZ, Complex)
+   --(supTruncate, ZZ, ComplexMap) ??
+  -- Headline
+  -- Usage
+  -- Inputs
+  -- Outputs
+  -- Description
+  --   Text
+  --   Example
+  --   Code
+  -- ExampleFiles
+  -- Contributors
+  -- References
+  -- Caveat
+  -- SeeAlso
 ///
+
+end--
+
+uninstallPackage "OrlovFunctors"
+restart
+installPackage "OrlovFunctors"
+viewHelp OrlovFunctors

@@ -71,7 +71,7 @@ orlovTruncateGeq(ZZ, ComplexMap) := ComplexMap => (i, psi) -> subcomplexByDegree
 supTruncate = method()
 -- Input: a finitely generated module M over a graded Gorenstein ring with nonnegative Gorenstein parameter, and an integer i.
 --        We recall that the Gorenstein parameter is the integer a such that Ext^d_R(k, R) = k(-a) (up to a homological
---        shift), where R is the ring of M, d is the dimension of R, and k is the residue field of R. 
+--        shift), where R is the ring of M, d is the dimension of R, and k is the residue field of R.
 -- Output: an integer, call it N, satisfying the following: if F is the minimal free resolution of M, then the
 --         homology of the dual of orlovTruncateGeq(F, i) is concentrated in homological degrees -N, ..., 0.
 supTruncate(ZZ, Module) := (i, M) -> (
@@ -80,7 +80,7 @@ supTruncate(ZZ, Module) := (i, M) -> (
     t := min flatten degrees M;-- this is the minimum generating degree of M
     if i >= t then d+i-t else d)
 -- Input: a Complex C given by a finitely generated module concentrated in a single homological degree, and an integer i. The ring
---	  of the module should be as in the input of supTruncate(Module, ZZ). 
+--	  of the module should be as in the input of supTruncate(Module, ZZ).
 -- Output: an integer, call it N, satisfying the following: if F is the minimal free resolution of C, and
 --	   C is concentrated in degree m, then the homology of the dual of orlovTruncateGeq(F, i) is concentrated in homological
 --	   degrees -N, ..., -m.
@@ -141,6 +141,7 @@ sup(Complex) := (C) -> (
     for i from -max C to -min C -1 do (
 	if prune HH_(-i)(C) != 0 then return -i
 	);
+    -- TODO: what should this return if the loop is empty?
     )
 
 singularityToDerived = method(Options => { LengthLimit => null })
