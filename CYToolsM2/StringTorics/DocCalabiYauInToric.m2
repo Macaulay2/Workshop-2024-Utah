@@ -496,5 +496,434 @@ doc ///
      This function currently only works for 4-d reflexive polytopes.  However, the
      formulas work for other dimensions, and these should be included.
    SeeAlso
+     (hh, Sequence, CalabiYauInToric)
+///
+
+doc ///
+  Key
+    calabiYau
+    (calabiYau, ReflexivePolytope, List)
+  Headline
+    construct a Calabi-Yau hypersurface from a reflexive polytope and triangulation
+  Usage
+    X = calabiYau(Q, T)
+  Inputs
+    Q:ReflexivePolytope
+    T:List
+      a triangulation of $Q$, given as a list of lists of indices into @TT "rays Q"@
+    ID => ZZ
+      an optional integer label for this CY
+    PicardRing => Ring
+      a polynomial ring with $h^{1,1}$ variables, used for intersection forms
+  Outputs
+    X:CalabiYauInToric
+  Description
+    Text
+      Constructs a @TO CalabiYauInToric@ from a reflexive polytope $Q$ and a
+      fine, regular, star triangulation $T$.  The triangulation is given as a list
+      of maximal simplices, each a list of indices into @TT "rays Q"@.
+
+      See @TO (makeCY, ReflexivePolytope)@ for a version that automatically computes
+      a triangulation, and @TO (findAllCYs, ReflexivePolytope)@ for finding all CYs
+      up to equivalence.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      Ts = findAllFRSTs Q
+      R = ZZ[a,b,c]
+      X = calabiYau(Q, Ts#0, PicardRing => R, ID => 0)
+      label X
+      hh^(1,1) X
+      hh^(1,2) X
+  SeeAlso
+    (makeCY, ReflexivePolytope)
+    (findAllCYs, ReflexivePolytope)
+    CalabiYauInToric
+///
+
+doc ///
+  Key
+    makeCY
+    (makeCY, ReflexivePolytope)
+  Headline
+    construct a Calabi-Yau using an automatically computed triangulation
+  Usage
+    X = makeCY Q
+  Inputs
+    Q:ReflexivePolytope
+    ID => ZZ
+      an optional integer label
+    PicardRing => Ring
+      a polynomial ring with $h^{1,1}$ variables
+  Outputs
+    X:CalabiYauInToric
+  Description
+    Text
+      Constructs a @TO CalabiYauInToric@ from $Q$ by automatically computing
+      one fine, regular, star triangulation.  This is a convenient shortcut when
+      you just need one CY from a given polytope.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      R = ZZ[a,b,c]
+      X = makeCY(Q, PicardRing => R, ID => 0)
+      max X
+      hh^(1,1) X
+      cubicForm X
+  SeeAlso
+    calabiYau
+    (findAllCYs, ReflexivePolytope)
+///
+
+doc ///
+  Key
+    makeCYs
+    (makeCYs, ReflexivePolytope)
+    findAllCYs
+    (findAllCYs, ReflexivePolytope)
+  Headline
+    find all Calabi-Yau hypersurfaces up to equivalence
+  Usage
+    Xs = findAllCYs Q
+    Xs = makeCYs Q
+  Inputs
+    Q:ReflexivePolytope
+    PicardRing => Ring
+      a polynomial ring with $h^{1,1}$ variables
+    NTFE => Boolean
+      whether to partition by NTFE (non-trivial face equivalence). Default: @TT "true"@
+    Automorphisms => Boolean
+      whether to use automorphisms to reduce the list. Default: @TT "true"@
+  Outputs
+    Xs:List
+      of @TO CalabiYauInToric@ objects, one per equivalence class
+  Description
+    Text
+      Computes all fine, regular, star triangulations of $Q$, partitions them
+      by 2-face equivalence (modulo automorphisms of $Q$ if requested), and
+      returns one @TO CalabiYauInToric@ per equivalence class.
+
+      @TT "makeCYs"@ and @TT "findAllCYs"@ are synonyms.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      R = ZZ[a,b,c]
+      Xs = findAllCYs(Q, PicardRing => R)
+      #Xs
+      Xs/cubicForm
+  SeeAlso
+    calabiYau
+    (makeCY, ReflexivePolytope)
+    partitionFRSTsByDFaceEquivalence
+///
+
+doc ///
+  Key
+    computeBasics
+    (computeBasics, ReflexivePolytope)
+  Headline
+    compute and cache basic data for a reflexive polytope
+  Usage
+    computeBasics Q
+  Inputs
+    Q:ReflexivePolytope
+  Description
+    Text
+      Computes and caches all basic data for $Q$: lattice points, face dimensions,
+      annotated faces, GLSM charges, Hodge numbers ($h^{1,1}$, $h^{1,2}$),
+      automorphisms, and all fine regular star triangulations.
+
+      This is a convenience function that calls all the individual computation
+      functions at once.  After calling @TT "computeBasics"@, subsequent calls
+      to functions like @TT "hh^(1,1) Q"@, @TT "basisIndices Q"@, etc., will
+      use the cached values.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      computeBasics Q
+      peek Q.cache
+      hh^(1,1) Q
+      hh^(1,2) Q
+      basisIndices Q
+      # findAllFRSTs Q
+      # automorphisms Q
+  SeeAlso
+    reflexivePolytope
+    basisIndices
+    (findAllFRSTs, ReflexivePolytope)
+///
+
+doc ///
+  Key
+    basisIndices
+    (basisIndices, ReflexivePolytope)
+    (basisIndices, CalabiYauInToric)
+  Headline
+    indices of the rays forming a basis for the Picard group
+  Usage
+    L = basisIndices Q
+    L = basisIndices X
+  Inputs
+    Q:ReflexivePolytope
+    X:CalabiYauInToric
+  Outputs
+    L:List
+      of integers (for favorable polytopes) or of integers and pairs (for non-favorable)
+  Description
+    Text
+      Returns the indices of the rays of $Q$ (or the underlying polytope of $X$)
+      that form a basis for the Picard group of the corresponding Calabi-Yau.
+      For favorable polytopes, these are simply integer indices into @TT "rays Q"@.
+      For non-favorable polytopes, some entries may be pairs $(i, j)$ indicating
+      a divisor coming from the interior of a 2-face.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      basisIndices Q
+      isFavorable Q
+    Example
+      X = makeCY(Q, PicardRing => ZZ[a,b,c], ID => 0)
+      basisIndices X
+  SeeAlso
+    picardRing
+    isFavorable
+    (degrees, ReflexivePolytope)
+///
+
+doc ///
+  Key
+    isFavorable
+    (isFavorable, ReflexivePolytope)
+    (isFavorable, CalabiYauInToric)
+  Headline
+    whether the polytope or CY is favorable
+  Usage
+    isFavorable Q
+    isFavorable X
+  Inputs
+    Q:ReflexivePolytope
+    X:CalabiYauInToric
+  Outputs
+    :Boolean
+  Description
+    Text
+      A reflexive polytope is {\em favorable} if the Picard group of the corresponding
+      Calabi-Yau hypersurface is generated by (restrictions of) toric divisors corresponding to
+      rays on the 1-skeleton of the polytope.  Equivalently, no 2-face
+      of the dual polytope has interior lattice points that contribute to $h^{1,1}$.
+
+      Most polytopes in the Kreuzer-Skarke database are favorable, especially at
+      small $h^{1,1}$.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      isFavorable Q
+    Example
+      X = makeCY(Q, PicardRing => ZZ[a,b,c], ID => 0)
+      isFavorable X
+  SeeAlso
+    basisIndices
+    annotatedFaces
+///
+
+doc ///
+  Key
+    (hh, Sequence, CalabiYauInToric)
+  Headline
+    Hodge numbers of a Calabi-Yau hypersurface
+  Usage
+    hh^(p,q) X
+  Inputs
+    (p,q):Sequence
+      a pair of non-negative integers
+    X:CalabiYauInToric
+  Outputs
+    :ZZ
+  Description
+    Text
+      Returns the Hodge number $h^{p,q}(X)$.  Currently only implemented for
+      Calabi-Yau 3-folds (from 4D reflexive polytopes), so $p,q \in \{0,1,2,3\}$.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      X = makeCY(Q, PicardRing => ZZ[a,b,c], ID => 0)
+      hh^(1,1) X
+      hh^(1,2) X
+      hh^(0,0) X
+  SeeAlso
+    (hh, Sequence, ReflexivePolytope)
+///
+
+doc ///
+  Key
+    (hh, Sequence, ReflexivePolytope)
+  Headline
+    Hodge numbers of the corresponding Calabi-Yau 3-fold
+  Usage
+    hh^(p,q) Q
+  Inputs
+    (p,q):Sequence
+      a pair of non-negative integers
+    Q:ReflexivePolytope
+  Outputs
+    :ZZ
+  Description
+    Text
+      Returns the Hodge number $h^{p,q}$ of the Calabi-Yau 3-fold corresponding
+      to the reflexive polytope $Q$ (via the Batyrev construction).  These are
+      independent of the choice of triangulation.
+
+      Currently only implemented for 4D reflexive polytopes.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      hh^(1,1) Q
+      hh^(1,2) Q
+  SeeAlso
+    (hh, Sequence, CalabiYauInToric)
+    isFavorable
+///
+
+doc ///
+  Key
+    (dim, CalabiYauInToric)
+  Headline
+    dimension of a Calabi-Yau hypersurface
+  Usage
+    dim X
+  Inputs
+    X:CalabiYauInToric
+  Outputs
+    :ZZ
+  Description
+    Text
+      Returns the dimension of $X$, which is one less than the dimension of
+      the ambient toric variety.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      X = makeCY(Q, PicardRing => ZZ[a,b,c], ID => 0)
+      dim X
+  SeeAlso
+    CalabiYauInToric
+///
+
+doc ///
+  Key
+    (reflexivePolytope, CalabiYauInToric)
+    (cyPolytope, CalabiYauInToric)
+  Headline
+    the underlying reflexive polytope of a Calabi-Yau
+  Usage
+    Q = reflexivePolytope X
+    Q = cyPolytope X
+  Inputs
+    X:CalabiYauInToric
+  Outputs
+    Q:ReflexivePolytope
+  Description
+    Text
+      Returns the @TO ReflexivePolytope@ from which $X$ was constructed.
+      @TT "cyPolytope"@ is a synonym.
+    Example
+      Q = reflexivePolytope(
+          {{-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+           {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}},
+          ID => 7)
+      X = makeCY(Q, PicardRing => ZZ[a,b,c], ID => 0)
+      reflexivePolytope X === Q
+      cyPolytope X === Q
+  SeeAlso
+    CalabiYauInToric
+    ReflexivePolytope
+///
+
+doc ///
+  Key
+    h11OfCY
+    (h11OfCY, Polyhedron)
+  Headline
+    compute h11 of the CY 3-fold from a 4D reflexive polytope
+  Usage
+    n = h11OfCY P
+  Inputs
+    P:Polyhedron
+      a 4-dimensional reflexive polytope
+  Outputs
+    n:ZZ
+  Description
+    Text
+      Computes $h^{1,1}$ of the Calabi-Yau 3-fold corresponding to $P$
+      using the Batyrev formula.  This works directly on a @TO Polyhedron@ object.
+      For the @TO ReflexivePolytope@ version, use @TT "hh^(1,1) Q"@.
+    Example
+      P = convexHull transpose matrix {
+          {-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+          {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}}
+      h11OfCY P
+  SeeAlso
+    h21OfCY
+    (hh, Sequence, ReflexivePolytope)
+///
+
+doc ///
+  Key
+    h21OfCY
+    (h21OfCY, Polyhedron)
+  Headline
+    compute h21 of the CY 3-fold from a 4D reflexive polytope
+  Usage
+    n = h21OfCY P
+  Inputs
+    P:Polyhedron
+      a 4-dimensional reflexive polytope
+  Outputs
+    n:ZZ
+  Description
+    Text
+      Computes $h^{2,1}$ of the Calabi-Yau 3-fold corresponding to $P$
+      using the Batyrev formula.  This works directly on a @TO Polyhedron@ object.
+      For the @TO ReflexivePolytope@ version, use @TT "hh^(1,2) Q"@.
+    Example
+      P = convexHull transpose matrix {
+          {-1,-1,-1,-1},{-1,-1,-1,0},{-1,-1,0,2},
+          {-1,0,-1,-1},{0,-1,-1,-1},{1,-1,0,-1},{1,2,2,2}}
+      h21OfCY P
+  SeeAlso
+    h11OfCY
+    (hh, Sequence, ReflexivePolytope)
+///
+
+doc ///
+  Key
+    label
+  Headline
+    label given during construction
+  Description
+    Text
+      Returns the label (ID) associated with a @TO ReflexivePolytope@ or
+      @TO CalabiYauInToric@.  See @TO (label, CalabiYauInToric)@ and
+      @TO (label, ReflexivePolytope)@ for details.
+  SeeAlso
+    (label, CalabiYauInToric)
+    (label, ReflexivePolytope)
 ///
 
