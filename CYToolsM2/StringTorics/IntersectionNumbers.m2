@@ -49,15 +49,7 @@ intersectionNumbers = method()
 --   no ring involved.
 ------------------------
 
--- toBasisIntersectionNumbers: An internal function for computeIntersectionNumbers
--*
-toBasisIntersectionNumbers = (toricIntersectionNumbers, basIndices) -> (
-    H := hashTable for i from 0 to #basIndices-1 list basIndices#i => i;
-    for t in toricIntersectionNumbers list (
-        if isSubset(t#0, basIndices) then t#0/(a -> H#a)//sort => t#1 else continue
-        )
-    )
-*-
+-- Old toBasisIntersectionNumbers moved to ScratchIntersectionNumbers.m2
 
 toBasisIntersectionNumbers = (toricIntersectionNumbers, basIndices, nonfavsHash) -> (
     -- toricIntersectionNumbers: list of {i,j,k} => intersection number.
@@ -342,14 +334,13 @@ intersectionNumbersOfCY CalabiYauInToric := X -> (
 
 
 ------------------------------
--- REMOVE: tripleProductsCY --
+-- tripleProductsCY --
 ------------------------------
--- This code is no longer simpler than current code.
 -- Simpler code, used to debug the algorithm/implementation above.
 tripleProductsCY = method()
 tripleProductsCY NormalToricVariety := (V) -> (
     elapsedTime AV := abstractVariety(V, point);
-    IV := intersectionRing AV; 
+    IV := intersectionRing AV;
     h := sum gens IV; -- Calabi-Yau hyperplane class in V.
     J := ideal select((ideal IV)_*, f -> size f == 1);
     forceGB gens J;
@@ -367,7 +358,7 @@ tripleProductsCY NormalToricVariety := (V) -> (
     )
 
 ------------------------------
--- REMOVE: possibleNonZeros --
+-- possibleNonZeros --
 ------------------------------
 possibleNonZeros = (V) -> (
     -- assumption currently: V has dim 4, is reflexive, and X is the anti-canonical CY3 divisor.
@@ -391,7 +382,7 @@ possibleNonZeros = (V) -> (
     )
 
 --------------------------------------
--- REMOVE: CY3NonzeroMultiplicities --
+-- CY3NonzeroMultiplicities --
 --------------------------------------
   CY3NonzeroMultiplicities = method()
   CY3NonzeroMultiplicities NormalToricVariety := (V) -> (
@@ -405,7 +396,7 @@ possibleNonZeros = (V) -> (
            );
       multvec := ij -> (
           for ell from 0 to #rays V-1 list (
-              if member(ell,ij) then 0 
+              if member(ell,ij) then 0
               else (
                   s := sort append(ij,ell);
                   if mult3#?s then mult3#s else 0
@@ -429,7 +420,7 @@ possibleNonZeros = (V) -> (
       )
 
 ------------------------------
--- REMOVE: CY3Intersections --
+-- CY3Intersections --
 ------------------------------
 CY3Intersections = method()
 CY3Intersections(NormalToricVariety, List) := (V, indexOfDs) -> (
