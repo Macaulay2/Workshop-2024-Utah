@@ -966,8 +966,15 @@ load (currentFileDirectory | "StringTorics/doc.m2")
 load (currentFileDirectory | "StringTorics/DocCYPolytope.m2")
 load (currentFileDirectory | "StringTorics/DocCalabiYauInToric.m2")
 load (currentFileDirectory | "StringTorics/DocDatabases.m2")
+load (currentFileDirectory | "StringTorics/DocCI.m2")
+-- load (currentFileDirectory | "StringTorics/DocIntersectionNumbers.m2") -- stubs, not yet ready
+-- load (currentFileDirectory | "StringTorics/DocGVInvariants.m2") -- stubs, not yet ready
 load (currentFileDirectory | "StringTorics/test.m2")
-load (currentFileDirectory | "StringTorics/TestsCYPolytope.m2")
+load (currentFileDirectory | "StringTorics/TestCYPolytope.m2")
+load (currentFileDirectory | "StringTorics/TestToricCIs.m2")
+load (currentFileDirectory | "StringTorics/TestIntersectionNumbers.m2")
+load (currentFileDirectory | "StringTorics/TestInvariants.m2")
+load (currentFileDirectory | "StringTorics/TestTopology.m2")
 
 end--
 

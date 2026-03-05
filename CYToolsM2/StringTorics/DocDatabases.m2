@@ -229,3 +229,68 @@ needsPackage "StringTorics"
    member("N polytope", keys Q.cache) -- now it is here!
 ///
 
+doc ///
+  Key
+    addToCYDatabase
+    (addToCYDatabase, String, List)
+  Headline
+    create or append to a database file and populate it with CYPolytope's and possibly CalabiYauInToric's
+  Usage
+    addToCYDatabase(filename, topes)
+  Inputs
+    filename:String
+      the desired name of the data base file.  If the file doesn't exist it is created,
+      otherwise the name should be the name of an existing data base file, and this file
+      is modified
+    topes:List
+      of @ofClass KSEntry@'s, a list of Kreuzer-Skarke type entries for some polytopes
+    "CYs" => Boolean
+      if true, then also all Calabi Yau hypersurfaces are computed and added to the database.
+    NTFE => Boolean
+      if true, then triangulations which are identical on the set of 2-faces are considered the
+      same, and only one is placed into the data base.
+  Consequences
+    Item
+      For each polytope corresponding to an entry in the {\tt topes} list,
+      a @ofClass CYPolytope@ is created, and various information about it is computed
+      and then stored in the data base file for later use
+  Description
+    Text
+      A CYDatabase file is a database file whose contents are precomputed data
+      about some @TO CYPolytope@'s and @TO CalabiYauInToric@'s.  Since some information takes
+      non-trivial time to construct, we precompute this data, and then we can later pull up
+      this data via the functions @TO readCYDatabase@, @TO "readCYPolytopes"@, and @TO readCYs@.
+    Text
+      The CYPolytope corresponding to each item of the {\tt topes} list is constructed
+      and some basic data is computed (e.g. information about the faces of the polytopes, whether the
+      polytope is favorable, and degree information about it.  This data is then stored in the
+      database for later retrieval.
+    Example
+      filename = "foo-remove-me.dbm"
+      if fileExists filename then removeFile filename
+      topes = kreuzerSkarke(2, Limit => 4)
+      addToCYDatabase(filename, topes_{1,2,3})
+    Example
+      F = openDatabase filename
+      F#"1"
+      Q = reflexivePolytope F#"1"
+      hh^(1,1) Q
+      hh^(1,2) Q
+      isFavorable Q
+    Text
+      As a data base file, all keys of {\tt F} are strings, and the values are strings too.
+    Example
+      sort keys F
+    Text
+      Close the database file when done with it.
+    Example
+      close F
+    Text
+      For this example, we also delete this database file.
+    Example
+      removeFile filename
+  SeeAlso
+    addToCYDatabase
+    readCYDatabase
+    readCYs
+///

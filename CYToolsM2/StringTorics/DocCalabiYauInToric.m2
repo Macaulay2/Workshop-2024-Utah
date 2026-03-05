@@ -420,3 +420,81 @@ doc ///
     (normalToricVariety, CalabiYauInToric)
 ///
 
+doc ///
+   Key
+     hodgeOfCYToricDivisor
+     (hodgeOfCYToricDivisor,Polyhedron,List)
+   Headline
+     compute the cohomology vector of an (irreducible) toric divisor on a CY hypersurface
+   Usage
+     hodgeOfCYToricDivisor(P,pt)
+   Inputs
+     P:Polyhedron
+       Any polytope will do, although so far it has only been tested on
+       reflexive polytopes.
+     pt:List
+       a lattice point in the polar dual polytope {\tt polar P}
+   Outputs
+     :List
+       The list of $\{ h^0(X,OO_D), h^1(X,OO_D), h^2(X,OO_D) \}$,
+       where $D$ is the intersection of the toric divisor corresponding
+       to the lattice point with a hypersurface $X$ corresponding to
+       an anti-canonical divisor on the toric 4-fold $V$ corresoponding .
+   Description
+    Text
+      We assume that $P$ is a reflexive 4-dimensional polytope, and let $V_0$ be the 4-dimensional
+      toric variety corresponding to $P$ (i.e. corresponding to the normal fan of $P$).  Let $V$
+      be a simplicial resolution of $V_0$, corresponding to a star triangulation of the polar dual
+      $P^o$, which is fine, i.e. involves all of the lattice points of $P^o$.  Let $X \subset V$ be
+      the inverse image of an anti-canonical divisor on $V_0$.  Note that from Batyrev, it turns
+      out that $X$ is a smooth Calabi-Yau 3-fold.  Finally, a lattice point $pt$
+      of $P^o$ corresponds to a toric divisor on $V$.  Let $D$ be the intersection of this divisor
+      with $X$.
+
+      This function computes the vector of cohomologies of the structure sheaf of the surface $D$.
+
+      As an example, the following example is taken from the Kreuzer-Skarke database of 4D reflexive
+      polytopes.
+
+    Example
+       polystr = "Kreuzer-Skarke: 4 12  M:24 12 N:16 11 H:11,19 [-16]
+               1   0   0   0   0   1   2   1   0  -2   0  -2
+               0   1   0   0   0   0  -2  -1   1   2  -1   0
+               0   0   1   0   0  -1   0  -1  -1   1  -1   1
+               0   0   0   1  -1   0   1   1  -1   0   1  -2
+               "
+      A = matrix first kreuzerSkarke polystr
+      P = convexHull A
+    Text
+      This polytope has 12 vertices, 33 edges, 32 2-faces, and 11 facets.
+    Example
+      # faceList(0,P)
+      # faceList(1,P)
+      # faceList(2,P)
+      # faceList(3,P)
+      fVector P
+    Text
+
+      Note that only the faces which contain interior lattice points, or whose dual does, is included.
+      So 6 of the 33 edges of the polytope have an interior vertex along that edge.
+
+      There are 15 non-zero lattice points in the dual, meaning that the
+      toric 4-fold has 15 toric divisors on it (each is a 3-fold, and also toric).
+      It turn out that they all are rigid, in the sense that in each case,
+      $h^0(OO_D) = 1$, $h^1(OO_D) = 0$, $h^2(OO_D) = 0$.
+    Example
+      # latticePointList polar P
+      hodgeOfCYToricDivisors P
+    Text
+      The Hodge numbers $h^{1,1}(X)$ and $h^{2,1}(X)$ can be computed using
+      information about $P$ only, not the specific triangulation used.
+    Example
+      isFavorable P
+      h11OfCY P
+      h21OfCY P
+   Caveat
+     This function currently only works for 4-d reflexive polytopes.  However, the
+     formulas work for other dimensions, and these should be included.
+   SeeAlso
+///
+
