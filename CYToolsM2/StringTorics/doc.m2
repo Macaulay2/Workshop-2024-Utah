@@ -19,6 +19,7 @@
 
 -- Cohomology
 
+-- OUT OF DATE, to be removed.
 doc ///
     Key
         StringTorics
@@ -65,6 +66,7 @@ doc ///
 ///
 
 
+-- REPLACEMENT for main doc node.
 doc ///
    Key
      "StringTorics2"
@@ -97,7 +99,8 @@ doc ///
     Text
       In this package, a key type is @TO ReflexivePolytope@ (this supercedes @TO CYPolytope@.
       We might still change the name to CanonicalPolytope).  Objects of this class
-      represent a reflexive polytope.  However, it also computes and caches information about the Batryev
+      represent a reflexive polytope.  However, it also computes and caches information
+      about the Batyrev
       Calabi-Yau hypersurfaces that is independent of the FRST (i.e. fine regular star triangulation
       of this reflexive polytope).  This includes the GLSM charge matrix, and a description of
       the generators of the Picard group of the corresponding Calabi-Yau varieties.
@@ -115,7 +118,7 @@ doc ///
       @SUBSECTION "Batyrev Calabi-Yau hypersurfaces"@
     Text
       The data for a Calabi-Yau hypersurface is a reflexive polytope, as above, and a triangulation
-      of the set of all lattice points not interior to facets, that is FRST (fine: it uses all of these points,
+      of the set of all lattice points not interior to facets, that is an "FRST" (fine: it uses all of these points,
       regular: it is a regular triangulation, and star: all simplices contain the origin).  Basic construction
       and use of these include the following.  For more involved algorithms, see the sections below.
     Text
@@ -319,7 +322,7 @@ doc ///
       and *not* change the order of the generators...!
 ///
 
-doc ///
+///
   Key
     cyPolytope
     (cyPolytope, Matrix)
@@ -389,13 +392,13 @@ doc ///
   SeeAlso
     (vertices, CYPolytope)
     (latticePoints, CYPolytope)
-    (annotatedFaces, CYPolytope)
+--    (annotatedFaces, CYPolytope)
 ///
 
 ///
   Key
     annotatedFaces
-    (annotatedFaces, CYPolytope)
+--    (annotatedFaces, CYPolytope)
     (annotatedFaces, Polyhedron)
   Headline
     a list of faces of a reflexive polytope together with lattice point information
@@ -1354,7 +1357,7 @@ doc ///
       elapsedTime addToCYDatabase("can-delete-me-ntfe-h11-2.dbm", topes, NTFE => false)
     Text
       Let's test that this was created correctly.  We see that in particular the
-      annotated faces (@TO (annotatedFaces, CYPolytope)@) has been computed (this is
+      annotated faces (@TO (annotatedFaces, ReflexivePolytope)@) has been computed (this is
       one of the things that seems to take the longest.  That, and the list of triangulations.
       For higher $h^{1,1}(X)$, we must arrange to not compute these, as there are too many triangulations.
       This has not been done yet.

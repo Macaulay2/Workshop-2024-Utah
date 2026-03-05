@@ -2,20 +2,92 @@
   restart
   needsPackage "StringTorics"
 *-
-///
-  -- This FAILS
+/// -- test of: reflexivePolytope, polar.
+  -- this example is from this:
   tope = KSEntry "4 6  M:57 6 N:9 8 H:4,52 [-96] id:40
     1   -1    1    1    1   -3
     0    0    2    2    2   -6
     0    0    0    4    0   -4
     0    0    0    0    4   -4
   "
-  Q = reflexivePolytope tope
-  transpose matrix rays Q
-  tri = findOneFRST Q
-  findAllFRVTs Q
-  ///
 
+  -- method #1 from a list
+  verts = {{-1, 0, 0, 0}, {-1, 0, 0, 1}, {-1, 0, 1, 0},
+      {-1, 2, -1, -1}, {1, -1, 0, 0}, {1, -1, 0, 1},
+      {1, -1, 1, 0}, {1, 1, -1, -1}}
+  Q = reflexivePolytope(verts, ID => 40) -- from h11=4, id=40 Kreuzer Skarke
+  assert isReflexive polytope Q
+  assert isWellDefined Q
+
+  -- method #2 from a matrix
+  Q2 = reflexivePolytope(transpose matrix verts, ID => 40)
+  assert isWellDefined Q2
+  assert(Q2 === Q)
+  Q2.cache === Q.cache -- this should be false?  Here is the actual check:
+  assert not (hashTable pairs Q2.cache === hashTable pairs Q.cache)
+  assert(vertices Q === vertices Q2)
+
+  -- method #3: using polar
+  Q' = polar Q -- It should be that Q stashes Q' (and vice versa?)
+  Q3 = polar Q'
+  isWellDefined Q3
+  assert(Q3 === Q)
+  hashTable pairs Q.cache === hashTable pairs Q3.cache
+  -- TODO: Q' only stashes the polytope object, not the ReflexivePolytope object.
+  --   fix this.
+
+  -- method #4: using a Polyhedron object
+  P4 = convexHull transpose matrix verts
+  Q4 = reflexivePolytope(P4, ID => 40)
+  isWellDefined Q4
+  assert(Q4 === Q)
+
+  -- method #5: Using Kreuzer-Skarke database
+  Q5 = reflexivePolytope tope -- takes ID from tope.
+  isWellDefined Q5
+  assert(Q5 === Q)
+///
+
+-*
+  restart
+  needsPackage "StringTorics"
+*-
+/// -- test of: dump, reflexivePolytope String (inverses of each other
+  -- this example is from this:
+  verts = {{-1, 0, 0, 0}, {-1, 0, 0, 1}, {-1, 0, 1, 0},
+      {-1, 2, -1, -1}, {1, -1, 0, 0}, {1, -1, 0, 1},
+      {1, -1, 1, 0}, {1, 1, -1, -1}}
+  Q = reflexivePolytope(verts, ID => 40) -- from h11=4, id=40 Kreuzer Skarke
+  assert isWellDefined Q
+
+  computeBasics Q
+  str = dump Q
+  Q2 = reflexivePolytope str
+  assert(Q === Q2)
+  str2 = dump Q2
+  assert(str === str2)
+///  
+
+-*
+  restart
+  needsPackage "StringTorics"
+*-
+/// -- test of: findAllFRVTs
+  topes = kreuzerSkarke 5;
+  tope = topes_101
+  Q = reflexivePolytope tope
+  tri = findOneFRST Q
+  computeBasics Q
+  elapsedTime # findAllFRSTs Q
+  elapsedTime # findAllFRVTs Q
+  tris = findAllFRVTs Q
+  assert all(for t in tris list (
+      V := normalToricVariety(rays Q, t);
+      result := isWellDefined V;
+      << result << endl;
+      result
+      ))
+///
 
 -*
   restart

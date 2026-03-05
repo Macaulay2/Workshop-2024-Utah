@@ -17,15 +17,15 @@ describe CalabiYauInToric := X -> Describe (
 CYDataFields = {
     -- first entry: true means it must exist and be in the main hash table
     --   false: it might exist, and is in the cache table.
-    "polytopeData" => {value, Q -> toString Q.cache#"id", ReflexivePolytope},
-    "triangulation" => {value, toString, List}
+    "polytopeData" => {value, Q -> toString Q#"id", ReflexivePolytope},
+    "triangulation" => {value, toString, List},
+    "id" => {value, toString, ZZ}
     }
 
 -- These are the cache fields that we write to a string via 'dump'
 CYDataCache = {
     -- first entry: true means it must exist and be in the main hash table
     --   false: it might exist, and is in the cache table.
-    "id" => {value, toString, ZZ},
     "c2" => {value, toString, List},
     "intersectionNumbers" => {value, toString, List},
     "toricIntersectionNumbers" => {value, toString, List},
@@ -54,9 +54,9 @@ calabiYau(CYPolytope, List) := CalabiYauInToric => opts -> (Q, triang) -> (
     X := new CalabiYauInToric from {
         symbol cache => new CacheTable,
         "polytopeData" => Q,
-        "triangulation" => triang
+        "triangulation" => triang,
+        "id" => if opts.ID === null then 0 else opts.ID;
         };
-    if opts.ID =!= null then X.cache#"id" = opts.ID;
     setCYIntersectionRing(X, opts#Ring);
     X
     )
@@ -67,9 +67,9 @@ calabiYau(ReflexivePolytope, List) := CalabiYauInToric => opts -> (Q, triang) ->
     X := new CalabiYauInToric from {
         symbol cache => new CacheTable,
         "polytopeData" => Q,
-        "triangulation" => triang
+        "triangulation" => triang,
+        "id" => if opts.ID === null then 0 else opts.ID
         };
-    if opts.ID =!= null then X.cache#"id" = opts.ID;
     setCYIntersectionRing(X, optsRing);
     X
     )
@@ -105,7 +105,6 @@ calabiYau(String, Function) := CalabiYauInToric => opts -> (str, F) -> (
         readFcn := field#1#0;
         if fields#?k then X.cache#k = readFcn fields#k;
         );
-    if opts.ID =!= null then X.cache#"id" = opts.ID; -- just for compatibility with other constructors...
     setCYIntersectionRing(X, opts#Ring);
     X
     )
@@ -205,9 +204,9 @@ degrees CalabiYauInToric := List => X -> degrees cyPolytope X
 ambient CalabiYauInToric := X -> normalToricVariety X
 
 label = method()
-label CYPolytope := Q -> if Q.cache#?"id" then Q.cache#"id" else ""
-label ReflexivePolytope := Q -> if Q.cache#?"id" then Q.cache#"id" else ""
-label CalabiYauInToric := X -> (label reflexivePolytope X, if X.cache#?"id" then X.cache#"id" else "")
+label CYPolytope := Q -> Q#"id"
+label ReflexivePolytope := Q -> Q#"id"
+label CalabiYauInToric := X -> (label reflexivePolytope X, X#"id")
 
 hh(Sequence, CalabiYauInToric) := (pq, X) -> hh^pq reflexivePolytope X
 

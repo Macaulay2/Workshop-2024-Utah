@@ -22,7 +22,7 @@ doc ///
       elapsedTime addToCYDatabase("can-delete-me-ntfe-h11-2.dbm", topes)
     Text
       Let's test that this was created correctly.  We see that in particular the
-      annotated faces (@TO (annotatedFaces, CYPolytope)@) has been computed (this is
+      annotated faces (@TO (annotatedFaces, ReflexivePolytope)@) has been computed (this is
       one of the things that seems to take the longest.  That, and the list of triangulations.
       For higher $h^{1,1}(X)$, we must arrange to not compute these, as there are too many triangulations.
       This has not been done yet.
@@ -170,6 +170,10 @@ needsPackage "StringTorics"
     -- Step 1 --
     -- create text files of the h11=d polytopes, 1 <= d <= 7 (only 5 so far).
     ------------
+    topes = kreuzerSkarke(2, Limit => 20000);
+    assert(#topes == 36)
+    "topes-h11-2.txt" << toExternalString topes << endl << close;
+    
     topes = kreuzerSkarke(3, Limit => 20000);
     assert(#topes == 244)
     "topes-h11-3.txt" << toExternalString topes << endl << close;
@@ -195,6 +199,11 @@ needsPackage "StringTorics"
    ------------
    -- Step 2 --
    ------------
+   -- h11=2
+   createCYDatabaseFiles("cy3-h11-2", "topes-h11-2.txt", 15)
+   -- now wait for all 15 of these M2 processes to stop (they display when the are done).
+   combineCYDatabaseFiles("cy3-h11-2", "topes-h11-2.txt", 15)
+
    -- h11=3
    createCYDatabaseFiles("cy3-h11-3", "topes-h11-3.txt", 15)
    -- now wait for all 15 of these M2 processes to stop (they discplay when the are done).
@@ -219,3 +228,4 @@ needsPackage "StringTorics"
    X = calabiYau("cy3-h11-6.dbm", Q, (11,0))
    member("N polytope", keys Q.cache) -- now it is here!
 ///
+

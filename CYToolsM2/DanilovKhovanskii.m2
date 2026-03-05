@@ -489,7 +489,7 @@ computeHodgeDeligne Polyhedron := opts -> P -> (
     (new HashTable from eZ, new HashTable from eZbar, new HashTable from eZcones)
     )
 
-computeHodgeDeligne CYPolytope := opts -> P -> (
+computeHodgeDeligne ReflexivePolytope := opts -> P -> (
     PM := polytope(P, "M");
     PMfan := normalFan PM;
     PM'fan := fan reflexiveToSimplicialToricVariety PM;
@@ -498,7 +498,7 @@ computeHodgeDeligne CYPolytope := opts -> P -> (
 
 computeHodgeDeligne CalabiYauInToric := opts -> X -> computeHodgeDeligne(cyPolytope(X))
 
---check non-degeneracy; not the same as for CYPolytope!
+--check non-degeneracy; not the same as for ReflexivePolytope!
 computeHodgeDeligne ToricDivisor := opts -> D -> computeHodgeDeligne(polytope(D), opts)
 
 computeHodgeDeligne NormalToricVariety := opts -> V -> (
@@ -649,7 +649,7 @@ doc ///
 Key
   computeHodgeDeligne
   (computeHodgeDeligne, Polyhedron)
-  (computeHodgeDeligne, CYPolytope)
+  (computeHodgeDeligne, ReflexivePolytope)
   (computeHodgeDeligne, CalabiYauInToric)
   (computeHodgeDeligne, ToricDivisor)
   (computeHodgeDeligne, NormalToricVariety)

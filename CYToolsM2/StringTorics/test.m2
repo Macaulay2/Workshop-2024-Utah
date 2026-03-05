@@ -1830,7 +1830,7 @@ tope = KSEntry "4 9  M:273 9 N:21 8 H:11,201 [-380] id:6
 
   latticePoints Q
   latticePointsAndDimensions polytope(Q, "N") -- should allow latticePoinsAndDimensions Q?
-  Q = cyPolytope(P2, ID => 6)
+  Q = reflexivePolytope(P2, ID => 6)
   faceDimensions Q
 
   rays Q -- maybe add in InteriorFacets?  Default should be to take all lattice points of face dim <= dim - 2.

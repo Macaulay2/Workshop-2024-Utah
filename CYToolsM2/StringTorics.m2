@@ -49,8 +49,6 @@ export {
     "InteriorFacets",
     "ID",
     "cyPolytope",
-    --"cyPolytopeFromRays",
-    --"cyPolytopeWithGivenLatticePoints",
     "dump",
     "label",
     "findTwoFaceInteriorDivisors",
@@ -98,7 +96,7 @@ export {
     "findAllSimplicialFans",
     "findOneFRST",
     "findAllFRSTs", -- fine regular, point triangulations
-    -- TODO: "findAllFRVTs", -- fine regular, but NOT point triangulations. This often crashes using topcom...
+    "findAllFRVTs", -- fine regular, but NOT point triangulations. This often crashes using topcom...
     -- finding one triangulation
     -- using opt level code to investigate nearby triangulations
     "partitionFRSTsByDFaceEquivalence",
@@ -345,7 +343,8 @@ findEquivalence(CalabiYauInToric, CalabiYauInToric) := (X1, X2) -> (
     )
 
 load (currentFileDirectory | "StringTorics/MyPolyhedra.m2")
-load (currentFileDirectory | "StringTorics/CYPolytope.m2")
+--load (currentFileDirectory | "StringTorics/CYPolytope.m2")
+cyPolytope = reflexivePolytope
 load (currentFileDirectory | "StringTorics/ReflexivePolytopes.m2")
 load (currentFileDirectory | "StringTorics/CalabiYauInToric.m2")
 load (currentFileDirectory | "StringTorics/IntersectionNumbers.m2")
@@ -924,7 +923,7 @@ findAllSimplicialFans Matrix := List => opts -> (A) -> (
         << "WARNING: TOPCOM failed to find triangulations, then found them after " << 
            count << " attempt(s)" << endl;
         );
-    if opts.RegularOnly then (
+    elapsedTime if opts.RegularOnly then (
         Ts = select(Ts, t -> isProjective normalToricVariety(Arays, t))
         );
     Ts
@@ -980,9 +979,10 @@ restart
   installPackage "DanilovKhovanskii"
   installPackage "PALPInterface"
   elapsedTime installPackage "StringTorics"  -- 44.4909s elapsed TODO: improve this!
+    -- now 60.4s on 26 Jan 2026.
   
   check IntegerEquivalences -- 8 checks, finishes to completion, 1 takes 6.6 sec
-  check DanilovKhovanskii -- 10 checks, finishes, 3 take some time (3.9sec, 4.9sec, 16.5 sec).  One test error (#8) (hmmm, I see 9 checks, not 10...)
+  check "DanilovKhovanskii" -- 10 checks, finishes, 3 take some time (3.9sec, 4.9sec, 16.5 sec).  One test error (#8) (hmmm, I see 9 checks, not 10...)
     -- the error is because we use ReflexivePolytope...
   time check "StringTorics" -- used 53.257s (cpu); 23.9121s (thread); 0s (gc) (one uses 5 sec, 6.6 sec, 4.5 sec, 4.1 sec)) Now 68 sec... 
   elapsedTime check "StringTorics" -- 39.87 sec.  

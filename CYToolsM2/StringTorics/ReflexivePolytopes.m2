@@ -16,7 +16,8 @@ net ReflexivePolytope := X -> net expression X
 --   we could relax this, but I think not for the moment...
 
 ReflexivePolytopeFields = {
-    "vertices" => {value, toString, List}
+    "vertices" => {value, toString, List},
+    "id" => {value, toString, ZZ}
     }
 
 -- These are the cache fields that we write to a string via 'dump'
@@ -24,7 +25,6 @@ ReflexivePolytopeCache = {
     -- these fields may or may not exist in a specific CYPolytope object.
     "latticePoints" => {value, toString, List},
     "faceDimensions" => {value, toString, List},
-    "id" => {value, toString, ZZ},
     "favorable" => {value, toString, Boolean},
     "h11" => {value, toString, ZZ},
     "h21" => {value, toString, ZZ},
@@ -40,9 +40,12 @@ ReflexivePolytopeCache = {
     }
 
 reflexivePolytope = method(Options => {
-        ID => null,
-        InteriorFacets => false
-        }) -- TODO: remove InteriorFaces.  That should be in construction of CY's.
+        ID => null
+        })
+
+isReflexive ReflexivePolytope := Boolean => {} >> opts -> Q -> isReflexive polytope Q
+
+isWellDefined ReflexivePolytope := Boolean => Q -> isReflexive Q
 
 -- `reflexivePolytope` Polyhedron: create a ReflexivePolytope object from a Polyhedra Polyhedron object
 reflexivePolytope Polyhedron := ReflexivePolytope => opts -> P2 -> (
@@ -52,12 +55,12 @@ reflexivePolytope Polyhedron := ReflexivePolytope => opts -> P2 -> (
     -- verts := for i from 0 to #LP - 1 list if LPdim#i === 0 then LP_i else continue;
     Q := new ReflexivePolytope from {
         symbol cache => new CacheTable,
-        "vertices" => verts
+        "vertices" => verts,
+        "id" => if opts.ID === null then 0 else opts.ID
         };
     Q.cache#"N polytope" = P2;
     -- Q.cache#"latticePoints" = LP;
     -- Q.cache#"faceDimensions" = LPdim;
-    if opts.ID =!= null then Q.cache#"id" = opts.ID;
     Q
     )
 
@@ -79,6 +82,14 @@ dump ReflexivePolytope := String => {} >> opts -> (Q) -> (
     concatenate strs
     )
 
+getKeyPair = method()
+getKeyPair String := Sequence => str -> (
+    str1 := replace("^ *", "", str);
+    result := separate(" *: *", str1); -- separate at colon, ignoring white space around colon.
+    if #result != 2 then error("expected a key and a value for "|str);
+    toSequence result
+    )
+
 reflexivePolytope String := ReflexivePolytope => opts -> str -> (
     L := lines str;
     if L#0 != "ReflexiveData" then error ("string is not in proper format, received: "|L#0);
@@ -96,7 +107,8 @@ reflexivePolytope String := ReflexivePolytope => opts -> str -> (
         readFcn := field#1#0;
         if fields#?k then Q1.cache#k = readFcn fields#k;
         );
-    if opts.ID =!= null then Q1.cache#"id" = opts.ID; -- just for compatibility with other constructors...
+    --TODO: allow ID as optional argument here?  If so, add it to required...
+    --if opts.ID =!= null then Q1.cache#"id" = opts.ID; -- just for compatibility with other constructors...
     Q1
     )
 
@@ -110,16 +122,17 @@ reflexivePolytope Matrix := ReflexivePolytope => opts -> vertices -> (
     )
 
 -- cyPolytope: Deprecated
-cyPolytope List := CYPolytope => opts -> vertices -> (
+cyPolytope = method(Options => options reflexivePolytope)
+cyPolytope List := ReflexivePolytope => opts -> vertices -> (
     return reflexivePolytope(vertices, opts);
-    error "calling cyPolytope List";
-    cyPolytope(transpose matrix vertices, opts)
+    -- error "calling cyPolytope List";
+    -- cyPolytope(transpose matrix vertices, opts)
     )
-cyPolytope Matrix := CYPolytope => opts -> vertices -> (
+cyPolytope Matrix := ReflexivePolytope => opts -> vertices -> (
     return reflexivePolytope(vertices, opts);
-    error "calling cyPolytope Matrix";
-    P2 := convexHull vertices;
-    cyPolytope(P2, opts)
+    -- error "calling cyPolytope Matrix";
+    -- P2 := convexHull vertices;
+    -- cyPolytope(P2, opts)
     )
 cyPolytope KSEntry := opts -> tope -> reflexivePolytope(tope, opts)
 cyPolytope String := opts -> str -> reflexivePolytope(str, opts)
@@ -141,6 +154,7 @@ latticePoints ReflexivePolytope := Q -> (
     Q.cache#"latticePoints"
     )
 
+faceDimensions = method()
 faceDimensions ReflexivePolytope := Q -> (
     if not Q.cache#?"latticePoints" then (
         computeRaysAndDimensions Q;
@@ -212,6 +226,7 @@ annotatedFaces ReflexivePolytope := Q -> (
     Q.cache#"annotatedFaces"
     )
 
+findTwoFaceInteriorDivisors = method()
 findTwoFaceInteriorDivisors ReflexivePolytope := List => Q -> (
     -- returns a list of:
     -- {i, {g, ind}}
@@ -225,6 +240,11 @@ findTwoFaceInteriorDivisors ReflexivePolytope := List => Q -> (
         nonfavs := sort toList(set thisface#2 - on1skeleton);
         for x in nonfavs list {x, {thisface#4, a}}
         )
+    )
+
+findSuitableSet = (setstotry, Z) -> (
+    for g in setstotry do if abs det(Z_g) == 1 then return g;
+    null
     )
 
 computeGLSM = Q -> (
@@ -260,6 +280,7 @@ degrees ReflexivePolytope := List => Q -> (
     Q.cache#"glsm"
     )
 
+basisIndices = method()
 basisIndices ReflexivePolytope := List => Q -> (
     if not Q.cache#?"basisIndices" then computeGLSM Q;
     Q.cache#"basisIndices"
@@ -355,6 +376,7 @@ automorphisms ReflexivePolytope := Q -> (
     computeAutomorphisms Q;
     Q.cache#"automorphisms"
     )
+automorphismsAsPermutations = method()
 automorphismsAsPermutations ReflexivePolytope := Q -> (
     computeAutomorphisms Q;
     Q.cache#"autPermutations"
@@ -365,6 +387,7 @@ automorphismsAsPermutations ReflexivePolytope := Q -> (
 -- Both point configurations --
 -- and vector configurations --
 -------------------------------
+isTriangulationOfPolytope = method()
 isTriangulationOfPolytope(ReflexivePolytope, List) := Boolean => (Q, T) -> (
     -- important assumption: T *is* a triangulation of the vector configuration given
     -- by `rays Q`.
@@ -395,7 +418,7 @@ computeFRVTs = Q -> (
     vtris := findAllSimplicialFans(transpose matrix rays Q);
     H := partition(t -> isTriangulationOfPolytope(Q,t), vtris, {true, false});
     Q.cache#"vtriangulations" = sort for t in H#false list t; -- might be zero of these
-    if not Q.cache#?"allFRSTs" and not Q.cache#"allFRSTs" then (
+    if not Q.cache#?"allFRSTs" then (
         Q.cache#"ptriangulations" = sort for t in H#true list t; -- there had better be at least one here.
         Q.cache#"allFRSTs" = true;
         ); -- TODO possibly: check that what is there is the same as what we have just computed?
@@ -455,6 +478,16 @@ restrictTriangulation(ZZ, ReflexivePolytope, List) := List => (d, Q, tri) -> (
 --     )
 
 
+normalizeByAutomorphisms = method()
+normalizeByAutomorphisms(List, List) := (gPerms, T) -> (
+    -- gPerms should be a list of permutations of 0..#rays-1, for a CYPolytoe Q.
+    -- T should be a list of list of integer indices into the rays of Q.
+    first sort for g in gPerms list (
+        sort for t in T list sort g_t
+        )
+    )
+
+
 -- TODO to get this running:
 --  1. calabiYau needs to accept a ReflexivePolytope.
 --  2. restrictTriangulation needs to work on (Q, tri).
@@ -480,6 +513,9 @@ partitionFRSTsByDFaceEquivalence(ZZ, ReflexivePolytope) := HashTable => opts -> 
     )
 
 -- TODO: working on this.  Use partitionFRSTsByDFaceEquivalence above to help here.
+makeCYs = method(Options => {Ring => null, PicardRing => null, NTFE => true, Automorphisms => true, Limit => infinity}) -- opts.Ring same as opts.PicardRing: ZZ[h11 variables].
+findAllCYs = method(Options => options makeCYs)
+
 makeCYs ReflexivePolytope :=
 findAllCYs ReflexivePolytope := List => opts -> Q -> (
     if opts#PicardRing =!= null and opts#Ring =!= null then error "can't set both PicardRing, Ring, they are synonyms!";
@@ -577,6 +613,7 @@ generateTriangulations(Matrix, List) := opts -> (Amat, tri) -> (
     )
 *-
 
+computeBasics = method()
 computeBasics ReflexivePolytope := Q -> (
     computeRaysAndDimensions Q;
     annotatedFaces Q; -- compute annotated faces
@@ -585,13 +622,6 @@ computeBasics ReflexivePolytope := Q -> (
     computeAutomorphisms Q;
     computeFRSTs Q; -- not FRVTs yet, that takes too long? TODO: which should be here?
     )
-
-TEST ///
--*
-  restart
-  needsPackage "StringTorics"
-*-
-///
 
 end--
 

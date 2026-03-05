@@ -93,7 +93,7 @@ doc ///
       A {\tt ReflexivePolytope} can be constructed from vertices of a reflexive polytope.
     Text
       For example, let's start with a dimension 3 reflexive polytope: the cube.
-      We use @TO cyPolytope@ to create the corresponding Macaulay2 object.
+      We use @TO reflexivePolytope@ to create the corresponding Macaulay2 object.
     Example
       verts = {
           {-1, -1, -1}, {1, -1, -1}, {-1, 1, -1}, {1, 1, -1},
@@ -191,7 +191,7 @@ doc ///
       polytope on the "M" lattice side, so it computes the polar dual on the "N" lattice side.
 
       This particular example happens to match the input above.
-      For dimension 4 polytopes, the Kreuzeer-Skarke database is generally
+      For dimension 4 polytopes, the Kreuzer-Skarke database is generally
       arranged by a number $h^{1,1}$, which is information
       corresponding to a Calabi-Yau hypersurface in a toric variety
       constructed via this polytope.
@@ -615,7 +615,7 @@ doc ///
       B2 = matrix vertices P2
       B2*A2
       tally flatten entries (B2*A2)
-      
+      normalForm M
   SeeAlso
 ///
 
