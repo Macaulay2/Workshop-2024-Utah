@@ -251,8 +251,8 @@ pointCounts(PointCounter, CalabiYauInToric) := List => (PC, X) -> (
 invariantsH11H12 = method()
 invariantsH11H12 CalabiYauInToric := X -> List => {hh^(1,1) X, hh^(1,2) X}
 
-invariantsContents = method()
-invariantsContents CalabiYauInToric := List => X -> {
+invariantContents = method()
+invariantContents CalabiYauInToric := List => X -> {
     polynomialContent c2Form X,
     polynomialContent cubicForm X
     }
