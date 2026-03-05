@@ -491,6 +491,71 @@ doc ///
 
 doc ///
   Key
+    (automorphisms, ReflexivePolytope)
+  Headline
+    lattice automorphisms of a reflexive polytope
+  Usage
+    L = automorphisms Q
+  Inputs
+    Q:ReflexivePolytope
+  Outputs
+    L:List
+      of lists of lists of integers, each representing a lattice automorphism matrix
+  Description
+    Text
+      Returns the list of all integer matrices $M$ (given as lists of rows) such that $M$ maps
+      the vertex set of $Q$ to itself.  The results are cached.
+    Example
+      A = transpose matrix {
+           {-1, -1, 0}, {-1, -1, 2}, {-1, 1, -1}, {-1, 1, 1},
+           {0, -1, 0}, {0, -1, 1}, {1, 1, -1}
+           }
+      Q = reflexivePolytope A
+      isReflexive Q, dim Q
+      automorphisms Q
+  SeeAlso
+    (automorphisms, Polyhedron)
+    automorphismsAsPermutations
+///
+
+doc ///
+  Key
+    automorphismsAsPermutations
+    (automorphismsAsPermutations, ReflexivePolytope)
+  Headline
+    lattice automorphisms as permutations of the lattice points
+  Usage
+    L = automorphismsAsPermutations Q
+  Inputs
+    Q:ReflexivePolytope
+  Outputs
+    L:List
+      of lists of integers, each a permutation of the indices $0, \ldots, n-1$
+      where $n$ is the number of non-zero lattice points (rays) of $Q$
+  Description
+    Text
+      Returns the lattice automorphisms of $Q$, but represented as permutations
+      of the indices of @TT "rays Q"@ (the non-zero lattice points).
+
+      For each automorphism matrix $M$, the corresponding permutation $\sigma$ satisfies:
+      $M \cdot v_i = v_{\sigma(i)}$, where $v_i$ are the rays of $Q$.
+    Example
+      A = transpose matrix {
+           {-1, -1, 0}, {-1, -1, 2}, {-1, 1, -1}, {-1, 1, 1},
+           {0, -1, 0}, {0, -1, 1}, {1, 1, -1}
+           }
+      Q = reflexivePolytope A
+      rays Q -- meaning rays of the corresponding simplicial fan
+      automorphismsAsPermutations Q
+      automorphisms Q
+  SeeAlso
+    (automorphisms, ReflexivePolytope)
+    (automorphisms, Polyhedron)
+    (rays, ReflexivePolytope)
+///
+
+doc ///
+  Key
     findAllFRSTs
     (findAllFRSTs, ReflexivePolytope)
     (findAllFRSTs, Matrix)

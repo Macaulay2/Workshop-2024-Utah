@@ -963,6 +963,7 @@ beginDocumentation()
 -- . what else can be too big?
 
 load (currentFileDirectory | "StringTorics/doc.m2")
+load (currentFileDirectory | "StringTorics/DocMyPolyhedra.m2")
 load (currentFileDirectory | "StringTorics/DocCYPolytope.m2")
 load (currentFileDirectory | "StringTorics/DocCalabiYauInToric.m2")
 load (currentFileDirectory | "StringTorics/DocDatabases.m2")
