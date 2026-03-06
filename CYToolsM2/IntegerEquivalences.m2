@@ -446,6 +446,818 @@ findEquivalence(List, List) := (LF1, LF2) -> (
     -- else result
     )
 
+beginDocumentation()
+
+doc ///
+  Key
+    IntegerEquivalences
+  Headline
+    finding invertible integral matrices preserving points, linear forms and ideals
+  Description
+    Text
+      This package provides tools for determining whether two sets of polynomials,
+      linear forms, ideals, and lattice points are related by an invertible integer
+      change of coordinates (i.e., an element of $GL(n, \ZZ)$).
+
+      The main use case is determining whether two Calabi-Yau 3-folds have equivalent
+      topological data (cubic forms, second Chern classes) up to a change of basis
+      in $H^2(X, \ZZ)$.
+
+      @SUBSECTION "Overview of the approach"@
+    Text
+      Given source data (polynomials $F_1$, linear forms $L_1$, ideals, lattice points)
+      and target data $(F_2, L_2, \ldots)$, the package:
+
+      (1) Sets up a generic $n \times n$ matrix $A$ of unknowns via @TO genericLinearMap@.
+
+      (2) Creates @TO MatchingData@ specifying which source items map to which target items,
+      and how to enumerate possible matchings (fixed, permutations, or signed permutations).
+
+      (3) For each matching, computes the @TO equivalenceIdeal@ — the ideal of polynomial
+      constraints on the entries of $A$.
+
+      (4) Checks via @TO invertibleMatrixOverZZ@ whether the constraints are satisfied by
+      an integer matrix with determinant $\pm 1$.
+
+      The function @TO findEquivalence@ automates this pipeline for the common case of
+      matching a linear form and a cubic form.
+    Text
+      @SUBSECTION "A simple example"@
+    Text
+      We check whether two pairs $(L_1, F_1)$ and $(L_2, F_2)$ of a linear form
+      and cubic form (representing $c_2$ and cubic intersection form of CY 3-folds)
+      are related by a $GL(3, \ZZ)$ change of coordinates.
+    Example
+      RZ = ZZ[a,b,c]
+      L1 = 8*a-4*b+36*c
+      F1 = 2*a^3-3*a^2*b-3*a*b^2+8*b^3-6*a^2*c+6*a*b*c-6*b^2*c+6*a*c^2
+      L2 = -4*a+8*b+36*c
+      F2 = 8*a^3-3*a^2*b-3*a*b^2+2*b^3-6*a^2*c+6*a*b*c-6*b^2*c+6*b*c^2
+      result = findEquivalence({L1, F1}, {L2, F2})
+      result#0
+      result#1
+  SeeAlso
+    findEquivalence
+    MatchingData
+    equivalenceIdeal
+    genericLinearMap
+    invertibleMatrixOverZZ
+///
+
+doc ///
+  Key
+    findEquivalence
+    (findEquivalence, List, List)
+  Headline
+    find an integer change of basis relating two pairs of forms
+  Usage
+    result = findEquivalence({L1, F1}, {L2, F2})
+  Inputs
+    :List
+      of the form {\{L1, F1\}} where $L_1$ is a linear form and $F_1$ is a polynomial
+    :List
+      of the form {\{L2, F2\}} where $L_2$ is a linear form and $F_2$ is a polynomial
+  Outputs
+    result:Sequence
+      a pair {\tt (status, A)} where status is @TO CONSISTENT@, @TO INCONSISTENT@,
+      or @TO INDETERMINATE@, and $A$ is the change-of-basis matrix (if consistent)
+  Description
+    Text
+      This is the main high-level function.  Given two pairs of forms $(L_1, F_1)$
+      and $(L_2, F_2)$ in a polynomial ring, it searches for an invertible integer
+      matrix $A$ such that the corresponding change of variables sends $L_1 \mapsto L_2$
+      and $F_1 \mapsto F_2$.
+
+      The function automatically uses hessian and singular locus data to constrain
+      the search.
+    Example
+      RZ = ZZ[a,b,c]
+      L1 = 8*a-4*b+36*c
+      F1 = 2*a^3-3*a^2*b-3*a*b^2+8*b^3-6*a^2*c+6*a*b*c-6*b^2*c+6*a*c^2
+      L2 = -4*a+8*b+36*c
+      F2 = 8*a^3-3*a^2*b-3*a*b^2+2*b^3-6*a^2*c+6*a*b*c-6*b^2*c+6*b*c^2
+      (stat, A) = findEquivalence({L1, F1}, {L2, F2})
+      stat == CONSISTENT
+      A
+  SeeAlso
+    MatchingData
+    tryEquivalences
+    equivalenceIdeal
+    CONSISTENT
+    INCONSISTENT
+    INDETERMINATE
+///
+
+doc ///
+  Key
+    MatchingData
+  Headline
+    type specifying how source and target data should be matched
+  Description
+    Text
+      A {\tt MatchingData} object is a list of matching specifications.  Each
+      element is either:
+
+      (1) {\tt source => target} — a fixed matching (ring element to ring element,
+      ideal to ideal, or row/column matrix to row/column matrix), or
+
+      (2) {\tt \{type, sourceList, targetList\}} — where {\tt type} is @TO Permutations@
+      or @TO SignedPermutations@, specifying that all permutations (or signed permutations)
+      of the target list should be tried.
+
+      Use @TO matchingData@ to construct validated instances.
+    Example
+      R = QQ[a,b,c]
+      L1 = 10*a + 28*b + 26*c
+      L2 = 16*a + 10*b + 26*c
+      F1 = a^3 - 3*a^2*b
+      F2 = -2*a^3 - 3*a^2*b
+      md = matchingData {L1 => L2, F1 => F2}
+  SeeAlso
+    matchingData
+    matches
+    Permutations
+    SignedPermutations
+///
+
+doc ///
+  Key
+    matchingData
+    (matchingData, List)
+  Headline
+    create validated matching data
+  Usage
+    md = matchingData L
+  Inputs
+    L:List
+      of matching specifications (see @TO MatchingData@)
+  Outputs
+    md:MatchingData
+  Description
+    Text
+      Creates a @TO MatchingData@ object from a list of matching specifications.
+      Each element of the list should be either {\tt source => target} (for fixed matchings)
+      or {\tt \{type, sourceList, targetList\}} where type is @TO Permutations@ or
+      @TO SignedPermutations@.
+
+      The constructor validates that sources and targets have matching types and lengths.
+    Example
+      R = ZZ[a,b,c]
+      md = matchingData {
+          a^2+b => a^2-b,
+          {SignedPermutations, {a, b, c}, {a+b, a+c, 2*b+c}},
+          matrix{{1,2,3}} => matrix{{1,-2,1}}
+          }
+    Text
+      Two MatchingData objects can be combined using @TT "|"@.
+    Example
+      md1 = matchingData {a => b}
+      md2 = matchingData {ideal(a,b) => ideal(b,c)}
+      md1 | md2
+  SeeAlso
+    MatchingData
+    matches
+    Permutations
+    SignedPermutations
+///
+
+doc ///
+  Key
+    matches
+    (matches, MatchingData)
+  Headline
+    enumerate all source-target matchings from matching data
+  Usage
+    (src, targs) = matches md
+  Inputs
+    md:MatchingData
+  Outputs
+    src:List
+      the flattened source data
+    targs:List
+      a list of all possible flattened target lists
+  Description
+    Text
+      Given @TO MatchingData@, this function computes the source list (which is fixed)
+      and all possible target lists obtained by applying the specified permutations
+      and signed permutations.
+
+      For fixed matchings ({\tt source => target}), the target is always the same.
+      For {\tt Permutations} entries, all permutations of the target list are generated.
+      For {\tt SignedPermutations} entries, all signed permutations are generated.
+      The Cartesian product of all these choices gives the full list of targets.
+    Example
+      R = ZZ[a,b,c]
+      md = matchingData {
+          a => b,
+          {Permutations, {a, b}, {a+b, a+c}}
+          }
+      (src, targs) = matches md
+      src
+      #targs
+  SeeAlso
+    MatchingData
+    equivalenceIdeal
+///
+
+doc ///
+  Key
+    genericLinearMap
+    (genericLinearMap, Ring)
+    [genericLinearMap, Variable]
+  Headline
+    create a generic linear change of coordinates
+  Usage
+    (A, phi) = genericLinearMap R
+    (A, phi) = genericLinearMap(R, Variable => t)
+  Inputs
+    R:Ring
+      a polynomial ring in $n$ variables
+    Variable => Symbol
+      the variable name to use for entries of $A$ (default: {\tt t})
+  Outputs
+    A:Matrix
+      an $n \times n$ generic matrix over a new ring $T = K[t_{1,1}, \ldots, t_{n,n}]$
+    phi:RingMap
+      a ring map $U \to U$ where $U = T[x_1,\ldots,x_n]$ sending each variable
+      to the corresponding linear combination given by $A$
+  Description
+    Text
+      Creates a generic $n \times n$ matrix $A$ of new indeterminates and the corresponding
+      ring map $\phi$ that acts on polynomials by the linear change of variables defined by $A$.
+      This is the setup step for computing @TO equivalenceIdeal@.
+    Example
+      R = QQ[a,b,c]
+      (A, phi) = genericLinearMap R
+      A
+      U = target phi
+      phi(U_0)
+    Text
+      The {\tt Variable} option allows choosing the variable name.
+    Example
+      (A, phi) = genericLinearMap(R, Variable => symbol s)
+      A
+  SeeAlso
+    equivalenceIdeal
+///
+
+doc ///
+  Key
+    equivalenceIdeal
+    (equivalenceIdeal, List, List, Ring, Sequence)
+  Headline
+    compute the ideal of constraints for a linear map to match source to target
+  Usage
+    J = equivalenceIdeal(src, tar, RQ, (A, phi))
+  Inputs
+    src:List
+      source data (ring elements, ideals, row/column matrices)
+    tar:List
+      target data (same types as source)
+    RQ:Ring
+      the polynomial ring (typically over QQ)
+    :Sequence
+      the pair {\tt (A, phi)} from @TO genericLinearMap@
+  Outputs
+    J:Ideal
+      an ideal in the entries of $A$ whose solutions give change-of-basis matrices
+  Description
+    Text
+      For each source-target pair, this function imposes constraints:
+
+      $\bullet$ Ring elements: $\phi(F_1) = F_2$ (coefficient matching).
+
+      $\bullet$ Ideals: $\phi(I_1) \subseteq I_2$ (generators of $\phi(I_1)$ reduce to zero modulo $I_2$).
+
+      $\bullet$ Row vectors: $v_2 A^T = v_1$ (row vectors transform contravariantly).
+
+      $\bullet$ Column vectors: $A^T v_1 = v_2$ (column vectors transform covariantly).
+    Example
+      RQ = QQ[a,b,c]
+      (A, phi) = genericLinearMap RQ
+      L1 = 10*a + 28*b + 26*c
+      L2 = 16*a + 10*b + 26*c
+      J = equivalenceIdeal({L1}, {L2}, RQ, (A, phi))
+  SeeAlso
+    genericLinearMap
+    invertibleMatrixOverZZ
+///
+
+doc ///
+  Key
+    invertibleMatrixOverZZ
+    (invertibleMatrixOverZZ, Matrix, Ideal)
+  Headline
+    check whether an equivalence ideal has a solution over the integers
+  Usage
+    (status, result) = invertibleMatrixOverZZ(A, J)
+  Inputs
+    A:Matrix
+      the generic matrix from @TO genericLinearMap@
+    J:Ideal
+      the equivalence ideal from @TO equivalenceIdeal@
+  Outputs
+    status:Symbol
+      one of @TO CONSISTENT@, @TO INCONSISTENT@, or @TO INDETERMINATE@
+    result:Thing
+      a @TO Matrix@ over $\ZZ$ if consistent, or {\tt null}/other info if not
+  Description
+    Text
+      Reduces the generic matrix $A$ modulo the ideal $J$ and checks whether
+      the result is an integer matrix with determinant $\pm 1$.
+
+      If $J = (1)$, the system is inconsistent (no solutions at all).
+      If the reduced matrix is over $\ZZ$ with $\det = \pm 1$, it is consistent.
+      Otherwise, the function decomposes $J$ and checks each component.
+    Example
+      RQ = QQ[a,b,c]
+      (A, phi) = genericLinearMap RQ
+      L1 = 8*a-4*b+36*c
+      F1 = 2*a^3-3*a^2*b-3*a*b^2+8*b^3-6*a^2*c+6*a*b*c-6*b^2*c+6*a*c^2
+      L2 = -4*a+8*b+36*c
+      F2 = 8*a^3-3*a^2*b-3*a*b^2+2*b^3-6*a^2*c+6*a*b*c-6*b^2*c+6*b*c^2
+      J = equivalenceIdeal({L1, F1}, {L2, F2}, RQ, (A, phi))
+      invertibleMatrixOverZZ(A, J)
+  SeeAlso
+    equivalenceIdeal
+    CONSISTENT
+    INCONSISTENT
+    INDETERMINATE
+///
+
+doc ///
+  Key
+    tryEquivalences
+    (tryEquivalences, MatchingData, Ring, Sequence)
+  Headline
+    try all matchings and search for an integer equivalence
+  Usage
+    result = tryEquivalences(md, RQ, (A, phi))
+  Inputs
+    md:MatchingData
+    RQ:Ring
+      the polynomial ring (typically over QQ)
+    :Sequence
+      the pair {\tt (A, phi)} from @TO genericLinearMap@
+  Outputs
+    result:Sequence
+      a pair {\tt (status, matrix or info)}
+  Description
+    Text
+      Iterates over all matchings generated by @TO matches@ from the @TO MatchingData@,
+      computes the @TO equivalenceIdeal@ for each, and checks for integer solutions via
+      @TO invertibleMatrixOverZZ@.  Returns as soon as a @TO CONSISTENT@ solution is found.
+    Example
+      RQ = QQ[a,b,c]
+      (A, phi) = genericLinearMap RQ
+      L1 = 10*a + 28*b + 26*c
+      L2 = 16*a + 10*b + 26*c
+      F1 = a^3-3*a^2*b-3*a*b^2-2*b^3-3*a^2*c+6*a*b*c+6*b^2*c+3*a*c^2+6*b*c^2-c^3
+      F2 = -2*a^3-3*a^2*b-3*a*b^2+b^3+6*a*b*c-3*b^2*c+6*a*c^2+3*b*c^2-c^3
+      md = matchingData{L1 => L2, F1 => F2}
+      result = tryEquivalences(md, RQ, (A, phi))
+      result#0
+  SeeAlso
+    MatchingData
+    matches
+    equivalenceIdeal
+    invertibleMatrixOverZZ
+///
+
+doc ///
+  Key
+    CONSISTENT
+  Headline
+    result code indicating an integer equivalence was found
+  Description
+    Text
+      Returned by @TO invertibleMatrixOverZZ@ and @TO tryEquivalences@ when an
+      integer matrix with determinant $\pm 1$ satisfying all constraints has been found.
+  SeeAlso
+    INCONSISTENT
+    INDETERMINATE
+    invertibleMatrixOverZZ
+///
+
+doc ///
+  Key
+    INCONSISTENT
+  Headline
+    result code indicating no equivalence exists
+  Description
+    Text
+      Returned by @TO invertibleMatrixOverZZ@ and @TO tryEquivalences@ when the
+      constraints have no solution, or no solution that gives an integer matrix
+      with determinant $\pm 1$.
+  SeeAlso
+    CONSISTENT
+    INDETERMINATE
+    invertibleMatrixOverZZ
+///
+
+doc ///
+  Key
+    INDETERMINATE
+  Headline
+    result code indicating the equivalence could not be determined
+  Description
+    Text
+      Returned by @TO invertibleMatrixOverZZ@ and @TO tryEquivalences@ when the
+      system could not be fully resolved — e.g., a prime ideal component
+      could not be solved uniquely.
+  SeeAlso
+    CONSISTENT
+    INCONSISTENT
+    invertibleMatrixOverZZ
+///
+
+doc ///
+  Key
+    Permutations
+  Headline
+    matching type: try all permutations
+  Description
+    Text
+      Used in @TO MatchingData@ to indicate that all permutations of the target list
+      should be tried.  Compare with @TO SignedPermutations@.
+    Example
+      R = ZZ[a,b,c]
+      md = matchingData {{Permutations, {a, b}, {a+b, a+c}}}
+      (src, targs) = matches md
+      #targs == 2
+  SeeAlso
+    SignedPermutations
+    MatchingData
+///
+
+doc ///
+  Key
+    SignedPermutations
+  Headline
+    matching type: try all signed permutations
+  Description
+    Text
+      Used in @TO MatchingData@ to indicate that all signed permutations (permutations
+      combined with sign changes) of the target list should be tried.  For a list of
+      length $k$, this produces $k! \cdot 2^k$ matchings.
+    Example
+      R = ZZ[a,b,c]
+      md = matchingData {{SignedPermutations, {a, b}, {a+b, a+c}}}
+      (src, targs) = matches md
+      #targs == 8  -- 2! * 2^2
+  SeeAlso
+    Permutations
+    MatchingData
+///
+
+doc ///
+  Key
+    RowVector
+  Headline
+    type indicator for row matrices in matching data
+  Description
+    Text
+      Used internally to classify a $1 \times n$ matrix in @TO MatchingData@ as a row vector.
+      Row vectors transform as $v_2 A^T = v_1$.
+  SeeAlso
+    ColumnVector
+    MatchingData
+///
+
+doc ///
+  Key
+    ColumnVector
+  Headline
+    type indicator for column matrices in matching data
+  Description
+    Text
+      Used internally to classify an $n \times 1$ matrix in @TO MatchingData@ as a column vector.
+      Column vectors transform as $A^T v_1 = v_2$.
+  SeeAlso
+    RowVector
+    MatchingData
+///
+
+doc ///
+  Key
+    Unknown
+  Headline
+    type indicator for unrecognized items in matching data
+  Description
+    Text
+      Returned by internal type classification when an item in @TO MatchingData@
+      is not a recognized type (ring element, ideal, row vector, or column vector).
+      This causes validation to fail.
+  SeeAlso
+    MatchingData
+    RowVector
+    ColumnVector
+///
+
+doc ///
+  Key
+    extendToMatrix
+    (extendToMatrix, List)
+  Headline
+    extend an integer vector to an invertible integer matrix
+  Usage
+    A = extendToMatrix v
+  Inputs
+    v:List
+      a list of integers
+  Outputs
+    A:Matrix
+      an invertible integer matrix whose last row times the column vector $v$
+      gives $(0, \ldots, 0, \gcd(v))$
+  Description
+    Text
+      Given a list of integers, uses the LLL algorithm to find an invertible
+      integer matrix $A$ such that $A \cdot v^T = (0, \ldots, 0, g)^T$ where
+      $g = \gcd(v)$.
+    Example
+      A = extendToMatrix{10,15,6}
+      A * transpose matrix{{10,15,6}}
+      det A
+    Example
+      A = extendToMatrix{10,15,1}
+      A * transpose matrix{{10,15,1}}
+      det A
+  SeeAlso
+    invertibleMatrixOverZZ
+///
+
+doc ///
+  Key
+    hessian
+    (hessian, RingElement)
+  Headline
+    compute the Hessian matrix of a polynomial
+  Usage
+    H = hessian F
+  Inputs
+    F:RingElement
+  Outputs
+    H:Matrix
+      the matrix of second partial derivatives of $F$
+  Description
+    Text
+      Computes the Hessian matrix $(\partial^2 F / \partial x_i \partial x_j)$.
+    Example
+      R = QQ[a,b,c]
+      F = a^3 + b^3 + c^3
+      hessian F
+///
+
+doc ///
+  Key
+    hessianMatches
+    (hessianMatches, RingElement, RingElement)
+  Headline
+    create matching data from Hessian determinant factorizations
+  Usage
+    md = hessianMatches(F1, F2)
+  Inputs
+    F1:RingElement
+    F2:RingElement
+  Outputs
+    md:MatchingData
+  Description
+    Text
+      Computes the determinant of the Hessian of each polynomial, factors it,
+      groups factors by type (multiplicity and degree), and creates @TO MatchingData@
+      with @TO SignedPermutations@ matching for each group.
+
+      This constrains the search space for @TO tryEquivalences@ by requiring that
+      factors of the Hessian determinant are mapped to corresponding factors.
+    Example
+      R = QQ[a,b,c]
+      F1 = 2*a^3-3*a^2*b-3*a*b^2+8*b^3-6*a^2*c+6*a*b*c-6*b^2*c+6*a*c^2
+      F2 = 8*a^3-3*a^2*b-3*a*b^2+2*b^3-6*a^2*c+6*a*b*c-6*b^2*c+6*b*c^2
+      md = hessianMatches(F1, F2)
+  SeeAlso
+    hessian
+    factorsByType
+    MatchingData
+///
+
+doc ///
+  Key
+    factorsByType
+    (factorsByType, RingElement)
+  Headline
+    factor a polynomial and group factors by multiplicity and degree
+  Usage
+    H = factorsByType F
+  Inputs
+    F:RingElement
+  Outputs
+    H:HashTable
+      keys are {\tt \{multiplicity, degree\}}, values are lists of irreducible factors
+  Description
+    Text
+      Factors a polynomial and groups the irreducible factors by their multiplicity
+      and total degree.  Used by @TO hessianMatches@ to match factors of Hessian
+      determinants between two polynomials.
+    Example
+      R = QQ[a,b,c]
+      F = a^2*b*(a+b)^2*(a-c)
+      factorsByType F
+  SeeAlso
+    hessianMatches
+///
+
+doc ///
+  Key
+    singularPoints
+    (singularPoints, RingElement)
+  Headline
+    find rational singular points of a projective hypersurface
+  Usage
+    pts = singularPoints F
+  Inputs
+    F:RingElement
+      a homogeneous polynomial
+  Outputs
+    pts:List
+      a list of column vectors representing projective singular points
+  Description
+    Text
+      Computes the singular locus of the projective hypersurface $V(F)$ and
+      returns the rational singular points as column vectors (with integer
+      entries if the coefficient ring is $\QQ$).
+    Example
+      R = QQ[a,b,c]
+      F = a^2*b - a*b^2
+      singularPoints F
+  SeeAlso
+    singularPointMatches
+    singularMatches
+///
+
+doc ///
+  Key
+    singularPointMatches
+    (singularPointMatches, RingElement, RingElement)
+  Headline
+    create matching data from singular points of two hypersurfaces
+  Usage
+    md = singularPointMatches(F1, F2)
+  Inputs
+    F1:RingElement
+    F2:RingElement
+  Outputs
+    md:MatchingData
+      or @TO null@ if the number of singular points differs
+  Description
+    Text
+      Computes the singular points of the projective hypersurfaces $V(F_1)$ and $V(F_2)$
+      and creates @TO MatchingData@ with @TO SignedPermutations@ matching.
+      Returns @TO null@ if the two hypersurfaces have different numbers of singular points.
+  SeeAlso
+    singularPoints
+    singularMatches
+    MatchingData
+///
+
+doc ///
+  Key
+    singularMatches
+    (singularMatches, RingElement, RingElement)
+  Headline
+    create matching data from singular locus components of two hypersurfaces
+  Usage
+    md = singularMatches(F1, F2)
+  Inputs
+    F1:RingElement
+    F2:RingElement
+  Outputs
+    md:MatchingData
+  Description
+    Text
+      Computes the decomposition of the singular loci of $V(F_1)$ and $V(F_2)$
+      and matches components using @TO idealsByBetti@ (grouping by Betti numbers).
+  SeeAlso
+    singularPoints
+    singularPointMatches
+    idealsByBetti
+///
+
+doc ///
+  Key
+    idealsByBetti
+    (idealsByBetti, List, List)
+  Headline
+    create matching data from two lists of ideals grouped by Betti numbers
+  Usage
+    md = idealsByBetti(J1s, J2s)
+  Inputs
+    J1s:List
+      a list of ideals
+    J2s:List
+      a list of ideals
+  Outputs
+    md:MatchingData
+  Description
+    Text
+      Groups ideals by their Betti numbers.  Ideals in groups of size 1
+      are matched directly; groups with more than one ideal are matched
+      using @TO Permutations@.
+  SeeAlso
+    singularMatches
+    MatchingData
+///
+
+doc ///
+  Key
+    selectLinear
+    (selectLinear, MatchingData)
+  Headline
+    extract linear constraints from matching data
+  Usage
+    md1 = selectLinear md
+  Inputs
+    md:MatchingData
+  Outputs
+    md1:MatchingData
+      matching data restricted to linear forms and row/column matrices
+  Description
+    Text
+      Filters @TO MatchingData@ to keep only the linear ring elements, the linear
+      generators of ideals, and all row/column matrices.  This can be used to
+      first try a faster solve using only linear constraints.
+  SeeAlso
+    MatchingData
+    tryEquivalences
+///
+
+doc ///
+  Key
+    allSigns
+    (allSigns, List)
+  Headline
+    generate all sign combinations of a list
+  Usage
+    result = allSigns L
+  Inputs
+    L:List
+  Outputs
+    result:List
+      a list of lists, each with the same elements as $L$ but with
+      all possible sign combinations
+  Description
+    Example
+      allSigns {1,2}
+  SeeAlso
+    signedPermutations
+///
+
+doc ///
+  Key
+    signedPermutations
+    (signedPermutations, List)
+  Headline
+    generate all signed permutations of a list
+  Usage
+    result = signedPermutations L
+  Inputs
+    L:List
+  Outputs
+    result:List
+      all permutations of $L$ combined with all sign changes
+  Description
+    Text
+      For a list of length $k$, produces $k! \cdot 2^k$ signed permutations.
+    Example
+      signedPermutations {1,2}
+      #signedPermutations {1,2,3}
+  SeeAlso
+    allSigns
+    SignedPermutations
+///
+
+doc ///
+  Key
+    cartesian
+    (cartesian, List)
+  Headline
+    Cartesian product of a list of lists
+  Usage
+    result = cartesian Ls
+  Inputs
+    Ls:List
+      a list of lists
+  Outputs
+    result:List
+      the Cartesian product, as a list of lists
+  Description
+    Example
+      cartesian {{1,2}, {3,4}}
+      cartesian {{1,2}, {3,4}, {5,6}}
+      cartesian {{1,2}, {3}, {5,6}}
+  SeeAlso
+    matches
+///
+
 TEST ///
 -- These 3 forms were generated from h11=5 database, with:
 -- {(2249, 0), (2255, 0), (2270, 0)}
@@ -761,55 +1573,6 @@ TEST ///
   restart
   needsPackage "IntegerEquivalences"
 *-
-///
-
-end--
-
--* Documentation section *-
-beginDocumentation()
-
-doc ///
-Key
-  IntegerEquivalences
-Headline
-Description
-  Text
-  Tree
-  Example
-  CannedExample
-Acknowledgement
-Contributors
-References
-Caveat
-SeeAlso
-Subnodes
-///
-
-doc ///
-Key
-Headline
-Usage
-Inputs
-Outputs
-Consequences
-  Item
-Description
-  Text
-  Example
-  CannedExample
-  Code
-  Pre
-ExampleFiles
-Contributors
-References
-Caveat
-SeeAlso
-///
-
--* Test section *-
-TEST /// -* [insert short title for this test] *-
--- test code and assertions here
--- may have as many TEST sections as needed
 ///
 
 end--
