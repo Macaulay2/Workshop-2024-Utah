@@ -962,7 +962,7 @@ beginDocumentation()
 -- . triangulations can be too big
 -- . what else can be too big?
 
-load (currentFileDirectory | "StringTorics/doc.m2")
+load (currentFileDirectory | "StringTorics/Doc.m2")
 load (currentFileDirectory | "StringTorics/DocMyPolyhedra.m2")
 load (currentFileDirectory | "StringTorics/DocCYPolytope.m2")
 load (currentFileDirectory | "StringTorics/DocCalabiYauInToric.m2")
@@ -973,7 +973,7 @@ load (currentFileDirectory | "StringTorics/DocTopology.m2")
 load (currentFileDirectory | "StringTorics/DocInvariants.m2")
 load (currentFileDirectory | "StringTorics/DocLineBundleCohomology.m2")
 load (currentFileDirectory | "StringTorics/DocGVInvariants.m2")
-load (currentFileDirectory | "StringTorics/test.m2")
+load (currentFileDirectory | "StringTorics/Test.m2")
 load (currentFileDirectory | "StringTorics/TestCYPolytope.m2")
 load (currentFileDirectory | "StringTorics/TestToricCIs.m2")
 load (currentFileDirectory | "StringTorics/TestIntersectionNumbers.m2")
