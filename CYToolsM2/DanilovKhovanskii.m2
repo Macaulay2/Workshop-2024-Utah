@@ -9,15 +9,21 @@ newPackage(
     DebuggingMode => true
     )
 
-export {"Cheap",
-    "vdot",
+export {
+    -- currently vetted functions
+    "HodgeDeligne",
+    "MutableHodgeDeligne",
+    
+    -- previous interface
+    "Cheap",
+    "vdot", -- TODO: why is this here?
     "torusFactor",
     "stdVector",
     "manyMatricesToLargeMatrix",
     "manyPolyhedraToLargeMatrix",
     "manyPolyhedraToLargeOne",
+    "ehrhartNumeratorNaive",
     "ehrhartNumerator",
-    "ehrhartNumeratorQuicker",
     "computeSumqeZ",
     "getSparseeZ",
     "eZ2hZ",
@@ -30,10 +36,88 @@ export {"Cheap",
     "computeHodgeDeligneInPToric",
     "computeHodgeDeligneAffineAndTorus",
     "computeHodgeDeligneTorusCI",
+    "hodgeDeligne", -- TODO: make a name for these polynomials, this should be "show"?
     "FaceInfo",
-    "EmptyValue"}
+    "EmptyValue",
+    "Headers",
+    }
 
 -* Code section *-
+HodgeDeligne = new Type of HashTable
+MutableHodgeDeligne = new Type of MutableHashTable
+
+  -- operations on these:
+  -- +, -, ZZ *, f[2,3] -- entry
+  -- hodgeNumbers
+  -- show
+  -- toHodgeDeligne
+  -- matrix HodgeDeligne
+  -- matrix MutableHodgeDeligne
+ 
+  MutableHodgeDeligne Array := 
+  HodgeDeligne Array := (F, vals) -> (
+      pq := toSequence vals;
+      F#pq ?? 0
+      )
+
+  MutableHodgeDeligne + MutableHodgeDeligne :=
+  HodgeDeligne + HodgeDeligne := (F, G) -> (
+      merge(F, G, (x,y) -> (a := x+y; if a === 0 then continue else a))
+      )
+
+  MutableHodgeDeligne - MutableHodgeDeligne :=
+  HodgeDeligne - HodgeDeligne := (F, G) -> (
+      merge(F, G, (x,y) -> (a := x-y; if a === 0 then continue else a))
+      )
+
+  ZZ * MutableHodgeDeligne :=
+  ZZ * HodgeDeligne := (n, F) -> (
+      if n == 0 then return new HodgeDeligne;
+      applyPairs(F, (k,v) -> (k, n*v))
+      )
+
+  matrix(MutableHodgeDeligne, ZZ) :=
+  matrix(HodgeDeligne, ZZ) := Matrix => opts -> (F, topsize) -> (
+    matrix for n from 0 to topsize list
+	for m from 0 to topsize list
+	    F#(m, n) ?? 0
+    )
+
+  matrix MutableHodgeDeligne :=
+  matrix HodgeDeligne := Matrix => opts -> F -> matrix(F, max((keys F)/max))
+
+  show MutableHodgeDeligne :=
+  show HodgeDeligne := Net => eZ -> (
+    ks := keys eZ;
+    maxp := ks/first//max; -- max p value
+    maxq := ks/last//max; -- max q value
+    M := for n from 0 to maxq list (
+        for m from 0 to maxp list (
+            if eZ#?(m, n) then eZ#(m, n) else ""
+            )
+	);
+    line0 := prepend(" \\ p"||"q \\ ", toList(0..maxp));
+    restlines := for i from 0 to #M-1 list prepend(i, M_i);
+    netList prepend(line0, restlines)
+    )
+
+--   hodgeDeligne = method(Options => {EmptyValue => "", Headers => true})
+-- hodgeDeligne MutableHashTable := List => opts -> eZ -> hodgeDeligne(hashTable eZ, opts)
+-- hodgeDeligne HashTable := List => opts -> eZ -> (
+--     ks := keys eZ;
+--     maxp := ks/first//max; -- max p value
+--     maxq := ks/last//max; -- max q value
+--     M := for n from 0 to maxq list (
+--         for m from 0 to maxp list (
+--             if eZ#?(m, n) then eZ#(m, n) else opts.EmptyValue
+--             )
+-- 	);
+--     line0 := prepend(" \\ p"||"q \\ ", toList(0..maxp));
+--     restlines := for i from 0 to #M-1 list prepend(i, M_i);
+--     prepend(line0, restlines)
+--     )
+  
+-- utility functions  
 stdVector = method();--index from 0
 stdVector (ZZ, ZZ) := (n, i) -> (
     for j from 0 to n - 1 list (if j == i then 1 else 0)
@@ -61,8 +145,14 @@ manyPolyhedraToLargeOne List := Ps -> (
     convexHull manyPolyhedraToLargeMatrix(Ps)
     )
 
-ehrhartNumerator = method();
-ehrhartNumerator Polyhedron := P -> (
+-- TODO: ehrhartSeries (like hilbertSeries)
+--       ehrhartPolynomial, gives the polynomial.
+--       maybe also ehrhartNumerator gives a polynomial, if given a variable.
+-- ehrHartPoly2Numerator
+-- ehrHartNumerator2Poly
+-- ehrhartNumerator' -- uses interior points?
+ehrhartNumeratorNaive = method()
+ehrhartNumeratorNaive Polyhedron := P -> (
     d := dim P;
     t := getSymbol "t";
     R := QQ[t];
@@ -76,8 +166,8 @@ ehrhartNumerator Polyhedron := P -> (
 	)
     )
 
-ehrhartNumeratorQuicker = method();
-ehrhartNumeratorQuicker Polyhedron := P -> (
+ehrhartNumerator = method();
+ehrhartNumerator Polyhedron := P -> (
     d := dim P;
     Ps := for i from 1 to ceiling(d / 2) list i * P;
     l := prepend(1, for i from 1 to ceiling(d / 2) list (
@@ -188,6 +278,7 @@ toeZMatrix MutableHashTable := opts -> H -> (
     M
     )
 
+    
 vdot = method();
 vdot (List, List) := (a, b) -> if #a == #b then (
     sum for i from 0 to #a-1 list a#i*b#i) else (error "Lengths not compatible.")
@@ -377,14 +468,15 @@ computeHodgeDeligne Polyhedron := opts -> P -> (
 	(Pfan2, P'fan2)
         )
     else opts.FaceInfo#3;
-        
+    --error "debug me0";
     --determine dimension of P and of the ambient space
     d := dim P;
     FanDim := dim P'fan;
     D := opts.FaceInfo#2;
     if D == -1 then (
 	D = FanDim;
-	); print("poly dim = "| d | ", ambient dim = " | D, topdim);
+	);
+    print("poly dim = "| d | ", ambient dim = " | D, topdim);
    
     eZ := new MutableHashTable;
     eZbar := new MutableHashTable;
@@ -404,7 +496,8 @@ computeHodgeDeligne Polyhedron := opts -> P -> (
 	eZbar = torusFactor(eZbar, d, D);
 	return (new HashTable from eZ, new HashTable from eZbar, new HashTable from {})
 	);-- print("not 0 or 1");
-    
+
+    --error "debug me0a";    
     --Begin by computing eZ of the varieties corresponding to each cone of the [subdivided] normal fan, P'fan.
     --This is known by induction. Build up from lowest dimension, 1.
     eZcones := new MutableHashTable from opts.FaceInfo#1;
@@ -430,6 +523,8 @@ computeHodgeDeligne Polyhedron := opts -> P -> (
 		    eZfaces#Fverts
 		    )
 		else (
+                    << "about to recurse" << endl;
+                    --error "debug me recurse";
 		    e2 := computeHodgeDeligne(F, FaceInfo => {false, eZcones2, Fdim, (Pfan, P'fan)});
 		    eZfaces#Fverts = e2#0;-- print(eZfaces#Fverts);
 		    eZfaces#Fverts
@@ -443,12 +538,14 @@ computeHodgeDeligne Polyhedron := opts -> P -> (
 		); print("done " | n);
 	    );
 	);-- print("faces done");--Hodge-Deligne numbers of the face.
-    
+
+    --error "debug me1";
     --A couple of Lefschetz-type theorems and Gysin homomorphisms give eZ#(p, q) for p + q > d - 1
     --in terms of eT^d#(p + 1, q + 1)
     --For p + q > d - 1, eZ#(p, q) is 0 for p != q and is (-1)^(d + p + 1) * binomial(d, p + 1) for p == q.
     for p from floor(d / 2) to d - 1 do eZ#(p, p) = (-1)^(d + p + 1) * binomial(d, p + 1); --print("p + q > d - 1");
-    
+
+    --error "debug me2";    
     --This gives eZbar for p + q > d - 1.
     --Poincare dualtiy then gives eZbar#(d - 1 - p, d - 1 - q) = eZbar#(p, q).
     --Since eZbar#(p, q) is then known for p + q < d - 1, one can compute obtains eZ#(p, q) for p + q < d - 1.
@@ -464,10 +561,11 @@ computeHodgeDeligne Polyhedron := opts -> P -> (
 		); --print"c";
 	    );
 	); --print("p + q < d - 1");
-    
+
+    --error "debug me3";    
     --The last remaining number, eZ#(p, d - 1 - p), is then the difference Sum_q eZ#(p, q) - Sum_{q != d - 1 - p} eZ#(p, q).
     --Sum_q eZ#(p, q) can be calculated from the number of lattice points in the interior of each face.
-    psi := ehrhartNumeratorQuicker(P);
+    psi := ehrhartNumerator(P);
     for p from 0 to d - 1 do (
 	eZ#(p, d - 1 - p) = computeSumqeZ(P, psi, p) - sum (
 	    for q from 0 to d - 1 list (
@@ -479,8 +577,10 @@ computeHodgeDeligne Polyhedron := opts -> P -> (
 	    );
 	); --print("p + q = d - 1");
     --hZ := eZ2hZ(P, eZ);
+    --error "debug me4";    
     eZ = torusFactor(eZ, d, D);
     eZbar = torusFactor(eZbar, d, D);
+    --error "debug me5";
     if topdim then (print("topdim = true");
         for k in keys(eZcones) do (
             eZcones#k = torusFactor(eZcones#k, d, D);
@@ -809,6 +909,78 @@ SeeAlso
 
 doc ///
 Key
+  ehrhartNumeratorNaive
+  (ehrhartNumeratorNaive, Polyhedron)
+Headline
+  compute the numerator of the rational function expression for the Ehrhart series of a polytope
+Usage
+  ehrhartNumeratorNaive P
+Inputs
+  P:Polyhedron
+Outputs
+  :List
+    the coefficients of the numerator, with the i-th position corresponding to the i-th power of t (beginning from 0)
+Description
+  Text
+    The {\it Ehrhart} series of a lattice polytope $P$ is the rational function $\displaystyle\sum_{i\ge 0} \ell(i P) t^i = \frac{h^*(t)}{(1-t)^{dim(P)+1}}$,
+    where $\displaystyle h_P^*(t) = 1 + h_1^* t + \ldots + h_d^* t^d$ is a polynomial with non-negative integer coefficients, and $\ell(i \cdot P)$
+    is the number of lattice points in the $i$-th dilation of $P$.
+    This numerator is called the {\it Ehrhart numerator}, and this method returns the coefficients of this polynomial.
+  Example
+    R = QQ[x];
+    P = convexHull transpose matrix {{1,1},{1,-1},{-1,1},{-1,-1}}
+    elapsedTime eNum = ehrhartNumeratorNaive P
+    elapsedTime eNum = ehrhartNumerator P
+    h = sum for i from 0 to #eNum - 1 list (
+        eNum#i * x^i
+        )
+    a = 1 + sum for i from 1 to 10 list (
+        #latticePoints(i * P) * x^i
+        )
+    assert((a * (1 - x)^3)%x^11 == h)
+  Text
+    The Ehrhart numerator of a reflexive polytope has a nice symmetry.
+  Example
+    A = transpose matrix {
+        {1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, 1, 3},
+        {1, 1, 1, 1},
+        {1, 1, 1, 3},
+        {-1, -1, -3, -5},
+        {1, -1, 1, 1},
+        {-1, 1, 1, 1}}
+    P = convexHull A
+    isReflexive P
+    elapsedTime ehrhartNumeratorNaive P
+    elapsedTime ehrhartNumerator P
+    elapsedTime ehrhartNumeratorNaive polar P
+    elapsedTime ehrhartNumerator polar P
+    #latticePointList(P) == 23
+    #latticePointList(2*P) == 163
+    #latticePointList(3*P) == 613
+    #latticePointList(4*P) == 1661
+    #interiorLatticePoints(P) == 1
+    #interiorLatticePoints(2*P) == 23
+    #interiorLatticePoints(3*P) == 163
+    elapsedTime for i from 1 to 5 list # interiorLatticePoints(i*P)
+    elapsedTime hP = ehrhart P
+    for i from 1 to 10 list sub(hP, (ring hP)_0 => i)
+    QQ[t]
+    elapsedTime ep = ehrhartNumeratorNaive P
+    ep = sum for i from 0 to #ep-1 list ep#i * t^i
+    ((1 + 23*t + 163*t^2 + 613*t^3 + 1661*t^4) * (1-t)^5) % t^5 === ep
+Caveat
+SeeAlso
+  ehrhartNumerator
+  "Polyhedra::ehrhart"
+  computeSumqeZ
+  computeHodgeDeligne
+///
+
+doc ///
+Key
   ehrhartNumerator
   (ehrhartNumerator, Polyhedron)
 Headline
@@ -837,42 +1009,7 @@ Description
     assert((a * (1 - x)^3)%x^11 == h)
 Caveat
 SeeAlso
-  ehrhartNumeratorQuicker
-  computeSumqeZ
-  computeHodgeDeligne
-///
-
-doc ///
-Key
-  ehrhartNumeratorQuicker
-  (ehrhartNumeratorQuicker, Polyhedron)
-Headline
-  compute the numerator of the rational function expression for the Ehrhart series of a polytope
-Usage
-  ehrhartNumeratorQuicker(P)
-Inputs
-  P:Polyhedron
-Outputs
-  :List
-    the coefficients of the numerator, with the i-th position corresponding to the i-th power of t (beginning from 0)
-Description
-  Text
-    The Ehrhart series of a polytope, P, in which the coefficient of $t^i$ is the number of lattice points in the i-th dilation of P, can be expressed as a rational function with a certain form.
-    Namely, one has $Ehr_P(t) = \frac{h^*(t)}{(1-t)^{dim(P)+1}}$, where $h^*(t)$ is a polynomial of degree $dim(P)$.
-  Example
-    R = QQ[x]
-    P = convexHull transpose matrix {{1,1},{1,-1},{-1,1},{-1,-1}}
-    eNum = ehrhartNumeratorQuicker(P)
-    h = sum for i from 0 to #eNum - 1 list (
-        eNum#i * x^i
-        )
-    a = 1 + sum for i from 1 to 10 list (
-        #latticePoints(i * P) * x^i
-        )
-    assert((a * (1 - x)^3)%x^11 == h)
-Caveat
-SeeAlso
-  ehrhartNumerator
+  ehrhartNumeratorNaive
   computeSumqeZ
   computeHodgeDeligne
 ///
@@ -901,13 +1038,13 @@ Description
     It is used in one of the last step of the Danilov-Khovanskii algorithms to compute $e^{p,q}(Z)$ for $p + q = d - 1$, since for fixed $p$, all other $e^{p,q}(Z)$'s will have been computed and $e^{p,d-1-p}(Z) = \sum_q e^{p,q}(Z) - \sum_{q\neqd-1-p} e^{p,q}(Z)$.
   Example
     P = convexHull transpose matrix {{1,1},{1,-1},{-1,1},{-1,-1}}
-    psi = ehrhartNumerator(P)
+    psi = ehrhartNumeratorNaive(P)
     computeSumqeZ(P, psi, 0)
     computeSumqeZ(P, psi, 1)
 Caveat
 SeeAlso
+  ehrhartNumeratorNaive
   ehrhartNumerator
-  ehrhartNumeratorQuicker
   computeHodgeDeligne
 ///
 
@@ -1186,8 +1323,8 @@ SeeAlso
 TEST /// -* [insert short title for this test] *-
   R = QQ[x]
   P = convexHull transpose matrix {{1,1},{1,-1},{-1,1},{-1,-1}}
-  eNum = ehrhartNumerator(P)
-  eNum2 = ehrhartNumeratorQuicker(P)
+  eNum = ehrhartNumeratorNaive(P)
+  eNum2 = ehrhartNumerator(P)
   h = sum for i from 0 to #eNum - 1 list (
       eNum#i * x^i
       )
@@ -1199,7 +1336,7 @@ TEST /// -* [insert short title for this test] *-
 
 TEST ///
   P = convexHull transpose matrix {{1,1},{1,-1},{-1,1},{-1,-1}}
-  psi = ehrhartNumerator(P)
+  psi = ehrhartNumeratorNaive(P)
   assert (computeSumqeZ(P, psi, 0) == -8)
   assert (computeSumqeZ(P, psi, 1) == 0)
   (eZ, eZbar, eZcones) = computeHodgeDeligne(P)
@@ -1214,7 +1351,7 @@ TEST ///
   isReflexive PM
   latticePoints PM
   faces(1,PN)
-  psi = ehrhartNumerator(PM)
+  psi = ehrhartNumeratorNaive(PM)
   assert (computeSumqeZ(PM, psi, 0) == 33)
   assert (computeSumqeZ(PM, psi, 1) == 27)
   assert (computeSumqeZ(PM, psi, 2) == 2)
@@ -1318,7 +1455,7 @@ TEST ///
       fs := faces(i, P);
       Fs := facesAsPolyhedra(i, P);
       for j from 0 to #fs - 1 do (
-          print("vertices = " | toString(fs#j#0), ehrhartNumeratorQuicker(Fs#j), ehrhartNumerator(Fs#j));
+          print("vertices = " | toString(fs#j#0), ehrhartNumerator(Fs#j), ehrhartNumeratorNaive(Fs#j));
 	  for k from 1 to d - i do (
 	      print(k | ": " | #latticePoints(k * Fs#j))
 	      );
@@ -1397,7 +1534,7 @@ TEST ///
       fs := faces(i, P);
       Fs := facesAsPolyhedra(i, P);
       for j from 0 to #fs - 1 do (
-          assert(ehrhartNumeratorQuicker(Fs#j) == ehrhartNumerator(Fs#j));
+          assert(ehrhartNumerator(Fs#j) == ehrhartNumeratorNaive(Fs#j));
 	  );
       )
 ///
@@ -1408,7 +1545,7 @@ end--
 -* Development section *-
 restart
 debug needsPackage "DanilovKhovanskii"
-check "DanilovKhovanskii"
+check "DanilovKhovanskii2"
 
 uninstallPackage "DanilovKhovanskii"
 restart
