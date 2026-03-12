@@ -740,9 +740,101 @@ Headline
   Computing Hodge-Deligne polynomials of toric hypersurfaces
 Description
   Text
-References
-Caveat
+    This package implements the Danilov-Khovanskii algorithm for computing
+    Hodge-Deligne numbers $e^{p,q}(Z)$ of hypersurfaces $Z$ in algebraic tori
+    and toric varieties, as well as complete intersections in tori.
+
+    The Hodge-Deligne numbers are a refinement of the Euler characteristic
+    that encode mixed Hodge structure information.  For a smooth projective
+    variety, $e^{p,q}(Z) = (-1)^{p+q} h^{p,q}(Z)$ recovers the usual Hodge numbers.
+
+    @SUBSECTION "Main functions"@
+  Text
+    The central function is @TO computeHodgeDeligne@, which takes a lattice polytope
+    (the Newton polytope of a generic hypersurface in a torus) and returns the
+    Hodge-Deligne numbers as hash tables.
+
+    For complete intersections in tori, use @TO computeHodgeDeligneTorusCI@.
+
+    For hypersurfaces in subtoric varieties or in products $T^n \times \CC^r$,
+    use @TO computeHodgeDeligneInPToric@ or @TO computeHodgeDeligneAffineAndTorus@.
+
+    @SUBSECTION "Utility functions"@
+  Text
+    Several helper functions support the computation:
+
+    $\bullet$ @TO ehrhartNumerator@ and @TO ehrhartNumeratorNaive@ compute the
+    $h^*$-polynomial of a lattice polytope.
+
+    $\bullet$ @TO eZ2hZ@ converts Hodge-Deligne numbers to Hodge numbers for
+    smooth projective varieties.
+
+    $\bullet$ @TO toeZMatrix@ displays Hodge-Deligne numbers as a matrix.
+
+    $\bullet$ @TO manyPolyhedraToLargeOne@ and related functions construct the
+    auxiliary polytope needed for complete intersection computations.
+  Text
+    @SUBSECTION "A simple example"@
+  Text
+    We compute the Hodge-Deligne numbers of a generic hypersurface in a
+    3-dimensional torus, defined by a polynomial with Newton polytope $P$.
+  Example
+    P = convexHull transpose matrix {{1,1},{1,-1},{-1,1},{-1,-1}}
+    (eZ, eZbar, eZcones) = computeHodgeDeligne(P)
+    eZ
+    eZbar
+    toeZMatrix eZ
+  Text
+    For reflexive polytopes, we can also compute via the @TO ReflexivePolytope@ type.
+  Example
+    topes = kreuzerSkarke 3;
+    Q = cyPolytope topes_50
+    (eZ, eZbar, eZcones) = computeHodgeDeligne(Q);
+    toeZMatrix eZbar
 SeeAlso
+  computeHodgeDeligne
+  computeHodgeDeligneTorusCI
+  computeHodgeDeligneAffineAndTorus
+  ehrhartNumerator
+  eZ2hZ
+///
+
+doc ///
+Key
+  HodgeDeligne
+Headline
+  type for Hodge-Deligne number data
+Description
+  Text
+    A @TO HodgeDeligne@ object is a @TO HashTable@ whose keys are pairs $(p,q)$
+    of non-negative integers and whose values are the corresponding Hodge-Deligne
+    numbers $e^{p,q}$.
+
+    Supported operations include addition, subtraction, scalar multiplication,
+    array access, @TO (matrix, HodgeDeligne)@, and @TO (show, HodgeDeligne)@.
+  Example
+    P = convexHull transpose matrix {{1,1},{1,-1},{-1,1},{-1,-1}}
+    (eZ, eZbar, eZcones) = computeHodgeDeligne(P)
+    show eZ
+SeeAlso
+  MutableHodgeDeligne
+  toeZMatrix
+  eZ2hZ
+///
+
+doc ///
+Key
+  MutableHodgeDeligne
+Headline
+  mutable type for Hodge-Deligne number data
+Description
+  Text
+    A @TO MutableHodgeDeligne@ object is a @TO MutableHashTable@ version of
+    @TO HodgeDeligne@.  It supports the same operations (addition, subtraction,
+    scalar multiplication, array access, matrix conversion, show) but allows
+    mutation of entries.
+SeeAlso
+  HodgeDeligne
 ///
 
 doc ///
@@ -753,29 +845,65 @@ Key
   (computeHodgeDeligne, CalabiYauInToric)
   (computeHodgeDeligne, ToricDivisor)
   (computeHodgeDeligne, NormalToricVariety)
+  [computeHodgeDeligne, FaceInfo]
 Headline
-  compute the Hodge-Deligne polynomial of a hypersurface in a torus.
+  compute the Hodge-Deligne numbers of a hypersurface in a torus
 Usage
-  computeHodgeDeligne(P)
+  (eZ, eZbar, eZcones) = computeHodgeDeligne P
 Inputs
   P:Polyhedron
-    a lattice polytope
+    a lattice polytope (or @ofClass ReflexivePolytope@, @ofClass CalabiYauInToric@,
+    @ofClass ToricDivisor@, or @ofClass NormalToricVariety@)
+  FaceInfo => List
+    internal option for recursive calls (not intended for direct use)
 Outputs
-  :Sequence
-    of three HashTables $e_Z$, $e_{\bar{Z}}$, and all of the $e_{Z_\Gamma}$ for $\Gamma \leq P$ a face
+  eZ:HashTable
+    the Hodge-Deligne numbers $e^{p,q}(Z)$ of the hypersurface $Z$
+  eZbar:HashTable
+    the Hodge-Deligne numbers $e^{p,q}(\bar{Z})$ of the compactification $\bar{Z}$
+  eZcones:HashTable
+    the Hodge-Deligne numbers for each face of $P$
 Description
   Text
-    The Hodge-Deligne polynomial encodes information 
+    Given a lattice polytope $P$, computes the Hodge-Deligne numbers of a
+    generic hypersurface $Z$ in the torus $T^d$ defined by a Laurent polynomial
+    with Newton polytope $P$.  The algorithm follows Danilov and Khovanskii.
+
+    The output consists of three hash tables:
+
+    $\bullet$ {\tt eZ}: the Hodge-Deligne numbers $e^{p,q}(Z)$ of the open
+    hypersurface $Z \subset T^d$.
+
+    $\bullet$ {\tt eZbar}: the Hodge-Deligne numbers of the closure $\bar{Z}$
+    in the projective toric variety associated to $P$.
+
+    $\bullet$ {\tt eZcones}: Hodge-Deligne data for the strata corresponding
+    to faces of $P$.
   Example
     P = convexHull matrix {{-1, 4, -1, -1, 0, -1}, {-1, -1, 4, 0, -1, -1}, {-1, -1, -1, 1, 1, 1}}
     latticePoints(P)
     (eZ, eZbar, eZcones) = computeHodgeDeligne(P)
     eZ
     eZbar
+  Text
+    For a @TO ReflexivePolytope@ from the Kreuzer-Skarke database, the compactified
+    Hodge-Deligne numbers recover the Hodge numbers of the corresponding Calabi-Yau.
+  Example
+    topes = kreuzerSkarke 3;
+    Q = cyPolytope topes_50
+    hh^(1,1) Q
+    hh^(1,2) Q
+    (eZ, eZbar, eZcones) = computeHodgeDeligne(Q);
+    toeZMatrix eZbar
 Caveat
+  The {\tt FaceInfo} option is used internally for recursive computation
+  and should not normally be set by the user.
 SeeAlso
   computeHodgeDeligneInPToric
+  computeHodgeDeligneAffineAndTorus
   computeHodgeDeligneTorusCI
+  eZ2hZ
+  toeZMatrix
 ///
 
 doc ///
@@ -1317,6 +1445,188 @@ SeeAlso
   computeHodgeDeligne
   computeHodgeDeligneInPToric
   computeHodgeDeligneAffineAndTorus
+///
+
+doc ///
+Key
+  FaceInfo
+Headline
+  option for computeHodgeDeligne controlling recursive face data
+Description
+  Text
+    An option for @TO computeHodgeDeligne@ used internally during recursive calls
+    to pass previously computed face data.  The value is a list
+    {\tt \{isTopLevel, faceData, ambientDim, fanPair\}}.
+
+    This option is not intended for direct use.
+SeeAlso
+  computeHodgeDeligne
+///
+
+doc ///
+Key
+  Cheap
+  [computeHodgeDeligneAffineAndTorus, Cheap]
+Headline
+  option controlling computation strategy for affine-torus hypersurfaces
+Description
+  Text
+    An option for @TO computeHodgeDeligneAffineAndTorus@.  When {\tt Cheap => true},
+    uses a faster method based on selecting columns from the vertex matrix.
+    When {\tt Cheap => false}, uses a more general method involving intersections
+    of half-spaces (not yet fully implemented).
+
+    The {\tt Cheap} method is the one used internally by @TO computeHodgeDeligneTorusCI@.
+SeeAlso
+  computeHodgeDeligneAffineAndTorus
+  computeHodgeDeligneTorusCI
+///
+
+doc ///
+Key
+  EmptyValue
+  [toeZMatrix, EmptyValue]
+Headline
+  option for toeZMatrix specifying the value for missing entries
+Description
+  Text
+    An option for @TO toeZMatrix@ that specifies what value to use for
+    $(p,q)$ entries that are not present in the hash table.  Default is 0.
+  Example
+    P = convexHull transpose matrix {{1,1},{1,-1},{-1,1},{-1,-1}}
+    (eZ, eZbar, eZcones) = computeHodgeDeligne(P)
+    toeZMatrix(eZ, EmptyValue => ".")
+SeeAlso
+  toeZMatrix
+///
+
+doc ///
+Key
+  Headers
+Headline
+  option symbol (not currently in use)
+Description
+  Text
+    This symbol is exported but not currently used.  It was intended for
+    a display function for Hodge-Deligne numbers.
+///
+
+doc ///
+Key
+  hodgeDeligne
+Headline
+  display function for Hodge-Deligne numbers (not currently in use)
+Description
+  Text
+    This function is exported but its implementation is currently commented out.
+    Use @TO (show, HodgeDeligne)@ or @TO toeZMatrix@ instead for displaying
+    Hodge-Deligne data.
+SeeAlso
+  toeZMatrix
+  HodgeDeligne
+///
+
+doc ///
+Key
+  matchCones
+  (matchCones, Cone, HashTable)
+Headline
+  find a cone in a cone table that contains a given cone
+Usage
+  c1 = matchCones(c, Pcones)
+Inputs
+  c:Cone
+  Pcones:HashTable
+    a cone table as produced by @TO makeConeTable@
+Outputs
+  c1:Cone
+    the smallest cone in Pcones containing $c$
+Description
+  Text
+    Searches through a cone table (indexed by dimension) to find a cone that
+    contains the given cone $c$.  This is used internally to match cones between
+    a simplicial subdivision fan and the original normal fan.
+SeeAlso
+  makeConeTable
+  fanRayList
+///
+
+doc ///
+Key
+  fanRayList
+  (fanRayList, Cone, Fan)
+Headline
+  find the indices of rays of a cone within a fan
+Usage
+  L = fanRayList(C, F)
+Inputs
+  C:Cone
+  F:Fan
+Outputs
+  L:List
+    the sorted list of indices of rays of $F$ that are rays of $C$
+Description
+  Text
+    Given a cone $C$ whose rays are a subset of the rays of a fan $F$,
+    returns the sorted list of ray indices (in $F$) corresponding to the rays of $C$.
+    Handles lineality correctly.
+SeeAlso
+  matchCones
+  makeConeTable
+  makeConeToFaceDict
+///
+
+doc ///
+Key
+  makeConeToFaceDict
+  (makeConeToFaceDict, Polyhedron, Fan)
+Headline
+  create a dictionary from cones of a normal fan to faces of a polytope
+Usage
+  D = makeConeToFaceDict(P, Pfan)
+Inputs
+  P:Polyhedron
+  Pfan:Fan
+    the normal fan of $P$
+Outputs
+  D:HashTable
+    keys are sorted ray index lists of cones, values are lists of vertex indices
+    of the corresponding dual face
+Description
+  Text
+    For each cone $\sigma$ in the normal fan of a polytope $P$, the dual face
+    $F_\sigma$ consists of the vertices of $P$ that achieve the minimum inner
+    product with rays of $\sigma$.  This function builds a dictionary mapping
+    cone ray lists to vertex index lists.
+SeeAlso
+  makeConeTable
+  fanRayList
+  computeHodgeDeligne
+///
+
+doc ///
+Key
+  makeConeTable
+  (makeConeTable, Fan)
+Headline
+  organize the cones of a fan by dimension
+Usage
+  T = makeConeTable F
+Inputs
+  F:Fan
+Outputs
+  T:HashTable
+    keys are dimensions (from 0 to dim $F$), values are lists of cones
+    of that dimension
+Description
+  Text
+    Creates a hash table organizing the cones of a fan by their dimension.
+    Used internally by @TO computeHodgeDeligne@ to iterate over cones
+    in order of increasing dimension.
+SeeAlso
+  matchCones
+  fanRayList
+  makeConeToFaceDict
 ///
 
 -* Test section *-

@@ -91,10 +91,44 @@ TopologySet = new Type of MutableHashTable
 topologySet = method()
 topologySet(List, HashTable) := TopologySet => (labels, Xs) -> (
     new TopologySet from {
-        "Sets" => {for k in labels list {k}},
+        "Sets" => {for k in labels list {k}}, -- sort?
         "CYHash" => Xs
         }
     )
+buckets = method(Options => {IgnoreSingles => false})
+buckets TopologySet := List => opts -> T -> (
+    if opts.IgnoreSingles then select(T#"Sets", x -> #x > 1) else T#"Sets"
+    )
+
+-- write "Sets" part to a string, so use: `filename << toString T << close` to write to disk
+toString TopologySet := String => T -> (
+    concatenate for x in buckets T list (toString x | "\n")
+    )
+
+toString(TopologySet, Symbol) := String => (T, sym) -> (
+    concatenate for x in buckets(T, IgnoreSingles => true) list (toString x | "\n")
+    )
+
+nonsingles = method()
+nonsingles(TopologySet) := String => (T) -> (
+    concatenate for x in buckets(T, IgnoreSingles => true) list (toString x | "\n")
+    )
+
+-- read "Sets" part from a string (so use topologySet(get "filename", Xs) to get it from a file).
+topologySet(String, HashTable) := TopologySet => (str, Xs) -> (
+    new TopologySet from {
+        "Sets" => (lines str)/value,
+        "CYHash" => Xs
+        }
+    )
+
+readTopologySet = method()
+readTopologySet(String, HashTable) := (filename, Xs) -> topologySet(get filename, Xs)
+
+writeTopologySet = method()
+writeTopologySet(String, TopologySet) := (filename, T) -> filename << toString T << close
+
+show TopologySet := T -> netList T#"Sets"
 
 info TopologySet := T -> (
     << "Total number of objects considered:         " << T#"Sets"/(x -> (x/length//sum))//sum << endl;
@@ -126,6 +160,27 @@ equivalences TopologySet := opts -> T -> (
         )
     )
 
+checkEquivalences = method()
+checkEquivalences TopologySet := T -> (
+    Xs := T#"CYHash";
+    E := equivalences T;
+    bad := {};
+    for k in sort keys E do (
+        X1 := Xs#k;
+        for x in E#k do (
+            X2 := Xs#(first x);
+            mat := last x;
+            if not isEquivalent(X1, X2, mat) then bad = append(bad, {k,first x});
+            )
+        );
+    if #bad > 0 then (
+        << "the following equivalences failed: " << bad << endl;
+        return false
+        );
+    << "topology set equivalences all check" << endl;
+    true
+    )
+
 separateIfDifferent = method()
 separateIfDifferent(TopologySet, Function) := (T, fun) -> (
     -- fun takes a CalabiYauInToric, and returns some value.
@@ -143,7 +198,7 @@ separateIfDifferent(TopologySet, Function) := (T, fun) -> (
             )
         );
     new TopologySet from {
-        "Sets" => newsets,
+        "Sets" => newsets, -- /sort//sort,
         "CYHash" => T#"CYHash"
         }
     )
@@ -162,10 +217,64 @@ combineIfSame(TopologySet, Function) := (T, fun) -> (
         -- TODO XXX: the previous line should add in identity maps
         );
     new TopologySet from {
-        "Sets" => newsets,
+        "Sets" => newsets/sort//sort,
         "CYHash" => T#"CYHash"
         }
     )
+
+---------- new code for combining GV, combining+separating bucket by findEquivalence -----
+combineAndSeparateBucketviaFE = method()  -- FE: findEquivalence
+combineAndSeparateBucketviaFE(List, HashTable) := (todo, Xs) -> (
+  newsets := new MutableList;
+  newincomps := {};
+  for x in todo do (
+      rep := x#0;
+      rest := drop(x, 1);
+      found := false;
+      incomp := false;
+      for y from 0 to #newsets-1 do (
+          lab := first newsets#y;
+          << "comparing " << rep << " and " << lab << endl;
+          (stat, A) := findEquivalence(Xs#rep, Xs#lab);
+          << "  result: " << (stat, A) << endl;
+          if stat === CONSISTENT then (
+              -- combine x list and y list.
+              A = transpose A^-1; -- HACK: we should fix findEquivalence, or make it deal with same matrix as isEquivalent works with
+              newset' := for z in rest list if instance(z, Sequence) then {z, A} else {z#0, z#1 * A};
+              newsets#y = join(newsets#y, {{rep, A}}, newset');
+              found = true;
+              break;
+              )
+          else if stat === INDETERMINATE then
+              incomp = true;
+          );
+      if not found then (
+          if incomp then
+              newincomps = append(newincomps, x)
+          else -- new topology
+              newsets#(#newsets) = x;
+          );
+      );
+  {toList newsets, newincomps}
+  )
+
+combineAndSeparateByFindEquivalence = method(Options => {Defer => {}})
+combineAndSeparateByFindEquivalence TopologySet := opts -> T -> (
+    Xs := T#"CYHash";
+    defer := set opts.Defer; -- list of labels, which should be the first element of some elem in buckets
+    result := for x in T#"Sets" list (
+        if member(x#0#0, defer) then x else combineAndSeparateBucketviaFE(x, Xs);
+        );
+    bads := result/last;
+    result = result/first;
+    result = flatten result;
+    result = result/(x -> {x});
+    (new TopologySet from {
+        "Sets" => result/sort//sort,
+        "CYHash" => Xs
+        }, flatten bads)
+    )
+---------- new code above this line 2026.03.07 -------------------------------------------
 
 -- REMOVE THIS ONE: use combineByGV...
 separateByGV = method(Options => {DegreeLimit => 15})
@@ -215,7 +324,7 @@ combineByGV TopologySet := opts -> T -> (
         );
     new TopologySet from {
         "CYHash" => Xs,
-        "Sets" => newSets
+        "Sets" => newSets/sort//sort
         }
     )
 
@@ -773,6 +882,19 @@ invariantsAll(RingElement, RingElement, ZZ, ZZ) := (L, F, h11, h12) -> (
      "hessian shape" => inv8,
      "lincontent sing F" => inv9
      }
+    )
+
+invariantsHessianSings = method()
+invariantsHessianSings(RingElement, RingElement, ZZ, ZZ) := (L, F, h11, h12) -> (
+    RQ := QQ (monoid ring L);
+    H := det hessian sub(F, RQ);
+    singH := ideal H + ideal jacobian H;
+    comps := decompose singH;
+    comps/(i -> betti gens i)//tally
+    )
+invariantsHessianSings(CalabiYauInToric) := (X) -> (
+    F := cubicForm X;
+    invariantsHessianSings(c2Form X, F, hh^(1,1) X, hh^(1,2) X)
     )
 
 invariantsAll CalabiYauInToric := X -> invariantsAll(c2Form X, cubicForm X, hh^(1,1) X, hh^(1,2) X)

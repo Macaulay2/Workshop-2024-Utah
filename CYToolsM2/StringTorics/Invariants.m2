@@ -341,7 +341,7 @@ singularContents Ideal := (J) -> (
 
 singularContentsQuartic = method()
 singularContentsQuartic CalabiYauInToric := (X) -> (
-   << "singularContentsQuartic: doing " << label X << endl;
+   -- << "singularContentsQuartic: doing " << label X << endl;
    F := cubicForm X;
    F = F // polynomialContent F;
    L := c2Form X;

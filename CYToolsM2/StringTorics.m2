@@ -194,7 +194,7 @@ export {
     "equivalences",
     "IgnoreSingles",
     "separateIfDifferent",
-    
+    "Defer",
         
     -- CompleteIntersectionInToric's
     "completeIntersection",

@@ -19,7 +19,7 @@ uninstallPackage "DanilovKhovanskii"
 restart
 installPackage "DanilovKhovanskii"
 restart
-check "DanilovKhovanskii"
+check "DanilovKhovanskii"  -- one error (hash table has wrong class) 3/5/26.
 
 -- to install the PALP interface
 -- for now, need to install PALP on your computer to use this

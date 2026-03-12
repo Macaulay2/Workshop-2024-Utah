@@ -9,34 +9,40 @@ newPackage(
     )
 
 export {
+    -- easy interface
     "findEquivalence",
-    "MatchingData",
+    -- by hand interface
     "equivalenceIdeal",
-    "extendToMatrix", -- extendToMatrix(List of integers) ==> Matrix (over ZZ).
     "factorsByType",
     "idealsByBetti",
     "genericLinearMap", -- genericLinearMap(R).  Constructs two new rings, T, U, a matrix A over T nxn, n = numgens R, and phi = map(U, U, transpose A).
     "invertibleMatrixOverZZ",
-    "matches",
-    "hessian", -- place in Core?
     "hessianMatches",
     "selectLinear",
     "matchingData",
     "allSigns",
     "signedPermutations",
-    "cartesian",
+    "matches",
     "singularPoints",
     "singularPointMatches",
     "singularMatches",
     "tryEquivalences",
+    -- types defined
+    "MatchingData",
+    -- utilities
+    "extendToMatrix", -- extendToMatrix(List of integers) ==> Matrix (over ZZ).
+    "cartesian",
+    "hessian", -- place in Core?
+    -- optional arguments and symbols usd in matching
     "RowVector",
     "ColumnVector",
     "Unknown",
+    "SignedPermutations",
+    "Permutations",
+    -- symbols returnd
     "CONSISTENT",
     "INCONSISTENT",
-    "INDETERMINATE",
-    "SignedPermutations",
-    "Permutations"
+    "INDETERMINATE"
     }
 
 importFrom_"LLLBases"{"gcdLLL"};
@@ -69,7 +75,7 @@ genericLinearMap Ring := Sequence => opts -> R -> (
     (A, phi)
     )
 
--- MatchingData: is a list of elements each f the form
+-- MatchingData: is a list of elements each of the form
 --  L => {M0, M1, ..., Ms}
 -- where L is a list of:
 --   RingElement: a polynomial in the original ring RZ or RQ.
@@ -90,6 +96,9 @@ matchingData List := LMs -> (
 MatchingData | MatchingData := MatchingData => (md1, md2) -> (
     matchingData join(toList md1, toList md2)
     )
+MatchingData | Nothing := (MD, nothing) -> null
+Nothing | MatchingData := (nothing, MD) -> null
+Nothing | Nothing := (nothing1, nothing2) -> null
 
 -- helper function for validMatchingItem.  
 --   Input: either source or one of the targets of the matching data.
@@ -235,6 +244,7 @@ selectLinear MatchingData := MatchingData => (MD) -> (
             else elem
         ))
     )
+selectLinear Nothing := nothing -> null
 
 invertibleMatrixOverZZ = method()
 invertibleMatrixOverZZ(Matrix, Ideal) := Sequence => (A, J) -> (
@@ -301,6 +311,17 @@ equivalenceIdeal(List, List, Ring, Sequence) := Ideal => (List1, List2, RQ, Aphi
     sum ids
     )
 
+equivalenceIdeals = method()
+equivalenceIdeals(MatchingData, Ring, Sequence) := List => (MD, RQ, Aphi) -> (
+    -- returns the list of equivalence ideals.
+    (A,phi) := Aphi;
+    (src, tar) := matches MD;
+    for i from 0 to #tar-1 list (
+        trim equivalenceIdeal(src, tar#i, RQ, Aphi)
+        )
+    )
+equivalenceIdeals(Nothing, Ring, Sequence) := (MDnull, RQ, Aphi) -> {}
+
 tryEquivalences = method()
 tryEquivalences(MatchingData, Ring, Sequence) := (MD, RQ, Aphi) -> (
     (A,phi) := Aphi;
@@ -320,6 +341,7 @@ tryEquivalences(MatchingData, Ring, Sequence) := (MD, RQ, Aphi) -> (
     if #badJs > 0 then return (INDETERMINATE, badJs);
     (INCONSISTENT, inconsistentMatrix)
     )
+tryEquivalences(Nothing, Ring, Sequence) := (MD, RQ, Aphi) -> (INCONSISTENT, null)
 
 -------------------------------
 -- Finding matching data of (L1,F1), (L2,F2)
@@ -343,7 +365,7 @@ idealsByBetti = method()
 idealsByBetti(List, List) := MatchingData => (J1s, J2s) -> (
     H1 := partition(J -> betti gens J, J1s);
     H2 := partition(J -> betti gens J, J2s);
-    if sort keys H1 =!= sort keys H2 then return {};
+    if sort keys H1 =!= sort keys H2 then return null;
     matchingData for k in sort keys H1 list (
         if #H1#k === 1 then H1#k#0 => H2#k#0 else {Permutations, H1#k, H2#k}
         )
@@ -359,7 +381,7 @@ hessianMatches(RingElement, RingElement) := MatchingData => (F1, F2) -> (
     fac2 := factorsByType(det hessian F2);
     keys1 := sort select(keys fac1, k -> k =!= {1,0}); -- remove constant
     keys2 := sort select(keys fac2, k -> k =!= {1,0}); -- remove constant
-    if keys1 =!= keys2 then return matchingData{}; -- no matches.
+    if keys1 =!= keys2 then return null; -- no matches.
     matchingData for k in keys1 list {SignedPermutations, fac1#k, fac2#k}
     )
 
@@ -373,7 +395,7 @@ singularPoints RingElement := List => F -> (
     kk := coefficientRing R;
     n := numgens R;
     singlocus := trim saturate(ideal F + ideal jacobian F);
-    if singlocus == 1 then return matchingData{};
+    if singlocus == 1 then return {};
     comps := (decompose singlocus);
     comps0 := select(comps, c -> codim c == n-1 and degree c === 1); -- zero-dimensional rational points
     comps1 := select(comps, c -> not(codim c == n-1 and degree c === 1)); -- the rest
@@ -433,8 +455,21 @@ findEquivalence(List, List) := (LF1, LF2) -> (
     md := hessianMatches(F1, F2) |
           singularMatches(F1, F2) |
           matchingData {L1 => L2, F1 => F2};
---    linmd := selectLinear md;
-    --result := tryEquivalences(linmd, RQ, (A,phi));
+    if false then (
+        H1 := det hessian F1;
+        H2 := det hessian F2;
+        singH1 := ideal H1 + ideal jacobian H1;
+        singH2 := ideal H2 + ideal jacobian H2;
+        comps1 := (decompose singH1)/trim;
+        comps2 := (decompose singH2)/trim;
+        MDh := idealsByBetti(comps1, comps2);
+        md = md | MDh;
+        );
+    if false then (
+        linmd := (selectLinear md) | matchingData{F1 => F2};
+        result := tryEquivalences(linmd, RQ, (A,phi));
+        return result;
+        );
     -- if result is INDETERMINATE, try the entire matching data
     -- TODO: if we get a consistent match, try that first!
     -- only if that fails should we move on to this.
@@ -496,6 +531,52 @@ doc ///
       result = findEquivalence({L1, F1}, {L2, F2})
       result#0
       result#1
+    Text
+      @SUBSECTION "A sample use of the pipeline"@
+    Text
+      We check whether two pairs $(L_1, F_1)$ and $(L_2, F_2)$ of a linear form
+      and cubic form (representing $c_2$ and cubic intersection form of CY 3-folds)
+      are related by a $GL(3, \ZZ)$ change of coordinates.  However, this time
+      the two cubic forms (in 4 variables), using the default pipeline doesn't work well.
+    Example
+      RZ = ZZ[a,b,c,d]
+      RQ = QQ[a,b,c,d]
+      L1 = 2*a+26*b+8*c+18*d
+      F1 = 5*a^3-9*a^2*b+3*a*b^2-b^3-6*a^2*c+12*a*b*c-6*b*c^2+2*c^3+3*b^2*d+
+            12*b*c*d-6*c^2*d-3*b*d^2+6*c*d^2-3*d^3
+      L2 = 2*a+8*b+32*c+26*d
+      F2 = 5*a^3-6*a^2*b+2*b^3-9*a^2*c+12*a*b*c-12*b^2*c+3*a*c^2+18*b*c^2-
+          10*c^3-9*a^2*d+12*a*b*d-6*b^2*d+6*a*c*d+
+          12*b*c*d-6*c^2*d+3*a*d^2-d^3
+    Text
+      Currently, the following call would not terminate quickly:
+    Pre
+      result = findEquivalence({L1, F1}, {L2, F2})
+    Text
+      Instead we run through the pipeline by hand, using
+    Example
+      (A, phi) = genericLinearMap RQ
+      H1 = det hessian F1
+      H2 = det hessian F2
+      sing1 = trim saturate(ideal H1 + ideal jacobian H1)
+      sing2 = trim saturate(ideal H2 + ideal jacobian H2)
+      comps1 = (decompose sing1)/trim;
+      comps2 = (decompose sing2)/trim;
+      MD = idealsByBetti(comps1, comps2)
+      MD1 = (selectLinear MD) | matchingData{L1 => L2, F1 => F2}
+      MDall = MD | matchingData{L1 => L2, F1 => F2}
+      tryEquivalences(MD1, RQ, (A,phi))
+      tryEquivalences(MDall, RQ, (A,phi))
+      MD = (selectLinear singularMatches(H1, H2)) | matchingData{L1 => L2, F1 => F2}
+      tryEquivalences(MD, RQ, (A,phi))
+      Js = equivalenceIdeals(MD, RQ, (A,phi))
+
+      (A, phi) = genericLinearMap RQ
+      H1 = det hessian F1
+      H2 = det hessian F2
+      MD = (selectLinear singularMatches(H1, H2)) | matchingData{L1 => L2, F1 => F2}
+      tryEquivalences(MD, RQ, (A,phi))
+      Js = equivalenceIdeals(MD, RQ, (A,phi))
   SeeAlso
     findEquivalence
     MatchingData
@@ -1291,6 +1372,8 @@ TEST ///
 
   findEquivalence({L1, F1}, {L2, F2})
   findEquivalence({L3, F3}, {L2, F2})
+
+  findEquivalence({L1, F1}, {L3, F3})
   
   FT1 = factorsByType det hessian F1
   FT2 = factorsByType det hessian F2
