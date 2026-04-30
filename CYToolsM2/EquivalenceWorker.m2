@@ -99,6 +99,7 @@ claimItem = () -> (
 -- Processing logic
 -- =============================================
 
+
 -- Process a single item file.
 -- Returns (refinedPartition, indeterminatePairs).
 --
@@ -125,7 +126,7 @@ processItem = (filepath, Xs, findEquiv, timeLimit) -> (
 
             result := null;
             if timeLimit > 0 then (
-                try alarm timeLimit;
+                alarm timeLimit;
                 try (
                     result = findEquiv(repI, repJ, Xs);
                 ) then (
@@ -189,6 +190,7 @@ runWorker = {TimeLimit => 0} >> opts -> (Xs, findEquiv) -> (
     if WorkDir === null then error "Call setupWorkDir first";
     count := 0;
     timeLimit := opts.TimeLimit;
+    << "time limit: " << timeLimit << " seconds" << endl;
     while true do (
         claimed := claimItem();
         if claimed === null then (
@@ -246,10 +248,14 @@ createTodoItems = (items, prefix) -> (
     if WorkDir === null then error "Call setupWorkDir first";
     for item in items do (
         (name, partition) := item;
-        filename := TodoDir | "/" | prefix | "-" | toString name | ".m2";
+        filename := if #partition === 1 then (
+                        DoneDir | "/" | prefix | "-" | toString name | ".m2")
+                    else (
+                        TodoDir | "/" | prefix | "-" | toString name | ".m2");
         writePartition(filename, partition);
     );
-    << "Created " << #items << " todo items." << endl;
+    nsingles := # select(items, x -> #x#1 === 1);
+    << "Created " << (#items - nsingles) << " todo items and " << nsingles << " done items" << endl;
 )
 
 -- Show status of the work queue.

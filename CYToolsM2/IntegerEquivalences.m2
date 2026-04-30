@@ -14,6 +14,7 @@ export {
     -- by hand interface
     "equivalenceIdeal",
     "factorsByType",
+    "factorType",
     "idealsByBetti",
     "genericLinearMap", -- genericLinearMap(R).  Constructs two new rings, T, U, a matrix A over T nxn, n = numgens R, and phi = map(U, U, transpose A).
     "invertibleMatrixOverZZ",
@@ -361,6 +362,13 @@ factorsByType RingElement := HashTable => F -> (
     hashTable for k in keys H list k => for x in H#k list x_2
     )   
 
+factorType = method()
+factorType RingElement := HashTable => F -> (
+    fac1 := factorsByType F;
+    keys1 := sort select(keys fac1, k -> k =!= {1,0});
+    hashTable for k in keys1 list k => #fac1#k
+    )
+
 idealsByBetti = method()
 idealsByBetti(List, List) := MatchingData => (J1s, J2s) -> (
     H1 := partition(J -> betti gens J, J1s);
@@ -479,6 +487,43 @@ findEquivalence(List, List) := (LF1, LF2) -> (
     --     (result, result2)
     --     )
     -- else result
+    )
+
+findEquivalenceHessianSingularities = method()
+findEquivalenceHessianSingularities(List, List) := (LF1, LF2) -> (
+    (L1, F1) := toSequence LF1;
+    (L2, F2) := toSequence LF2;
+    R := ring L1;
+    -- TODO: check that R is the ring of all 4 of these.
+    -- TODO: check that coefficient ring is ZZ, QQ, finite field, or what else is allowed?
+    RQ := R;
+    toRQ := identity;
+    if coefficientRing R === ZZ then (
+        RQ = QQ (monoid R); -- change ZZ to QQ, leave finite fields alone.
+        toRQ = map(RQ, R, vars RQ);
+        );
+    L1 = toRQ L1;
+    L2 = toRQ L2;
+    F1 = toRQ F1;
+    F2 = toRQ F2;
+    (A, phi) := genericLinearMap RQ;
+    md := hessianMatches(F1, F2);
+    if true then (
+        H1 := det hessian F1;
+        H2 := det hessian F2;
+        singH1 := ideal H1 + ideal jacobian H1;
+        singH2 := ideal H2 + ideal jacobian H2;
+        comps1 := (decompose singH1)/trim;
+        comps2 := (decompose singH2)/trim;
+        MDh := idealsByBetti(comps1, comps2);
+        md = md | MDh;
+        );
+    md = md | matchingData {L1 => L2};
+    if true then (
+        linmd := (selectLinear md) | matchingData{F1 => F2};
+        result := tryEquivalences(linmd, RQ, (A,phi));
+        return result;
+        );
     )
 
 beginDocumentation()

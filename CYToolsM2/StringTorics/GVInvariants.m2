@@ -67,6 +67,33 @@ gvInput = (moriGenerators, heftval, GLSM, intersectionnums, degreelimit, prec) -
     concatenate between("\n", {str1, toString {}, str3, str4, toString {}, str5, str6})
     )
 
+-*
+callRawGVCompute = method(Options => {
+        FilePrefix => "", -- will go away once internal level code works, unless we want to write them to disk...
+        Mori => {},
+        LightConeCurves => {},
+        Grading => {},
+        GLSMCharges => {},
+        NefPartition => {},
+        IntersectionNumbers => {},
+        InputSettings => null
+        })
+callRawGVCompute(List) := opts -> mori -> (
+    -- OK, now we have computed everything we need.  Write it to a file
+    grading := ops.Grading; --  transpose degrees ring V
+    intersectionnums := opts.IntersectionNumbers;
+    infile := opts.FilePrefix | "-input";
+    outfile := opts.FilePrefix | "-output";
+    infile << gvInput(mori, heft, grading, intersectionnums,
+        opts.DegreeLimit, opts.Precision) << close;
+    inputLine := opts.Executable | " <" | infile | " >" | outfile;
+    print inputLine;
+    run inputLine;
+    -- Get the output, package as a hash table
+    (lines get outfile)/value//hashTable
+    )
+*-
+
 filenameCounter := 0; -- TODO: not used? or change to use it?
 
 -- TODO: use findProgram/runProgram to get this...
@@ -199,39 +226,6 @@ partitionGVConeByGV(CYToolsCY3, ZZ) := HashTable => opts -> (X, D) -> (
     (gv, C) := gvInvariantsAndCone(X, D, opts);
     gvX := entries transpose rays C;
     partition(f -> if gv#?f then gv#f else 0, gvX)
-    )
-
--- TODO: move to Topology.m2? file?
-findLinearMaps = method()
-findLinearMaps(HashTable, HashTable) := List => (gv1, gv2) -> (
-    -- gv1, gv2: result of partitionGVConeByGV
-    if sort keys gv1 =!= sort keys gv2 then return {};
-    for k in keys gv1 do if #gv1#k =!= #gv2#k then return {};
-    for k in keys gv1 do if #gv1#k >= 7 then return {}; -- do not waste time (1) trying to separate these?
-    n := # (first values gv1)_0; -- we should check if all the values are lists of integers of this size.
-    t := symbol t;
-    T := QQ[t_(1,1)..t_(n,n)];
-    M := genericMatrix(T, n, n);
-    -- now we make the ideals for each key, and each permutation.
-    ids := for k in keys gv1 list (
-        perms := permutations(#gv1#k);
-        mat1 := transpose matrix gv1#k;
-        mat2 := transpose matrix gv2#k;
-        for p in perms list (
-            I := trim ideal (M * mat1 - mat2_p); 
-            if I == 1 then continue else I
-            )
-        );
-    topval := ids/(x -> #x - 1);
-    zeroval := ids/(x -> 0);
-    fullIdeals := for a in zeroval .. topval list (
-        J := trim sum for i from 0 to #ids-1 list ids#i#(a#i);
-        if J == 1 then continue else J
-        );
-    Ms := for i in fullIdeals list M % i;
-    --newMs := select(Ms, m -> (d := det m; d == 1 or d == -1));
-    --if any(newMs, m -> support m =!= {}) then << "some M is not reduced to a constant" << endl;
-    Ms
     )
 
 gvRay(HashTable, List, ZZ, List) := opts -> (GVHash, C, deglimit, degvector) -> (

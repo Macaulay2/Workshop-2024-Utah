@@ -298,7 +298,99 @@ separateByGV = method(Options => {DegreeLimit => 15})
 --         }
 --     )
 
+-- TODO: replace using MatchingData and IntegerEquivalences.
+findLinearMaps = method()
+findLinearMaps(HashTable, HashTable) := List => (gv1, gv2) -> (
+    -- gv1, gv2: result of partitionGVConeByGV
+    if sort keys gv1 =!= sort keys gv2 then return {};
+    for k in keys gv1 do if #gv1#k =!= #gv2#k then return {};
+    for k in keys gv1 do if #gv1#k >= 7 then return {}; -- do not waste time (1) trying to separate these?
+    n := # (first values gv1)_0; -- we should check if all the values are lists of integers of this size.
+    t := symbol t;
+    T := QQ[t_(1,1)..t_(n,n)];
+    M := genericMatrix(T, n, n);
+    -- now we make the ideals for each key, and each permutation.
+    ids := for k in keys gv1 list (
+        perms := permutations(#gv1#k);
+        mat1 := transpose matrix gv1#k;
+        mat2 := transpose matrix gv2#k;
+        for p in perms list (
+            I := trim ideal (M * mat1 - mat2_p); 
+            if I == 1 then continue else I
+            )
+        );
+    topval := ids/(x -> #x - 1);
+    zeroval := ids/(x -> 0);
+    fullIdeals := for a in zeroval .. topval list (
+        J := trim sum for i from 0 to #ids-1 list ids#i#(a#i);
+        if J == 1 then continue else J
+        );
+    Ms := for i in fullIdeals list M % i;
+    --newMs := select(Ms, m -> (d := det m; d == 1 or d == -1));
+    --if any(newMs, m -> support m =!= {}) then << "some M is not reduced to a constant" << endl;
+    Ms
+    )
+
+-- NOT tested yet
+findEquivalenceByGV = method(Options => {DegreeLimit => 15})
+findEquivalenceByGV(Sequence, Sequence, HashTable, HashTable) := opts -> (lab1, lab2, Xs, GVs)  -> (
+    GV1 := GVs#lab1;
+    GV2 := GVs#lab2;
+    if GV1 === null or GV2 === null then return (INDETERMINATE, null); -- might be non-favorables...
+    X1 := Xs#lab1;
+    X2 := Xs#lab2;
+    Ms := findLinearMaps(GV1, GV2);
+    if Ms === {} then return (INDETERMINATE, null); -- can't combine, but they could still be equivalent...
+    Ms = for m in Ms list try lift(m, ZZ) else continue;
+    Ms = select(Ms, m -> (d := det m; d === 1 or d === -1));
+    isIsos := Ms/(m -> mapIsIsomorphism(m, X1, X2));
+    if any(isIsos, x -> x == true) then (
+        mi := position(isIsos, x -> x == true);
+        return (CONSISTENT, Ms#mi)
+        )
+    else
+        return (INDETERMINATE, null)
+    )
+
+-- NOT tested yet
 combineBucketByGV = method(Options => {DegreeLimit => 15})
+combineBucketByGV(List, HashTable) := opts -> (bucket, Xs) -> (
+    n := #bucket;
+    if n <= 1 then return bucket;
+    groups := new MutableList from bucket;
+    representatives := bucket/first;
+    GVs := hashTable for lab in representatives list lab => partitionGVConeByGV(Xs#lab, opts);
+    for i from 0 to n-1 do (
+        if groups#i === null then continue;
+        lab1 := groups#i#0; -- first element on each list (and it doesn't have a corresponding matrix.
+        for j from i+1 to n-1 do (
+            if groups#j === null then continue;
+            lab2 := groups#j#0;
+            (stat, M) := findEquivalenceByGV(lab1, lab2, Xs, GVs);
+            if stat === CONSISTENT then (
+                --M = M;
+                newEntries1 := {{lab2, M}};
+                newEntries2 := for x in drop(groups#j, 1) list {x#0,  x#1 * M};
+                << "combining groups " << lab1 << " and " << lab2 << endl;
+                if #(groups#j) > 1 then (
+                    << "MERGING GROUPS" << endl;
+                    for x in newEntries2 do (
+                        if not isEquivalent(Xs#lab1, Xs#(x#0), x#1) then
+                          error "non-equivalent pair";
+                        );
+                    );
+                groups#i = join(groups#i, newEntries1, newEntries2);
+                groups#j = null;
+                );
+            -- if not consistent, do nothing, and continue.
+            )
+        );
+    -- now combine these new buckets.
+    for x in groups list if x === null then continue else x -- is this correct? or {x} ?
+    )
+
+-- HOPEFULLY OBSOLETE AFTER TODAY
+-*
 combineBucketByGV(List, HashTable) := opts -> (Ls, Xs) -> (
     if #Ls === 1 then Ls
     else (
@@ -315,6 +407,7 @@ combineBucketByGV(List, HashTable) := opts -> (Ls, Xs) -> (
 --        if #(keys P) > 1 then error "debug me";
         newlist
     ))
+*-
 
 combineByGV = method(Options => {DegreeLimit => 15})
 combineByGV TopologySet := opts -> T -> (
