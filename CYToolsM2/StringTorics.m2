@@ -986,18 +986,19 @@ restart
   uninstallAllPackages()
 
 restart
-  installPackage "IntegerEquivalences" -- works, lots of warnings
-  installPackage "DanilovKhovanskii"
+  installPackage "IntegerEquivalences" -- works, lots of warnings, 1 failure 4/30/2026
+  installPackage "DanilovKhovanskii" -- 1 failure 4/30/2026
   installPackage "PALPInterface"
   elapsedTime installPackage "StringTorics"  -- 44.4909s elapsed TODO: improve this!
-    -- now 60.4s on 26 Jan 2026.
+    -- now 60.4s on 26 Jan 2026, now 69 sec, 4/30/26.
   
-  check IntegerEquivalences -- 8 checks, finishes to completion, 1 takes 6.6 sec
+  check IntegerEquivalences -- 8 checks, finishes to completion, 1 takes 6.6 sec (now it takes 9.7 sec 4/30/2026)
   check "DanilovKhovanskii" -- 10 checks, finishes, 3 take some time (3.9sec, 4.9sec, 16.5 sec).  One test error (#8) (hmmm, I see 9 checks, not 10...)
     -- the error is because we use ReflexivePolytope...
   time check "StringTorics" -- used 53.257s (cpu); 23.9121s (thread); 0s (gc) (one uses 5 sec, 6.6 sec, 4.5 sec, 4.1 sec)) Now 68 sec... 
   elapsedTime check "StringTorics" -- 39.87 sec.  
     -- currently: 43 tests, finishes to completion.  Longest test: 6.2 sec
+    -- 4/30/2026: affineCircuits doesn't exist: renamed to flipCandidates in Triangulations.m2
     -- however, one test seems to connect to KS database.
 
 restart
