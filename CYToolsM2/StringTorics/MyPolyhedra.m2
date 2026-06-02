@@ -9,6 +9,26 @@
 --   polar P -- used often
 --   dim P -- used often
 
+-- These are not exported yet...  They should appear elsewhere?
+boundedLatticePoints = method(Options => {
+        Bound => null,
+        Limit => null,
+        NodeLimit => 100000 -- set higher if you get an error.
+        })
+boundedLatticePoints(Matrix, Matrix) := Matrix => opts -> (A, b) -> (
+    -- Input: A (m x n) represents a cone {x : Ax <= b} in RR^n, A, b, are integral
+    -- Ouput: B (n x N) N is the number of lattice points, B is over ZZ.
+    matrix map(ZZ, rawLatticePoints(raw A, raw b, opts.Bound, opts.Limit, opts.NodeLimit))
+    )
+
+normalizLatticePoints = method()
+-- (A, b) represents the polytope Ax <= b, I believe (that is, we translate this to what normaliz uses.
+normalizLatticePoints(Matrix, Matrix) := Matrix => (A, b) -> (
+    matrix map(ZZ, rawLatticePointsNormaliz(raw A, raw b))
+    )
+
+
+
 -- Our plan: stash into a Polyhedron, the information here
 protect TCILatticePointList
 protect TCIVertexList
@@ -232,6 +252,8 @@ automorphisms = method()
 automorphisms Polyhedron := P -> isomorphisms(P, P)
 
 ///
+-- This is code to test where things stand for speed.
+-- TODO: update this to include the latest lattice point code.
   restart
   debug needsPackage "StringTorics"
   topes = kreuzerSkarke 3;
@@ -316,8 +338,154 @@ automorphisms Polyhedron := P -> isomorphisms(P, P)
   vertexList P
   annotatedFaces P
   isomorphisms(Q,Q)
-
-  
 ///
+
+-*
+restart
+needsPackage "StringTorics"
+*-
+TEST /// -- lattice points of a polytope, Nate MacFadden's code.
+  H = matrix{{1, 1}, {-1, 0}, {0, -1}}
+  rhs = transpose matrix {{1,1,1}}
+  LP0 = boundedLatticePoints(H, rhs, Bound => 10, Limit => 10000)
+
+  -- check this against Polyhedra
+  P = polyhedronFromHData(H, rhs)
+  LPofP = matrix{latticePoints P}
+  assert(set entries transpose LP0 === set entries transpose LPofP)
+///  
+
+-*
+restart
+needsPackage "StringTorics"
+*-
+TEST ///
+  ks = KSEntry "4 15  M:41 15 N:11 9 H:6,36 [-60] id:100
+         1   0   0   0   0   0   2  -1  -1  -2   2   1  -2  -2   0
+         0   1   0   0   0   0  -1   2  -1   2  -2  -2   1   0  -2
+         0   0   1   1  -1  -1  -1  -1   2  -1  -1   0   0   1   1
+         0   0   0   2  -2   0  -1  -1   2   0  -2  -2   2   2   0
+         "
+  Q = reflexivePolytope ks
+  transpose matrix vertices Q
+  Q' = polar Q
+
+  -- objects to test and compare:
+  -- Player #1: polytope polar to ks, with 11 vertices, 15 halfplane constraints
+  P1 = polytope Q
+  (first facets P1) * (vertices P1)
+    assert(max flatten entries oo == 1)
+  assert(numrows first facets P1 == 15)
+
+  -- the following is tested against Polyhedra below.
+  (A, b) = facets P1
+  A = lift(A, ZZ)
+  rhs = lift(b, ZZ)
+  LP0 = boundedLatticePoints(A, rhs, Bound => 10, Limit => 10000)
+  
+  -- Player #2: A polytope constructed from facets directly.
+  (A, b) = facets P1
+  A = lift(A, ZZ)
+  b = lift(b, ZZ)
+  P2 = polyhedronFromHData(A, b)
+  P1 == P2
+  assert(vertices P2 === vertices P1)
+  LP2 = entries transpose matrix{latticePoints P2}
+  LP1 = entries transpose matrix{latticePoints P1}
+  assert(LP2 === LP1)
+
+  -- Now let's check that the lattice points of P2 match the new code.
+  A * matrix LP0
+    assert(max flatten entries(A * LP0) == 1)
+  LP2 = matrix {latticePoints P1}
+  assert(set entries transpose LP0 == set entries transpose LP2)
+
+  -- d=4 dilation
+  LP2d4 = matrix{latticePoints(4*P1)}
+  LP0d4 = boundedLatticePoints(A, 4*rhs, Bound => 20, Limit => 10000)
+  numcols LP0d4
+  assert(set entries transpose LP2d4 === set entries transpose LP0d4)
+  assert(numcols LP0d4 == 611)
+///
+
+-*
+restart
+needsPackage "StringTorics"
+*-
+TEST ///
+  ks = KSEntry "4 9  M:11 9 N:58 14 H:50,6 [88] id:300
+    1   -1    0    0    0    1    0   -1    2
+    0    0    1    0   -1   -1    0    0   -1
+    0    0    0    1   -1    0    0    1   -1
+    0    0    0    0    0    0    1   -1    0
+    "
+
+  Q = reflexivePolytope ks
+  P1 = polytope Q
+  (first facets P1) * (vertices P1)
+    assert(max flatten entries oo == 1)
+  assert(numrows first facets P1 == 9)
+  elapsedTime latticePoints Q
+
+  -- Construct Ax <= b directly from P1.
+  (A, b) = facets P1
+  A = lift(A, ZZ)
+  b = lift(b, ZZ)
+  P2 = polyhedronFromHData(A, b)
+  assert(P1 == P2)
+  assert(vertices P2 === vertices P1)
+  LP2 = entries transpose matrix{latticePoints P2}
+  LP1 = entries transpose matrix{latticePoints P1}
+  assert(LP2 === LP1)
+
+  LP0 = boundedLatticePoints(A, b, Bound => 10, Limit => 10000)
+  assert(max flatten entries(A * LP0) == 1)
+  LP2 = matrix {latticePoints P1}
+  assert(set entries transpose LP0 == set entries transpose LP2)
+
+  elapsedTime LP1d = boundedLatticePoints(A, 5*b, Bound => 31*3, Limit => 100000);
+  assert(numcols LP1d === 10026) -- the number is what the following line gives.
+  -- elapsedTime matrix{latticePoints(5*P1)}; -- 11.7 sec too long! (2 June 2026).
+///
+
+-*
+restart
+needsPackage "StringTorics"
+*-
+TEST /// -- of rawFourierMotzkin, vs FourierMotzkin package.
+  debug Core -- for rawFourierMotzkin, raw.
+  needsPackage "FourierMotzkin"
+
+  ks = KSEntry "4 9  M:11 9 N:58 14 H:50,6 [88] id:300
+    1   -1    0    0    0    1    0   -1    2
+    0    0    1    0   -1   -1    0    0   -1
+    0    0    0    1   -1    0    0    1   -1
+    0    0    0    0    0    0    1   -1    0
+    "
+  A = matrix ks
+  A1 = A || matrix{{9:1}}
+
+  B1 = rays dualCone posHull A1 -- dualCone is B1 s.t. (transpose A1) * A1 >= 0
+  assert all(flatten entries ((transpose A1) * B1), a -> a >= 0)
+
+  B1' = - first fourierMotzkin A1 -- columns of B1' are the same as columns of B1 (up to order)
+  assert(set entries transpose B1 === set entries transpose B1')
+
+  B1'' = - transpose map(ZZ, rawFourierMotzkin raw transpose A1)
+  assert(set entries transpose B1 === set entries transpose B1'')
+
+  A = matrix ks
+  A1 = (A | A) || matrix{{18:1}}
+
+  B1 = rays dualCone posHull A1 -- dualCone is B1 s.t. (transpose A1) * A1 >= 0
+  (transpose A1) * B1
+
+  B1' = - first fourierMotzkin A1 -- columns of B1' are the same as columns of B1 (up to order)
+  assert(set entries transpose B1 === set entries transpose B1')
+
+  B1'' = - transpose map(ZZ, rawFourierMotzkin raw transpose A1)
+  assert(set entries transpose B1 === set entries transpose B1'')
+///
+
 end--
 

@@ -40,6 +40,16 @@ export {
     "GVTable",
     "CY3",
 
+    ---------------------------------------------------------------------------
+    -- polyhedral and cone utilities (avoiding slower routines in Polyhedra. --
+    -- These will likely move to another package). ----------------------------
+    ---------------------------------------------------------------------------
+    "boundedLatticePoints",
+    "latticePointsNormaliz",
+    -- options for these
+    "Bound",
+    "NodeLimit",
+    
     -- ReflexivePolytope
     "reflexivePolytope",
     "reflexive" => "reflexivePolytope", -- TODO: a synonym, or just the same behavior?
@@ -147,8 +157,11 @@ export {
     "partitionGVConeByGV",
     "classifyExtremalCurves",
     "extremalRayGVs",
+    "GVs", -- field in GVTable hash table
+    "MoriConeCap",
 
     -- new gv code, maybe replace previous ones?  (Except: need to be able to handle extremal curves faster?)
+    "gvInvariantsNew", -- TODO: rename this as gvInvariants...
     "gvByRay", -- should this be private?
     "gvTable",
     "gvRays",
@@ -306,6 +319,12 @@ export {
 hasAttribute = value Core#"private dictionary"#"hasAttribute";
 getAttribute = value Core#"private dictionary"#"getAttribute";
 ReverseDictionary = value Core#"private dictionary"#"ReverseDictionary";
+
+-- The following is to access currently private engine routines
+-- The code is in MyPolyhedra.m2 (currently).
+protect Bound
+protect NodeLimit
+importFrom_"Core" { "rawGVInvariants", "raw", "rawLatticePoints", "rawLatticePointsNormaliz" }
 
 ------------------------------------
 -- New types -----------------------

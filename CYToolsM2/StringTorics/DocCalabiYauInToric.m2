@@ -150,10 +150,10 @@ doc ///
       He does this by analyzing the possible singularities, and showing that
       the singularities of $V$ must be canonical singularities.  This means points.
       $X$ is then taken to miss these finite number of points, and
-      by base-point-free-ness, there can be no further sinularities of $X$.
+      by base-point-free-ness, there can be no further singularities of $X$.
     Text
       This package defines two related types of objects: @TO ReflexivePolytope@,
-      which encodes the reflexive polytpoe above, and also includes information
+      which encodes the reflexive polytope above, and also includes information
       that is contstant across triangulations (e.g. Picard group, basis for it,
       information about the polytope, etc).  The second is {\tt CalabiYauInToric},
       which includes the triangulation, equations, computation of cohomology,
