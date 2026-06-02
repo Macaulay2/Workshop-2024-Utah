@@ -1,7 +1,7 @@
 -*
-  restart
-  needsPackage "StringTorics"
-  -- TODO: modify to work
+restart
+needsPackage "StringTorics"
+-- TODO: modify to work
 *-
 ///
   -- CYPolytope's
@@ -301,9 +301,9 @@ TEST ///
   AmatH = Amat || matrix{{8:1}}
   naiveIsTriangulation(AmatH, max tri) -- this should be false...? TODO: this is a bug!!
   assert not topcomIsTriangulation(AmatH, max tri) -- good! it complains that the index sets are not full dimensional (I think that is good?)
-  
-  assert(affineCircuits tri == affineCircuits(Amat, max tri))
-  for x in affineCircuits tri list bistellarFlip(tri, x)
+
+  assert(flipCandidates tri == flipCandidates(Amat, max tri))
+  for x in flipCandidates tri list bistellarFlip(tri, x)
   neighbors tri
   
   generateTriangulations tri
@@ -468,8 +468,8 @@ TEST ///
   assert topcomIsTriangulation(Amat, TRI)
   assert naiveIsTriangulation(Amat, TRI)
 
-  -- let's check 'affineCircuits'
-  C = affineCircuits(Amat, TRI)  
+  -- let's check 'flipCandidates'
+  C = flipCandidates(Amat, TRI)  
   4! * volumeVector(Amat, TRI)
   bistellarFlip(TRI, C_0) === null
   bistellarFlip(TRI, C_1) === null
@@ -734,7 +734,7 @@ TEST ///
   T = max V -- triangulation
   -- is this list correct, or do we need to "homogenize 'pts'?
   annotatedFaces polar P
-  ac = select(affineCircuits(pts,T), x -> #x#0 > 1 and #x#1 > 1)
+  ac = select(flipCandidates(pts,T), x -> #x#0 > 1 and #x#1 > 1)
   ac = unique(ac/sort//sort)
   netList oo
   volumeVector(pts, T)
@@ -746,7 +746,7 @@ TEST ///
   isRegularTriangulation(pts,T)
   isRegularTriangulation(pts,T1)
   triS = new MutableHashTable from {T=>true}
-  ac = select(affineCircuits(pts,T), x -> #x#0 > 1 and #x#1 > 1)
+  ac = select(flipCandidates(pts,T), x -> #x#0 > 1 and #x#1 > 1)
   newT = for a in ac list (t := flip(T,a); if t === null then continue else t)
   Ts = join({T},newT)
   Ts/(t -> volumeVector(pts,t))/sum
@@ -1203,7 +1203,7 @@ TEST /// -- medium size (h^11 = 15) example
   elapsedTime regularSubdivision(A, matrix{wts}) -- this is slower than we would like
   assert(oo == tri) -- both oo, tri should be already sorted.
 
-  circs = affineCircuits(A, tri)
+  circs = flipCandidates(A, tri)
   circs0 = select(circs, x -> not member(numcols A - 1, flatten x))  
   for c in circs0 list bistellarFlip(tri, c)
   bistellarFlip(tri, circs0_1)
@@ -1662,9 +1662,145 @@ TEST ///
   partitionGVConeByGV(X, DegreeLimit => 10)
   partitionGVConeByGV(X, DegreeLimit => 20)
   hilbertBasis gvCone(X, DegreeLimit => 20)
-  gv = gvInvariants(X, DegreeLimit => 20);
+  gv = gvInvariantsNew(X, DegreeLimit => 20);
+
+  -- test of gvInvariants
+  debug StringTorics  
+  intersectionnums = for t in intersectionNumbersOfCY(V, basisIndices Q) list append(t#0, t#1);
+  mori = hilbertBasisGenerators toricMoriCone(V, basisIndices Q)
+  heftfcn = sum entries transpose rays dualCone posHull transpose matrix mori
+  curvedegs = for c in mori list dotProduct(c, heftfcn)
+  assert all(curvedegs, w -> w > 0)
+  
+  H = gvInvariantsNew(V, basisIndices Q, DegreeLimit => 10)
+  for k in H.GVs list dotProduct(k#0, heft H)
+  assert all(oo, d -> d > 0)
+
+  H2 = gvInvariantsNew(X, DegreeLimit => 10)
+  assert(H === H2)
+  degreeLimit H2
+  heft H2
+  keys H2
+  hashTable H2.GVs
+
+  rays H2
 ///  
 
+-*
+  restart
+  needsPackage "StringTorics"
+*-  
+TEST ///
+  topes = kreuzerSkarke(3, Limit => 50);    
+  Q = cyPolytope(topes_30, ID => 30)
+  Ts = findAllFRSTs Q
+  RZ = ZZ[a,b,c]
+  Xs = for i from 0 to #Ts-1 list calabiYau(Q, Ts#i, ID => i, Ring => RZ)
+  assert(#Xs == #Ts)
+  X = Xs#0
+
+  debug StringTorics
+  elapsedTime H2 = gvInvariantsNew(X, DegreeLimit => 12);
+  degreeLimit H2
+  heft H2
+
+  rays H2
+  displayRays(H2, "OneOnly" => true)
+
+  elapsedTime (gvc, degs) = gvCone H2;
+  rays gvc, degs
+  elapsedTime assert(numcols rays gvc == 3)
+  assert(set entries transpose rays gvc === set {{-1,-1,0}, {0,1,0}, {1,0,1}})
+///  
+
+
+-*
+  restart
+  needsPackage "StringTorics"
+*-  
+"TEST" -- this test computes the GV invariants of all h11=3 CY3's in Batryev cases.
+///
+  DB3 = databaseLOC | "/cy3-h11-3.dbm"
+  RZ = ZZ[a,b,c]
+  (Qs, Xs) = readCYDatabase(DB3, Ring => RZ);
+
+  -- for lab in sort keys Xs list (
+  --   << lab << endl;
+  --   try gvInvariants(Xs#lab, DegreeLimit => 10) then lab else continue
+  --   )
+  -- set keys Xs - set oo
+
+  debug StringTorics
+  elapsedTime for lab in sort keys Xs list lab => (
+      -- if lab === (115, 0) then (
+      --     << "skipping (115,0)\n";
+      --     continue;
+      --     );
+      -- here we test all of the cases.
+      X := Xs#lab;
+      if not isFavorable X then continue;
+      gvt := gvInvariantsNew(X, DegreeLimit => 20);
+
+      (C, degs) := gvCone gvt;
+      << lab << "  " << rays C << " and degs " << degs << endl;
+      -- what to test here about gvt?
+      --curveclasses = gvt/first;
+      --assert all(moric, c -> dotProduct(c, degvec) > 0);
+      --degs = apply(curveclasses, c -> dotProduct(c, degvec));
+      --assert all(degs, d -> d > 0);
+      );
+  -- What to test here?
+///
+
+-*
+  restart
+  needsPackage "StringTorics"
+*-  
+"TEST" -- this test computes the GV cone for (165,0) in the h11=3 KS database.
+///
+  debug StringTorics
+  DB3 = databaseLOC | "/cy3-h11-3.dbm"
+  RZ = ZZ[a,b,c]
+  (Qs, Xs) = readCYDatabase(DB3, Ring => RZ);
+
+  X = Xs#(165,0)
+  assert isFavorable X
+  gvt = gvInvariantsNew(X, DegreeLimit => 80);
+  gvt
+  displayRays gvt
+  
+  (C, degs) = gvCone gvt;
+///
+
+-*
+  restart
+  needsPackage "StringTorics"
+*-  
+"TEST" -- this test computes the GV invariants of all h11=4 CY3's in Batryev cases.
+///
+  DB4 = databaseLOC | "/cy3-h11-4.dbm"
+  RZ = ZZ[a,b,c,d]
+  (Qs, Xs) = readCYDatabase(DB4, Ring => RZ);
+
+  elapsedTime for lab in sort keys Xs list (
+    --<< lab << endl;
+    try gvInvariants(Xs#lab, DegreeLimit => 10) then lab else continue
+    )
+  -- set keys Xs - set oo
+
+  debug StringTorics
+  elapsedTime for lab in sort keys Xs list lab => (
+      -- here we test all of the cases.
+      X := Xs#lab;
+      if not isFavorable X then continue;
+      (gvs, degvec, moric) := gvInvariantsNew(X, DegreeLimit => 8);
+      assert all(moric, c -> dotProduct(c, degvec) > 0);
+      curveclasses = gvs/first;
+      degs = apply(curveclasses, c -> dotProduct(c, degvec));
+      assert all(degs, d -> d > 0);
+      ); -- 21.1 sec currently, the loop above takes 106 seconds.
+  -- What to test here?
+///
 
 -*
   restart
@@ -1922,4 +2058,17 @@ TEST ///
 
   elapsedTime Q = convexHull transpose matrix latticePointList P2
   
+///
+
+
+-*
+  restart
+  needsPackage "StringTorics"
+*-
+TEST /// -- test of creating "vex" triangulations
+
+-- i.e. triangulations of (the vector configuration of) a
+-- (complete) fan, vs a triangulations of the polytope
+
+-- Let's start with all h11=2 examples 
 ///

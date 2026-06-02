@@ -34,8 +34,8 @@ doc ///
           TO GVTable,
           TO (gvTable, CalabiYauInToric),
           TO (gvTable, HashTable),
-          TO (gvRays, GVTable),
-          TO (gvRay, GVTable, List)
+          TO (gvRays, GVTable)
+--          TO (gvRay, GVTable, List)
       }@
     Text
       @SUBSECTION "Extremal curve classification"@
@@ -369,7 +369,7 @@ doc ///
 doc ///
   Key
     gvRay
-    (gvRay, GVTable, List)
+--    (gvRay, GVTable, List)
     (gvRay, CY3, List)
     (gvRay, CalabiYauInToric, List)
     (gvRay, HashTable, List, ZZ, List)
