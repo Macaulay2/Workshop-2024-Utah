@@ -819,7 +819,7 @@ for k in keys Qs list (
       tri1 = triangulation(transpose matrix rays Q, tri)
       isFine tri1
       isRegularTriangulation tri1 -- code in Topcom crashes...
-      
+      isRegularTriangulation(tri1, Strategy => Topcom)      
       first1 = regularFineTriangulation A
       tris = generateTriangulations(first1, Limit => 1000); -- hmm, gives 15...
       stars = select(tris, isStar)

@@ -148,11 +148,11 @@
 
   get "!chiro2circuits <topcomfoo.in"
   circuits cQ
-  circs = affineCircuits(transpose matrix rays Q, tri)
+  circs = flipCandidates(transpose matrix rays Q, tri)
 
   bistellarFlip(tri, circs_3)
   T = triangulation(transpose matrix rays Q, tri)
-  affineCircuits(transpose matrix rays Q, tri)
+  flipCandidates(transpose matrix rays Q, tri)
   debugLevel = 1
   newtris = generateTriangulations(T, Limit => 200, Homogenize => false)
   newtris = generateTriangulations(transpose matrix rays Q, tri, Limit => 200, Homogenize => false)

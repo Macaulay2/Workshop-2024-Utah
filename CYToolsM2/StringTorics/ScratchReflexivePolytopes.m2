@@ -9,9 +9,9 @@ generateTriangulations Triangulation := opts -> T -> (
     while #TODO > 0 and #(keys allT) < opts.Limit do (
         nextTRI := TODO#0;
         TODO = drop(TODO,1);
-        --flips := affineCircuits nextTRI;
-        --flips := select(affineCircuits nextTRI, z -> #z#0 > 1 and #z#1 > 1);
-        flips := select(affineCircuits nextTRI, z -> #z#0 > 1 or #z#1 > 1);
+        --flips := flipCandidates nextTRI;
+        --flips := select(flipCandidates nextTRI, z -> #z#0 > 1 and #z#1 > 1);
+        flips := select(flipCandidates nextTRI, z -> #z#0 > 1 or #z#1 > 1);
         fliptris := for f in flips list bistellarFlip(nextTRI, f);
         newT := select(fliptris, x -> x =!= null);
         for T in newT do (
@@ -35,9 +35,9 @@ generateTriangulations(Matrix, List) := opts -> (Amat, tri) -> (
     while #TODO > 0 and #(keys allT) < opts.Limit do (
         nextTRI := TODO#0;
         TODO = drop(TODO,1);
-        --flips := affineCircuits nextTRI;
-        --flips := select(affineCircuits nextTRI, z -> #z#0 > 1 and #z#1 > 1);
-        flips := select(affineCircuits(Amat, tri), z -> #z#0 > 1 and #z#1 > 1);
+        --flips := flipCandidates nextTRI;
+        --flips := select(flipCandidates nextTRI, z -> #z#0 > 1 and #z#1 > 1);
+        flips := select(flipCandidates(Amat, tri), z -> #z#0 > 1 and #z#1 > 1);
         fliptris := for f in flips list bistellarFlip(nextTRI, f);
         newT := select(fliptris, x -> x =!= null);
         for T in newT do (

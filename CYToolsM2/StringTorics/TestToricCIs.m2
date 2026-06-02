@@ -1,7 +1,8 @@
-TEST ///
 -*
   restart
+  needsPackage "StringTorics"
 *-
+TEST ///
   debug needsPackage "StringTorics" -- remove 'debug'
   -- Let's consider smooth toric surfaces.
   for i from 0 to 4 list (
@@ -26,11 +27,12 @@ TEST ///
   c2Form X
 ///
 
-TEST ///
 -*
-restart
+  restart
+  needsPackage "StringTorics"
 *-
-  debug needsPackage "StringTorics" -- remove 'debug'
+TEST ///
+  debug needsPackage "StringTorics" -- remove 'debug', used for linearForm.
 
   -*    -- code to generate this example
     topes = kreuzerSkarke(3, Limit => 50);
@@ -63,10 +65,21 @@ restart
   chern_2 tangentBundle abstractVariety D
 
   L = OO_X(1,1,2)
-  assert(hh^* L == {8, 17, 0, 0}) -- TODO: recheck these numbers!
+  assert(hh^* L == {4, 15, 0, 0})
   assert(variety L === X)
   assert(degree L == {1,1,2})
 
+  S = ring V
+  M = S^1/(ideal equations X) ** S^{{1,1,2}}
+  rank HH^0(V, sheaf M) == 4
+  --elapsedTime rank HH^1(V, sheaf M) -- takes a long time...
+  --elapsedTime rank HH^2(V, sheaf M) == 0 -- 61 sec
+  elapsedTime rank HH^3(V, sheaf M) == 0 -- quick
+  -- can we get the euler characteristic of this?
+  euler OO_V(1,1,2) -- -11
+  euler OO_V(-3,-3,0) -- 0
+  -- euler L (on X) is -11.  So we can deduce rank HH^1(V, sheaf M) == 15.
+  
   -- TODO: ADD BACK IN once DanilovKhovanskii more functional
   -- needsPackage "DanilovKhovanskii"
   -- computeHodgeDeligne(-toricDivisor V)
@@ -78,10 +91,11 @@ restart
 
 ///
 
-TEST ///
 -*
-restart
+  restart
+  needsPackage "StringTorics"
 *-
+TEST ///
   debug needsPackage "StringTorics" -- remove 'debug'
   V = kleinschmidt(3, {2,1}, CoefficientRing => ZZ/101)
   rays V
@@ -94,5 +108,5 @@ restart
   hh^*(OO_X(0,0)) == {1, 0, 1}
   F = first equations X
   saturate(ideal F + ideal jacobian F, ideal V) -- X is smooth
-  -- hh^*(OO_V(-1,3)) -- ouch!  needs to work...
+  hh^*(OO_V(-1,3)) -- ouch!  needs to work...
 ///
