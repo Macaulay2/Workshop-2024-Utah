@@ -22,7 +22,6 @@ export {
     "normalForm",
     "runPoly", -- TODO: change name, or remove this function, once we understand output of PALP better.
     "runNEF",
-    "Hodge",
     "Normal",
     "weightSystemPolytope"
     }
@@ -209,6 +208,7 @@ TEST ///
 ///
 
 TEST ///
+  needsPackage "ReflexivePolytopesDB"
   --needsPackage "QuillenSuslin"
   --A = ZZ[x]
   --completeMatrix matrix(A, {{6,10,3*26, 3*39}})
@@ -360,7 +360,7 @@ nefPartitions Matrix := M -> (
     -- M should be the matrix whose columns are vertices of the reflexive polytope in N lattice.
     
     )
-getPolyhedralInfo = method(Options => {Hodge => true, Normal => false})
+getPolyhedralInfo = method(Options => {Normal => false})
 getPolyhedralInfo Matrix := opts -> M -> (
     -- idea: create the matrix of M.
     -- create the call to PALP
